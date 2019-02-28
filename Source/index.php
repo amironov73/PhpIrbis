@@ -29,7 +29,7 @@ echo '<p>БЕТОН</p>';
 echo '<p>' . implode(', ', $found) . '</p>';
 
 $record = $connection->readRecord(123);
-echo '<p>' . implode('<br/>', $record) . '</p>';
+echo '<p>' .  $record->mfn . ' => ' . count($record->fields)  . '</p>';
 
 $terms = $connection->readTerms("K=");
 echo '<p>' . implode('<br/>', $terms) . '</p>';

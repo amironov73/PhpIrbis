@@ -1,5 +1,244 @@
 <?php
 
+//
+// Простой клиент для АБИС ИРБИС64.
+//
+
+/**
+ * Подполе записи. Состоит из кода и значения.
+ */
+class SubField {
+    public $code, $value;
+
+    function decode($line) {
+        $this->code = $line[0];
+        $this->value = substr($line, 1);
+    }
+
+    function encode() {
+        return '^' . $this->code . $this->value;
+    }
+}
+
+/**
+ * Поле записи. Состоит из тега и (опционального) значения.
+ * Может содержать произвольное количество подполей.
+ */
+class RecordField {
+    public $tag, $value;
+    public $subfields = array();
+
+    function decode($line) {
+        $this->tag = strtok($line, "#");
+        $body = strtok('');
+
+        if ($body[0] == '^') {
+            $this->value = '';
+            $all = explode('^', $body);
+        }
+        else {
+            $this->value = strtok($body, '^');
+            $all = explode('^', strtok(''));
+        }
+
+        foreach ($all as $one) {
+            if (!empty($one)) {
+                $sf = new SubField();
+                $sf->decode($one);
+                array_push($this->subfields, $sf);
+            }
+        }
+    }
+
+    function encode() {
+        $result = $this->tag . '#' . $this->value;
+
+        foreach ($this->subfields as $sf) {
+            $result .= $sf->encode();
+        }
+
+        return $result;
+    }
+}
+
+/**
+ * Запись. Состоит из произвольного количества полей.
+ */
+class MarcRecord {
+    public $database, $mfn, $version, $status;
+    public $fields = array();
+
+    function decode($lines) {
+        // mfn and status of the record
+        $firstLine = explode('#', $lines[0]);
+        $this->mfn = intval($firstLine[0]);
+        $this->status = intval($firstLine[1]);
+
+        // version of the record
+        $secondLine = explode('#', $lines[1]);
+        $this->version = intval($secondLine[1]);
+        $lines = array_slice($lines, 2);
+
+        // fields
+        foreach ($lines as $line) {
+            $field = new RecordField();
+            $field->decode($line);
+            array_push($this->fields, $field);
+        }
+    }
+
+    function encode() {
+        $result = $this->mfn . '#' . $this->status . "\x1F\x1E"
+            . '0#' . $this->version . "\x1F\x1E";
+
+        foreach ($this->fields as $field) {
+            $result .= ($field->encode() . "\x1F\x1E");
+        }
+
+        return $result;
+    }
+}
+
+/**
+ * Пара строк в меню.
+ */
+class MenuEntry {
+    public $code, $comment;
+}
+
+/**
+ * Файл меню. Состоит из пар строк (см. MenuEntry).
+ */
+class MenuFile {
+    public $entries = array();
+
+    function getEntry($code) {
+        return false;
+    }
+
+    function getValue($code) {
+        return false;
+    }
+
+    function parse($lines) {
+        // TODO implement
+    }
+}
+
+/**
+ * Строка INI-файла. Состоит из ключа
+ * и (опционального значения).
+ */
+class IniLine {
+    public $key, $value;
+}
+
+/**
+ * Секция INI-файла. Состоит из строк
+ * (см. IniLine).
+ */
+class IniSection {
+    public $lines = array();
+}
+
+/**
+ * INI-файл. Состоит из секций (см. IniSection).
+ */
+class IniFile {
+    public $sections = array();
+}
+
+/**
+ * Информация о базе данных ИРБИС.
+ */
+class DatabaseInfo {
+    public $name, $description, $maxMfn;
+    public $logicallyDeletedRecords;
+    public $physicallyDeletedRecords;
+    public $nonActualizedRecords;
+    public $lockedRecords;
+    public $databaseLocked, $readOnly;
+
+    function parse($lines) {
+        // TODO implement
+    }
+}
+
+/**
+ * Информация о запущенном на ИРБИС-сервере процессе.
+ */
+class ProcessInfo {
+    public $number, $ipAddress, $name,
+        $clientId, $workstation, $started,
+        $lastCommand, $commandNumber,
+        $processId, $state;
+
+    function parse($lines) {
+        // TODO implement
+    }
+}
+
+/**
+ * Информация о версии ИРБИС-сервера.
+ */
+class VersionInfo {
+    public $organization;
+    public $version;
+    public $maxClients;
+    public $connectedClients;
+}
+
+/**
+ * Информация о клиенте, подключенном к серверу ИРБИС
+ * (не обязательно о текущем).
+ */
+class ClientInfo {
+    public $number;
+    public $ipAddress;
+    public $port;
+    public $name;
+    public $id;
+    public $workstation;
+    public $registered;
+    public $acknowledged;
+    public $lastCommand;
+    public $commandNumber;
+}
+
+/**
+ * Информация о зарегистрированном пользователе системы
+ * (по данным client_m.mnu).
+ */
+class UserInfo {
+    public $number;
+    public $name;
+    public $password;
+    public $cataloger;
+    public $reader;
+    public $circulation;
+    public $acquisitions;
+    public $provision;
+    public $administrator;
+}
+
+/**
+ * Данные для команды TableCommand
+ */
+class TableDefinition {
+    public $database;
+    public $table;
+    public $headers = array();
+    public $mode;
+    public $searchQuery;
+    public $minMfn;
+    public $maxMfn;
+    public $sequentialQuery;
+    public $mfnList;
+}
+
+/**
+ * Подключение к ИРБИС-серверу.
+ */
 class IrbisConnection {
     public $host = '127.0.0.1', $port = 6666;
     public $username = '', $password = '';
@@ -163,6 +402,19 @@ class IrbisConnection {
         return true;
     }
 
+    function readMenu($specification) {
+        $text = $this->readTextFile($specification);
+        if (!$text) {
+            return false;
+        }
+
+        $lines = explode("\x1F\x1E", $text);
+        $result = new MenuFile();
+        $result->parse($lines);
+
+        return $result;
+    }
+
     function readRecord($mfn) {
         if (!$this->connected) {
             return false;
@@ -174,8 +426,11 @@ class IrbisConnection {
         $packet = $this->encode($packet);
 
         $answer = $this->execute($packet);
+        $answer = array_slice($answer, 11);
+        $result = new MarcRecord();
+        $result->decode($answer);
 
-        return array_slice($answer, 11);
+        return $result;
     }
 
     function readTerms($startTerm, $numberOfTerms=10) {
