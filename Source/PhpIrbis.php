@@ -4,18 +4,30 @@
 // Простой клиент для АБИС ИРБИС64.
 //
 
+function isNullOrEmpty($text) {
+    return (!isset($text) || $text == false || trim($text) == '');
+}
+
+function irbisToDos($text) {
+    return str_replace("\x1F\x1E", "\n", $text);
+}
+
+function irbisToLines($text) {
+    return explode("\x1F\x1E", $text);
+}
+
 /**
  * Подполе записи. Состоит из кода и значения.
  */
 class SubField {
     public $code, $value;
 
-    function decode($line) {
+    public function decode($line) {
         $this->code = $line[0];
         $this->value = substr($line, 1);
     }
 
-    function encode() {
+    public function __toString() {
         return '^' . $this->code . $this->value;
     }
 }
@@ -28,7 +40,7 @@ class RecordField {
     public $tag, $value;
     public $subfields = array();
 
-    function decode($line) {
+    public function decode($line) {
         $this->tag = strtok($line, "#");
         $body = strtok('');
 
@@ -50,11 +62,11 @@ class RecordField {
         }
     }
 
-    function encode() {
+    public function __toString() {
         $result = $this->tag . '#' . $this->value;
 
         foreach ($this->subfields as $sf) {
-            $result .= $sf->encode();
+            $result .= $sf;
         }
 
         return $result;
@@ -68,7 +80,7 @@ class MarcRecord {
     public $database, $mfn, $version, $status;
     public $fields = array();
 
-    function decode($lines) {
+    public function decode(array $lines) {
         // mfn and status of the record
         $firstLine = explode('#', $lines[0]);
         $this->mfn = intval($firstLine[0]);
@@ -87,12 +99,12 @@ class MarcRecord {
         }
     }
 
-    function encode() {
+    public function __toString() {
         $result = $this->mfn . '#' . $this->status . "\x1F\x1E"
             . '0#' . $this->version . "\x1F\x1E";
 
         foreach ($this->fields as $field) {
-            $result .= ($field->encode() . "\x1F\x1E");
+            $result .= ($field . "\x1F\x1E");
         }
 
         return $result;
@@ -104,6 +116,10 @@ class MarcRecord {
  */
 class MenuEntry {
     public $code, $comment;
+
+    public function __toString() {
+        return $this->code . ' - ' . $this->comment;
+    }
 }
 
 /**
@@ -112,16 +128,28 @@ class MenuEntry {
 class MenuFile {
     public $entries = array();
 
-    function getEntry($code) {
-        return false;
-    }
-
-    function getValue($code) {
-        return false;
-    }
-
-    function parse($lines) {
+    public function getEntry($code) {
         // TODO implement
+        return false;
+    }
+
+    public function getValue($code) {
+        // TODO implement
+        return false;
+    }
+
+    public function parse(array $lines) {
+        // TODO implement
+    }
+
+    public function __toString() {
+        $result = '';
+
+        foreach ($this->entries as $entry) {
+            $result .= ($entry . PHP_EOL);
+        }
+
+        return $result;
     }
 }
 
@@ -131,6 +159,10 @@ class MenuFile {
  */
 class IniLine {
     public $key, $value;
+
+    public function __toString() {
+        return $this->key . ' = ' . $this->value;
+    }
 }
 
 /**
@@ -138,7 +170,18 @@ class IniLine {
  * (см. IniLine).
  */
 class IniSection {
+    public $name = '';
     public $lines = array();
+
+    public function __toString() {
+        $result = '[' . $this->name . ']' . PHP_EOL;
+
+        foreach ($this->lines as $line) {
+            $result .= ($line . PHP_EOL);
+        }
+
+        return $result;
+    }
 }
 
 /**
@@ -146,6 +189,27 @@ class IniSection {
  */
 class IniFile {
     public $sections = array();
+
+    public function parse(array $lines) {
+        // TODO implement
+    }
+
+    public function __toString() {
+        $result = '';
+        $first = true;
+
+        foreach ($this->sections as $section) {
+            if (!$first) {
+                $result .= PHP_EOL;
+            }
+
+            $result .= $section;
+
+            $first = false;
+        }
+
+        return $result;
+    }
 }
 
 /**
@@ -159,8 +223,12 @@ class DatabaseInfo {
     public $lockedRecords;
     public $databaseLocked, $readOnly;
 
-    function parse($lines) {
+    public function parse(array $lines) {
         // TODO implement
+    }
+
+    public function __toString() {
+        return $this->name;
     }
 }
 
@@ -173,8 +241,12 @@ class ProcessInfo {
         $lastCommand, $commandNumber,
         $processId, $state;
 
-    function parse($lines) {
+    public function parse(array $lines) {
         // TODO implement
+    }
+
+    public function __toString() {
+        return $this->name;
     }
 }
 
@@ -186,6 +258,14 @@ class VersionInfo {
     public $version;
     public $maxClients;
     public $connectedClients;
+
+    public function parse(array $lines) {
+        // TODO implement
+    }
+
+    public function __toString() {
+        return $this->version;
+    }
 }
 
 /**
@@ -203,6 +283,14 @@ class ClientInfo {
     public $acknowledged;
     public $lastCommand;
     public $commandNumber;
+
+    public function parse(array $lines) {
+        // TODO implement
+    }
+
+    public function __toString() {
+        return $this->ipAddress;
+    }
 }
 
 /**
@@ -219,6 +307,14 @@ class UserInfo {
     public $acquisitions;
     public $provision;
     public $administrator;
+
+    public function parse(array $lines) {
+        // TODO implement
+    }
+
+    public function __toString() {
+        return $this->name;
+    }
 }
 
 /**
@@ -234,6 +330,317 @@ class TableDefinition {
     public $maxMfn;
     public $sequentialQuery;
     public $mfnList;
+
+    public function __toString() {
+        return $this->table;
+    }
+}
+
+/**
+ * Статистика работы ИРБИС-сервера.
+ */
+class ServerStat {
+    public $runningClients = array();
+    public $clientCount = 0;
+    public $totalCommandCount = 0;
+
+    public function parse(array $lines) {
+        // TODO implement
+    }
+
+    public function __toString() {
+        // TODO implement
+        return '';
+    }
+}
+
+/**
+ * Параметры для запроса постингов с сервера.
+ */
+class PostingParameters {
+    /**
+     * @var string База данных.
+     */
+    public $database = '';
+
+    /**
+     * @var int Номер первого постинга.
+     */
+    public $firstPosting = 1;
+
+    /**
+     * @var string Формат.
+     */
+    public $format = '';
+
+    /**
+     * @var int Требуемое количество постингов.
+     */
+    public $numberOfPostings = 0;
+
+    /**
+     * @var string Терм.
+     */
+    public $term = '';
+
+    /**
+     * @var array Список термов.
+     */
+    public $listOfTerms = array();
+}
+
+/**
+ * Параметры для запроса термов с сервера.
+ */
+class TermParameters {
+    /**
+     * @var string Имя базы данных.
+     */
+    public $database = '';
+
+    /**
+     * @var int Количество считываемых термов.
+     */
+    public $numberOfTerms = 0;
+
+    /**
+     * @var bool Возвращать в обратном порядке.
+     */
+    public $reverseOrder = false;
+
+    /**
+     * @var string Начальный терм.
+     */
+    public $startTerm = '';
+
+    /**
+     * @var string Формат.
+     */
+    public $format = '';
+}
+
+/**
+ * Параметры для поиска записей.
+ */
+class SearchParameters {
+    /**
+     * @var string Имя базы данных.
+     */
+    public $database = '';
+
+    /**
+     * @var int Индекс первой требуемой записи.
+     */
+    public $firstRecord = 1;
+
+    /**
+     * @var string Формат для расформатирования записей.
+     */
+    public $format = '';
+
+    /**
+     * @var int Максимальный MFN.
+     */
+    public $maxMfn = 0;
+
+    /**
+     * @var int Минимальный MFN.
+     */
+    public $minMfn = 0;
+
+    /**
+     * @var int Общее число требуемых записей.
+     */
+    public $numberOfRecords = 0;
+
+    /**
+     * @var string Выражение для поиска по словарю.
+     */
+    public $expression = '';
+
+    /**
+     * @var string Выражение для последовательного поиска.
+     */
+    public $sequential = '';
+
+    /**
+     * @var string Выражение для локальной фильтрации.
+     */
+    public $filter = '';
+
+    /**
+     * @var bool Признак кодировки UTF-8.
+     */
+    public $isUtf = false;
+
+    /**
+     * @var bool Признак вложенного вызова.
+     */
+    public $nested = false;
+}
+
+/**
+ * Клиентский запрос.
+ */
+class ClientQuery {
+    private $accumulator = '';
+
+    public function __construct(IrbisConnection $connection, $command) {
+        $this->addAnsi($command)->newLine();
+        $this->addAnsi($connection->arm)->newLine();
+        $this->addAnsi($command)->newLine();
+        $this->addAnsi($connection->clientId)->newLine();
+        $this->addAnsi($connection->queryId)->newLine();
+        $this->addAnsi($connection->password)->newLine();
+        $this->addAnsi($connection->username)->newLine();
+        $this->newLine();
+        $this->newLine();
+        $this->newLine();
+    }
+
+    public function add($value) {
+        $this->addAnsi(strval($value));
+
+        return $this;
+    }
+
+    public function addAnsi($value) {
+        $converted = mb_convert_encoding($value, 'Windows-1251');
+        $this->accumulator .= $converted;
+
+        return $this;
+    }
+
+    public function addUtf($value) {
+        $this->accumulator .= $value;
+
+        return $this;
+    }
+
+    public function newLine() {
+        $this->accumulator .= chr(10);
+
+        return $this;
+    }
+
+    public function __toString() {
+        return strlen($this->accumulator) . chr(10) . $this->accumulator;
+    }
+}
+
+/**
+ * Ответ сервера.
+ */
+class ServerResponse {
+    public $command = '';
+    public $clientId = 0;
+    public $queryId = 0;
+    public $returnCode = 0;
+
+    private $answer;
+    private $offset;
+    private $answerLength;
+
+    public function __construct($socket) {
+        $this->answer = '';
+        while ($buf = socket_read($socket, 2048)) {
+            $this->answer .= $buf;
+        }
+        $this->offset = 0;
+        $this->answerLength = strlen($this->answer);
+
+        $this->command = $this->readAnsi();
+        $this->clientId = $this->readInteger();
+        $this->queryId = $this->readInteger();
+        for ($i=0; $i < 7; $i++) {
+            $this->readAnsi();
+        }
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function checkReturnCode() {
+        if ($this->getReturnCode() < 0) {
+            throw new Exception();
+        }
+    }
+
+    public function getLine() {
+        $result = '';
+        while ($this->offset < $this->answerLength) {
+            $symbol = $this->answer[$this->offset];
+            $this->offset++;
+
+            if ($symbol == chr(13)) {
+                if ($this->answer[$this->offset] == chr(10)) {
+                    $this->offset++;
+                }
+                break;
+            }
+
+            $result .= $symbol;
+        }
+
+        return $result;
+    }
+
+    public function getReturnCode() {
+        $this->returnCode = $this->readInteger();
+        return $this->returnCode;
+    }
+
+    public function readAnsi() {
+        $result = $this->getLine();
+        $result = mb_convert_encoding($result, mb_internal_encoding(), 'Windows-1251');
+
+        return $result;
+    }
+
+    public function readInteger() {
+        $line = $this->getLine();
+
+        return intval($line);
+    }
+
+    public function readRemainingAnsiLines() {
+        $result = array();
+
+        while($this->offset < $this->answerLength) {
+            $line = $this->readAnsi();
+            array_push($result, $line);
+        }
+
+        return $result;
+    }
+
+    public function readRemainingAnsiText() {
+        $result = substr($this->answer, $this->offset);
+        $result = mb_convert_encoding($result, mb_internal_encoding(), 'Windows-1251');
+
+        return $result;
+    }
+
+    public function readRemainingUtfLines() {
+        $result = array();
+
+        while($this->offset < $this->answerLength) {
+            $line = $this->readUtf();
+            array_push($result, $line);
+        }
+
+        return $result;
+    }
+
+    public function readRemainingUtfText() {
+        $result = substr($this->answer, $this->offset);
+
+        return $result;
+    }
+
+    public function readUtf() {
+        return $this->getLine();
+    }
 }
 
 /**
@@ -243,28 +650,41 @@ class IrbisConnection {
     public $host = '127.0.0.1', $port = 6666;
     public $username = '', $password = '';
     public $database = 'IBIS', $arm = 'C';
+    public $clientId = 0;
+    public $queryId = 0;
 
     private $connected = false;
-    private $queryId;
-    private $clientId;
 
     //================================================================
 
-    function actualizeRecord($databaseName, $mfn) {
+    /**
+     * Актуализация записи с указанным MFN.
+     *
+     * @param string $database Имя базы данных.
+     * @param integer $mfn MFN, подлежащий актуализации.
+     * @return bool
+     * @throws Exception
+     */
+    public function actualizeRecord($database, $mfn) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('F');
-        $packet = $packet . "\n" . $databaseName;
-        $packet = $packet . "\n" . $mfn;
-        $packet = $this->encode($packet);
-
-        $this->execute($packet);
+        $query = new ClientQuery($this, 'F');
+        $query->addAnsi($database)->newLine();
+        $query->add($mfn)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
 
         return true;
     }
 
+    /**
+     * Подключение к серверу ИРБИС64.
+     *
+     * @return bool
+     * @throws Exception
+     */
     function connect() {
         if ($this->connected) {
             return true;
@@ -272,137 +692,313 @@ class IrbisConnection {
 
         $this->clientId = rand(100000, 900000);
         $this->queryId = 1;
-        $packet = $this->header('A');
-        $packet = $packet . "\n" . $this->username;
-        $packet = $packet . "\n" . $this->password;
-        $packet = $this->encode($packet);
+        $query = new ClientQuery($this, 'A');
+        $query->addAnsi($this->username)->newLine();
+        $query->addAnsi($this->password);
 
-        $answer = $this->execute($packet);
+        $response = $this->execute($query);
+        // TODO обрабатывать код возврата -3337
+        $response->checkReturnCode();
 
         $this->connected = true;
 
         return true;
     }
 
-    function createDatabase($databaseName, $description, $readerAccess) {
+    /**
+     * Создание базы данных.
+     *
+     * @param string $database Имя создаваемой базы.
+     * @param string $description Описание в свободной форме.
+     * @param int $readerAccess Читатель будет иметь доступ?
+     * @return bool
+     * @throws Exception
+     */
+    function createDatabase($database, $description, $readerAccess=1) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('T');
-        $packet = $packet . "\n" . $databaseName;
-        $packet = $packet . "\n" . $description;
-        $packet = $packet . "\n" . $readerAccess;
-        $packet = $this->encode($packet);
-
-        $this->execute($packet);
+        $query = new ClientQuery($this, 'T');
+        $query->addAnsi($database)->newLine();
+        $query->addAnsi($description)->newLine();
+        $query->add($readerAccess)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
 
         return true;
     }
 
-    function createDictionary($databaseName) {
+    /**
+     * Создание словаря в указанной базе данных.
+     *
+     * @param string $database Имя базы данных.
+     * @return bool
+     * @throws Exception
+     */
+    public function createDictionary($database) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('Z');
-        $packet = $packet . "\n" . $databaseName;
-        $packet = $this->encode($packet);
-
-        $this->execute($packet);
+        $query = new ClientQuery($this, 'Z');
+        $query->addAnsi($database)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
 
         return true;
     }
 
-    function deleteDatabase($databaseName) {
+    /**
+     * Удаление указанной базы данных.
+     *
+     * @param string $database Имя удаляемой базы данных.
+     * @return bool
+     * @throws Exception
+     */
+    public function deleteDatabase($database) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('W');
-        $packet = $packet . "\n" . $databaseName;
-        $packet = $this->encode($packet);
-
-        $this->execute($packet);
+        $query = new ClientQuery($this, 'W');
+        $query->addAnsi($database)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
 
         return true;
     }
 
-    function disconnect() {
+    /**
+     * Удаление записи по её MFN.
+     *
+     * @param integer $mfn MFN удаляемой записи.
+     * @throws Exception
+     */
+    public function deleteRecord($mfn) {
+        $record = $this->readRecord($mfn);
+        $record->status |= 1;
+        $this->writeRecord($record);
+    }
+
+    /**
+     * Отключение от сервера.
+     *
+     * @return bool
+     */
+    public function disconnect() {
         if (!$this->connected) {
             return true;
         }
 
-        $packet = $this->header('B');
-        $packet = $packet . "\n" . $this->username;
-        $packet = $this->encode($packet);
-
-        $answer = $this->execute($packet);
-
+        $query = new ClientQuery($this, 'B');
+        $query->addAnsi($this->username);
+        $this->execute($query);
         $this->connected = false;
 
         return true;
     }
 
-    function formatRecord($format, $mfn) {
+    /**
+     * Форматирование записи с указанным MFN.
+     *
+     * @param string $format Текст формата
+     * @param integer $mfn MFN записи
+     * @return bool|string
+     * @throws Exception
+     */
+    public function formatRecord($format, $mfn) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('G');
-        $packet = $packet . "\n" . $this->database;
-        $packet = $packet . "\n" . $format;
-        $packet = $packet . "\n" . '1';
-        $packet = $packet . "\n" . $mfn;
-        $packet = $this->encode($packet);
+        $query = new ClientQuery($this, 'G');
+        $query->addAnsi($this->database)->newLine();
+        // TODO использовать prepareFormat
+        $query->addAnsi($format)->newLine();
+        $query->add(1)->newLine();
+        $query->add($mfn)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $result = $response->readRemainingUtfText();
 
-        $answer = $this->execute($packet);
-
-        return $answer[11];
+        return $result;
     }
 
-    function getMaxMfn($databaseName) {
+    /**
+     * Получение информации о базе данных.
+     *
+     * @param string $database Имя базы данных.
+     * @return bool|DatabaseInfo
+     */
+    public function getDatabaseInfo($database) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('O');
-        $packet = $packet . "\n" . $databaseName;
-        $packet = $this->encode($packet);
+        // TODO implement
 
-        $answer = $this->execute($packet);
-
-        return intval($answer[10]);
+        return new DatabaseInfo();
     }
 
-    function listFiles($specification) {
+    /**
+     * Получение максимального MFN для указанной базы данных.
+     *
+     * @param string $database Имя базы данных.
+     * @return bool|integer
+     * @throws Exception
+     */
+    public function getMaxMfn($database) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('!');
-        $packet = $packet . "\n" . $specification;
-        $packet = $this->encode($packet);
+        $query = new ClientQuery($this, 'O');
+        $query->addAnsi($database);
+        $response = $this->execute($query);
+        $response->checkReturnCode();
 
-        $answer = $this->execute($packet);
-
-        return array_slice($answer, 10);
+        return $response->returnCode;
     }
 
-    function noOp() {
+    /**
+     * Получение статистики с сервера.
+     *
+     * @return bool|ServerStat
+     * @throws Exception
+     */
+    public function getServerStat() {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('N');
-        $packet = $this->encode($packet);
+        $query = new ClientQuery($this, '+1');
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $result = new ServerStat();
+        $result->parse($response->readRemainingAnsiLines());
 
-        $this->execute($packet);
+        return $result;
+    }
+
+    /**
+     * Получение версии сервера.
+     *
+     * @return bool|VersionInfo
+     * @throws Exception
+     */
+    public function getServerVersion() {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, '1');
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $result = new VersionInfo();
+        $result->parse($response->readRemainingAnsiLines());
+
+        return $result;
+    }
+
+    /**
+     * Получение списка пользователей с сервера.
+     *
+     * @return array|bool
+     * @throws Exception
+     */
+    public function getUserList() {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, '+9');
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+
+        // TODO implement
+
+        return array();
+    }
+
+    /**
+     * Получение списка баз данных с сервера.
+     *
+     * @param string $specification Спецификация файла со списком баз.
+     * @return array|bool
+     */
+    public function listDatabases($specification) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        // TODO implement
+
+        return array();
+    }
+
+    /**
+     * Получение списка файлов.
+     *
+     * @param string $specification Спецификация.
+     * @return array|bool
+     */
+    public function listFiles($specification) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, '!');
+        $query->addAnsi($specification)->newLine();
+        $response = $this->execute($query);
+
+        $lines = $response->readRemainingAnsiLines();
+        $result = array();
+        foreach ($lines as $line) {
+            $files = irbisToLines($line);
+            foreach ($files as $file) {
+                if (!isNullOrEmpty($file)) {
+                    array_push($result, $file);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Получение списка серверных процессов.
+     *
+     * @return array|bool
+     */
+    public function listProcesses() {
+        if (!$this->connected) {
+            return false;
+        }
+
+        // TODO implement
+
+        return array();
+    }
+
+    /**
+     * Пустая операция (используется для периодического
+     * подтверждения подключения клиента).
+     *
+     * @return bool
+     */
+    public function noOp() {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'N');
+        $this->execute($query);
 
         return true;
     }
 
-    function readMenu($specification) {
+    public function readMenu($specification) {
         $text = $this->readTextFile($specification);
         if (!$text) {
             return false;
@@ -415,197 +1011,358 @@ class IrbisConnection {
         return $result;
     }
 
-    function readRecord($mfn) {
+    /**
+     * Разбор строки подключения.
+     *
+     * @param string $connectionString Строка подключения.
+     */
+    public function parseConnectionString($connectionString) {
+        // TODO implement
+    }
+
+    /**
+     * Расформатирование таблицы.
+     *
+     * @param TableDefinition $definition Определение таблицы
+     * @return bool|string
+     */
+    public function printTable (TableDefinition $definition) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('C');
-        $packet = $packet . "\n" . $this->database;
-        $packet = $packet . "\n" . $mfn;
-        $packet = $this->encode($packet);
+        // TODO implement
 
-        $answer = $this->execute($packet);
-        $answer = array_slice($answer, 11);
+        return '';
+    }
+
+    /**
+     * Чтение указанной записи.
+     *
+     * @param string $mfn MFN записи
+     * @return bool|MarcRecord
+     * @throws Exception
+     */
+    public function readRecord($mfn) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'C');
+        $query->addAnsi($this->database)->newLine();
+        $query->add($mfn)->newLine();
+        $response = $this->execute($query);
+        // TODO добавить разрешенные коды
+        $response->checkReturnCode();
         $result = new MarcRecord();
-        $result->decode($answer);
+        $result->decode($response->readRemainingUtfLines());
 
         return $result;
     }
 
-    function readTerms($startTerm, $numberOfTerms=10) {
+    /**
+     * Загрузка сценариев поиска с сервера.
+     *
+     * @param string $specification Спецификация.
+     * @return array|bool
+     */
+    public function readSearchScenario($specification) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('H');
-        $packet = $packet . "\n" . $this->database;
-        $packet = $packet . "\n" . $startTerm;
-        $packet = $packet . "\n" . $numberOfTerms;
-        $packet = $this->encode($packet);
+        // TODO implement
 
-        $answer = $this->execute($packet);
-
-        return array_slice($answer, 11);
+        return array();
     }
 
-    function readTextFile($specification) {
-        if (!$this->connected) {
-            return false;
-        }
+    /**
+     * Простое получение термов поискового словаря.
+     *
+     * @param string $startTerm Начальный терм.
+     * @param int $numberOfTerms Необходимое количество термов.
+     * @return array|bool
+     */
+    public function readTerms($startTerm, $numberOfTerms=100) {
+        $parameters = new TermParameters();
+        $parameters->startTerm = $startTerm;
+        $parameters->numberOfTerms = $numberOfTerms;
 
-        $packet = $this->header('L');
-        $packet = $packet . "\n" . $specification;
-
-        $answer = $this->execute($packet);
-
-        return $answer[11];
+        return $this->readTermsEx($parameters);
     }
 
-    function reloadDictionary($databaseName) {
+    /**
+     * Получение термов поискового словаря.
+     *
+     * @param TermParameters $parameters Параметры термов.
+     * @return array|bool
+     */
+    public function readTermsEx(TermParameters $parameters) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('Y');
-        $packet = $packet . "\n" . $databaseName;
-        $packet = $this->encode($packet);
+        $command = 'H';
+        if ($parameters->reverseOrder) {
+            $command = 'P';
+        }
 
-        $this->execute($packet);
+        $database = $parameters->database;
+        if (isNullOrEmpty($database)) {
+            $database = $this->database;
+        }
+
+        $query = new ClientQuery($this, $command);
+        $query->addAnsi($database)->newLine();
+        $query->addUtf($parameters->startTerm)->newLine();
+        $query->add($parameters->numberOfTerms)->newLine();
+        $query->addAnsi($parameters->format)->newLine();
+        $response = $this->execute($query);
+        // TODO добавить обработку разрешенных кодов
+        $response->getReturnCode();
+        $result = $response->readRemainingUtfLines();
+
+        return $result;
+    }
+
+    /**
+     * Получение текстового файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return bool|string
+     */
+    public function readTextFile($specification) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'L');
+        $query->addAnsi($specification)->newLine();
+        $response = $this->execute($query);
+        $result = $response->readAnsi();
+        $result = irbisToDos($result);
+
+        return $result;
+    }
+
+    /**
+     * Пересоздание словаря.
+     *
+     * @param string $database База данных.
+     * @return bool
+     */
+    public function reloadDictionary($database) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'Y');
+        $query->addAnsi($database)->newLine();
+        $this->execute($query);
 
         return true;
     }
 
-    function reloadMasterFile($databaseName) {
+    /**
+     * Пересоздание мастер-файла.
+     *
+     * @param string $database База данных.
+     * @return bool
+     */
+    public function reloadMasterFile($database) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('X');
-        $packet = $packet . "\n" . $databaseName;
-        $packet = $this->encode($packet);
-
-        $this->execute($packet);
+        $query = new ClientQuery($this, 'X');
+        $query->addAnsi($database)->newLine();
+        $this->execute($query);
 
         return true;
     }
 
-    function restartServer() {
+    /**
+     * Перезапуск сервера (без утери подключенных клиентов).
+     *
+     * @return bool
+     */
+    public function restartServer() {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('+8');
-        $packet = $this->encode($packet);
-
-        $this->execute($packet);
+        $query = new ClientQuery($this, '+8');
+        $this->execute($query);
 
         return true;
     }
 
-    function search($expression) {
-        if (!$this->connected) {
-            return false;
-        }
+    /**
+     * Простой поиск записей.
+     *
+     * @param string $expression Выражение для поиска по словарю.
+     * @return array|bool
+     * @throws Exception
+     */
+    public function search($expression) {
+        $parameters = new SearchParameters();
+        $parameters->expression = $expression;
 
-        $packet = $this->header('K');
-        $packet = $packet . "\n" . $this->database;
-        $packet = $packet . "\n" . $expression;
-        $packet = $packet . "\n" . '0';
-        $packet = $packet . "\n" . '1';
-        $packet = $this->encode($packet);
-
-        $answer = $this->execute($packet);
-
-        return array_slice($answer, 11);
+        return $this->searchEx($parameters);
     }
 
-    function truncateDatabase($databaseName) {
+    /**
+     * Поиск записей.
+     *
+     * @param SearchParameters $parameters Параметры поиска.
+     * @return array|bool
+     * @throws Exception
+     */
+    public function searchEx(SearchParameters $parameters) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('S');
-        $packet = $packet . "\n" . $databaseName;
-        $packet = $this->encode($packet);
+        $database = $parameters->database;
+        if (isNullOrEmpty($database)) {
+            $database = $this->database;
+        }
 
-        $this->execute($packet);
+        $query = new ClientQuery($this, 'K');
+        $query->addAnsi($database)->newLine();
+        $query->addUtf($parameters->expression)->newLine();
+        $query->add($parameters->numberOfRecords)->newLine();
+        $query->add($parameters->firstRecord)->newLine();
+        // TODO использовать prepareFormat
+        $query->addAnsi($parameters->format)->newLine();
+        $query->addAnsi($parameters->minMfn)->newLine();
+        $query->addAnsi($parameters->maxMfn)->newLine();
+        $query->addAnsi($parameters->sequential)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $result = $response->readRemainingUtfLines();
+
+        return $result;
+    }
+
+    /**
+     * Выдача строки подключения для текущего соединения.
+     *
+     * @return string
+     */
+    public function toConnectionString() {
+        return 'host='     . $this->host
+            . ';port='     . $this->port
+            . ';username=' . $this->username
+            . ';password=' . $this->password
+            . ';database=' . $this->database
+            . ';arm='      . $this->arm . ';';
+    }
+
+    /**
+     * Опустошение указанной базы данных.
+     *
+     * @param string $database База данных.
+     * @return bool
+     */
+    public function truncateDatabase($database) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'S');
+        $query->addAnsi($database)->newLine();
+        $this->execute($query);
 
         return true;
     }
 
-    function unlockDatabase($databaseName) {
+    /**
+     * Разблокирование указанной базы данных.
+     *
+     * @param string $database База данных.
+     * @return bool
+     */
+    public function unlockDatabase($database) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('U');
-        $packet = $packet . "\n" . $databaseName;
-        $packet = $this->encode($packet);
-
-        $this->execute($packet);
+        $query = new ClientQuery($this, 'U');
+        $query->addAnsi($database)->newLine();
+        $this->execute($query);
 
         return true;
     }
 
-    function updateIniFile($lines) {
+    /**
+     * Обновление строк серверного INI-файла
+     * для текущего пользователя.
+     *
+     * @param array $lines Изменённые строки.
+     * @return bool
+     */
+    public function updateIniFile(array $lines) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('8');
-        $packet = $packet . "\n" . implode("\n", $lines);
-        $packet = $this->encode($packet);
-
-        $this->execute($packet);
+        $query = new ClientQuery($this, '8');
+        foreach ($lines as $line) {
+            $query->addAnsi($line)->newLine();
+        }
+        $this->execute($query);
 
         return true;
     }
 
-    function writeRecord($database, $record) {
+    /**
+     * Обновление списка пользователей на сервере.
+     *
+     * @param array $users Список пользователей.
+     * @return bool
+     */
+    public function updateUserList(array $users) {
         if (!$this->connected) {
             return false;
         }
 
-        $packet = $this->header('D');
-        $packet = $packet . "\n" . $database;
-        $packet = $packet . "\n" . '0';
-        $packet = $packet . "\n" . '1';
-        $packet = $packet . "\n" . implode("\n", $record);
-        $packet = $this->encode($packet);
+        // TODO implement
 
-        $this->execute($packet);
+        return true;
+    }
+
+    /**
+     * Сохранение записи на сервере.
+     *
+     * @param MarcRecord $record Запись для сохранения (новая или ранее считанная).
+     * @param int $lockFlag Оставить запись заблокированной?
+     * @param int $actualize Актуализировать словарь?
+     * @return bool
+     */
+    public function writeRecord(MarcRecord $record, $lockFlag=0, $actualize=1) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $database = $record->database;
+        if (!$database) {
+            $database = $this->database;
+        }
+
+        $query = new ClientQuery($this, 'D');
+        $query->addAnsi($database)->newLine();
+        $query->add($lockFlag)->newLine();
+        $query->add($actualize)->newLine();
+        // TODO implement properly
+        $query->addUtf(strval($record));
 
         return true;
     }
 
     //======================================================================
 
-    function header($commandCode) {
-        $packet = implode("\n", array
-            (
-                $commandCode,
-                $this->arm,
-                $commandCode,
-                $this->clientId,
-                $this->queryId,
-                $this->password,
-                $this->username,
-                '',
-                '',
-                ''
-            ));
-
-        return $packet;
-    }
-
-    function encode($packet) {
-        $packet = strlen($packet) . "\n" . $packet;
-
-        return $packet;
-    }
-
-    function execute($packet) {
+    function execute(ClientQuery $query) {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if ($socket === false) {
             return false;
@@ -616,17 +1373,12 @@ class IrbisConnection {
             return false;
         }
 
+        $packet = strval($query);
+        socket_write($socket, $packet, strlen($packet));
+        $response = new ServerResponse($socket);
         $this->queryId++;
 
-        socket_write($socket, $packet, strlen($packet));
-        $answer = '';
-        while ($buf = socket_read($socket, 2048)) {
-            $answer .= $buf;
-        }
-
-        socket_close($socket);
-
-        return explode("\r\n", $answer);
+        return $response;
     }
 
 }

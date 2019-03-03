@@ -1,6 +1,6 @@
 <?php
 
-include 'PhpIrbis.php';
+require_once ('PhpIrbis.php');
 
 $connection = new IrbisConnection();
 $connection->username = '1';
