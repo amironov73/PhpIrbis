@@ -11,6 +11,14 @@ $connection->connect();
 $connection->noOp();
 echo '<p>NO OP</p>';
 
+$version = $connection->getServerVersion();
+echo "<p>Версия: {$version->version} {$version->organization}</p>";
+
+$processes = $connection->listProcesses();
+foreach ($processes as $process) {
+    echo "<p>{$process}</p>";
+}
+
 $maxMfn = $connection->getMaxMfn($connection->database);
 echo "<p>MAX MFN: $maxMfn</p>";
 

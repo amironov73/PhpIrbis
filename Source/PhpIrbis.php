@@ -4,23 +4,234 @@
 // Простой клиент для АБИС ИРБИС64.
 //
 
+/**
+ * Пустая ли данная строка?
+ *
+ * @param string $text Строка для изучения.
+ * @return bool
+ */
 function isNullOrEmpty($text) {
     return (!isset($text) || $text == false || trim($text) == '');
 }
 
+/**
+ * Замена переводов строки с ИРБИСных на обычные.
+ *
+ * @param string $text Текст для замены.
+ * @return mixed
+ */
 function irbisToDos($text) {
     return str_replace("\x1F\x1E", "\n", $text);
 }
 
+/**
+ * Разбивка текста на строки по ИРБИСным разделителям.
+ *
+ * @param string $text Текст для разбиения.
+ * @return array
+ */
 function irbisToLines($text) {
     return explode("\x1F\x1E", $text);
+}
+
+/**
+ * Удаление комментариев из строки.
+ *
+ * @param string $text Текст для удаления комментариев.
+ * @return string
+ */
+function removeComments($text) {
+    if (isNullOrEmpty($text)) {
+        return $text;
+    }
+
+    if (strpos($text, '/*') == false) {
+        return $text;
+    }
+
+    $result = '';
+    $state = '';
+    $index = 0;
+    $length = strlen($text);
+
+    while ($index < $length) {
+        $c = $text[$index];
+
+        switch ($state) {
+            case "'":
+            case '"':
+            case '|':
+                if ($c == $state) {
+                    $state = '';
+                }
+
+                $result .= $c;
+                break;
+
+            default:
+                if ($c == '/') {
+                    if ($index + 1 < $length && $text[$index + 1] == '*') {
+                        while ($index < $length) {
+                            $c = $text[$index];
+                            if ($c == "\r" || $c == "\n") {
+                                $result .= $c;
+                                break;
+                            }
+
+                            $index++;
+                        }
+                    }
+                    else {
+                        $result .= $c;
+                    }
+                }
+                else if ($c == "'" || $c == '""' || $c == '|') {
+                    $state = $c;
+                    $result .= $c;
+                }
+                else {
+                    $result .= $c;
+                }
+                break;
+        }
+
+        $index++;
+    }
+
+    return $result;
+}
+
+/**
+ * Подготовка динамического формата
+ * для передачи на сервер.
+ *
+ * В формате должны отсутствовать комментарии
+ * и служебные символы (например, перевод
+ * строки или табуляция).
+ *
+ * @param string $text Текст для обработки.
+ * @return string
+ */
+function prepareFormat ($text) {
+    $text = removeComments($text);
+    $length = strlen($text);
+    if (!$length) {
+        return $text;
+    }
+
+    $flag = false;
+    for ($i = 0; $i < $length; $i++) {
+        if ($text[$i] < ' ') {
+            $flag = true;
+            break;
+        }
+    }
+
+    if ($flag) {
+        return $text;
+    }
+
+    $result = '';
+    for ($i = 0; $i < $length; $i++) {
+        $c = $text[$i];
+        if ($c >= ' ') {
+            $result .= $c;
+        }
+    }
+
+    return $result;
+}
+
+/**
+ * Получение описания по коду ошибки, возвращенному сервером.
+ *
+ * @param integer $code
+ * @return mixed
+ */
+function describeError($code) {
+    $errors = array (
+        -100 => 'Заданный MFN вне пределов БД',
+        -101 => 'Ошибочный размер полки',
+        -102 => 'Ошибочный номер полки',
+        -140 => 'MFN вне пределов БД',
+        -141 => 'Ошибка чтения',
+        -200 => 'Указанное поле отсутствует',
+        -201 => 'Предыдущая версия записи отсутствует',
+        -202 => 'Заданный термин не найден (термин не существует)',
+        -203 => 'Последний термин в списке',
+        -204 => 'Первый термин в списке',
+        -300 => 'База данных монопольно заблокирована',
+        -301 => 'База данных монопольно заблокирована',
+        -400 => 'Ошибка при открытии файлов MST или XRF (ошибка файла данных)',
+        -401 => 'Ошибка при открытии файлов IFP (ошибка файла индекса)',
+        -402 => 'Ошибка при записи',
+        -403 => 'Ошибка при актуализации',
+        -600 => 'Запись логически удалена',
+        -601 => 'Запись физически удалена',
+        -602 => 'Запись заблокирована на ввод',
+        -603 => 'Запись логически удалена',
+        -605 => 'Запись физически удалена',
+        -607 => 'Ошибка autoin.gbl',
+        -608 => 'Ошибка версии записи',
+        -700 => 'Ошибка создания резервной копии',
+        -701 => 'Ошибка восстановления из резервной копии',
+        -702 => 'Ошибка сортировки',
+        -703 => 'Ошибочный термин',
+        -704 => 'Ошибка создания словаря',
+        -705 => 'Ошибка загрузки словаря',
+        -800 => 'Ошибка в параметрах глобальной корректировки',
+        -801 => 'ERR_GBL_REP',
+        -801 => 'ERR_GBL_MET',
+        -1111 => 'Ошибка исполнения сервера (SERVER_EXECUTE_ERROR)',
+        -2222 => 'Ошибка в протоколе (WRONG_PROTOCOL)',
+        -3333 => 'Незарегистрированный клиент (ошибка входа на сервер) (клиент не в списке)',
+        -3334 => 'Клиент не выполнил вход на сервер (клиент не используется)',
+        -3335 => 'Неправильный уникальный идентификатор клиента',
+        -3336 => 'Нет доступа к командам АРМ',
+        -3337 => 'Клиент уже зарегистрирован',
+        -3338 => 'Недопустимый клиент',
+        -4444 => 'Неверный пароль',
+        -5555 => 'Файл не существует',
+        -6666 => 'Сервер перегружен. Достигнуто максимальное число потоков обработки',
+        -7777 => 'Не удалось запустить/прервать поток администратора (ошибка процесса)',
+        -8888 => 'Общая ошибка'
+    );
+
+    return $errors[$code];
+}
+
+/**
+ * @return array "Хорошие" коды для readRecord.
+ */
+function readRecordCodes() {
+    return array(-201, -600, -602, -603);
+}
+
+class IrbisException extends Exception {
+    public function __construct($message = "",
+                                $code = 0,
+                                Throwable $previous = null) {
+        parent::__construct($message, $code, $previous);
+    }
+
+    public function __toString() {
+        return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
+    }
 }
 
 /**
  * Подполе записи. Состоит из кода и значения.
  */
 class SubField {
-    public $code, $value;
+    /**
+     * @var string Код подполя.
+     */
+    public $code;
+
+    /**
+     * @var string Значение подполя.
+     */
+    public $value;
 
     public function decode($line) {
         $this->code = $line[0];
@@ -236,17 +447,88 @@ class DatabaseInfo {
  * Информация о запущенном на ИРБИС-сервере процессе.
  */
 class ProcessInfo {
-    public $number, $ipAddress, $name,
-        $clientId, $workstation, $started,
-        $lastCommand, $commandNumber,
-        $processId, $state;
+    /**
+     * @var string Просто порядковый номер в списке.
+     */
+    public $number = '';
 
-    public function parse(array $lines) {
-        // TODO implement
+    /**
+     * @var string С каким клиентом взаимодействует.
+     */
+    public $ipAddress = '';
+
+    /**
+     * @var string Логин оператора.
+     */
+    public $name = '';
+
+    /**
+     * @var string Идентификатор клиента.
+     */
+    public $clientId = '';
+
+    /**
+     * @var string Тип АРМ.
+     */
+    public $workstation = '';
+
+    /**
+     * @var string Время запуска.
+     */
+    public $started = '';
+
+    /**
+     * @var string Последняя выполненная
+     * (или выполняемая) команда.
+     */
+    public $lastCommand = '';
+
+    /**
+     * @var string Порядковый номер последней команды.
+     */
+    public $commandNumber = '';
+
+    /**
+     * @var string Индентификатор процесса.
+     */
+    public $processId = '';
+
+    /**
+     * @var string Состояние.
+     */
+    public $state = '';
+
+    public static function parse(array $lines) {
+        $result = array();
+        $processCount = intval($lines[0]);
+        $linesPerProcess = intval($lines[1]);
+        if (!$processCount || !$linesPerProcess) {
+            return $result;
+        }
+
+        $lines = array_slice($lines, 2);
+        for($i = 0; $i < $processCount; $i++) {
+            $process = new ProcessInfo();
+            $process->number        = $lines[0];
+            $process->ipAddress     = $lines[1];
+            $process->name          = $lines[2];
+            $process->clientId      = $lines[3];
+            $process->workstation   = $lines[4];
+            $process->started       = $lines[5];
+            $process->lastCommand   = $lines[6];
+            $process->commandNumber = $lines[7];
+            $process->processId     = $lines[8];
+            $process->state         = $lines[9];
+
+            array_push($result, $process);
+            $lines = array_slice($lines, $linesPerProcess);
+        }
+
+        return $result;
     }
 
     public function __toString() {
-        return $this->name;
+        return "{$this->number} {$this->ipAddress} {$this->name}";
     }
 }
 
@@ -254,13 +536,42 @@ class ProcessInfo {
  * Информация о версии ИРБИС-сервера.
  */
 class VersionInfo {
-    public $organization;
-    public $version;
-    public $maxClients;
-    public $connectedClients;
+    /**
+     * @var string На какое юридическое лицо приобретен сервер.
+     */
+    public $organization = '';
 
+    /**
+     * @var string Собственно версия сервера. Например, 64.2008.1
+     */
+    public $version = '';
+
+    /**
+     * @var int Максимальное количество подключений.
+     */
+    public $maxClients = 0;
+
+    /**
+     * @var int Текущее количество подключений.
+     */
+    public $connectedClients = 0;
+
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Строки с ответом сервера.
+     */
     public function parse(array $lines) {
-        // TODO implement
+        if (count($lines) == 3) {
+            $this->version = $lines[0];
+            $this->connectedClients = intval($lines[1]);
+            $this->maxClients = intval($lines[2]);
+        } else {
+            $this->organization = $lines[0];
+            $this->version = $lines[1];
+            $this->connectedClients = intval($lines[2]);
+            $this->maxClients = intval($lines[3]);
+        }
     }
 
     public function __toString() {
@@ -340,8 +651,20 @@ class TableDefinition {
  * Статистика работы ИРБИС-сервера.
  */
 class ServerStat {
+    /**
+     * @var array Подключенные клиенты.
+     */
     public $runningClients = array();
+
+    /**
+     * @var int Число клиентов, подключенных в текущий момент.
+     */
     public $clientCount = 0;
+
+    /**
+     * @var int Общее количество команд,
+     * исполненных сервером с момента запуска.
+     */
     public $totalCommandCount = 0;
 
     public function parse(array $lines) {
@@ -558,11 +881,16 @@ class ServerResponse {
     }
 
     /**
+     * Проверка кода возврата.
+     *
+     * @param array $goodCodes Разрешенные коды возврата.
      * @throws Exception
      */
-    public function checkReturnCode() {
+    public function checkReturnCode(array $goodCodes=array()) {
         if ($this->getReturnCode() < 0) {
-            throw new Exception();
+            if (!in_array($this->returnCode, $goodCodes)) {
+                throw new IrbisException(describeError($this->returnCode),$this->returnCode);
+            }
         }
     }
 
@@ -592,7 +920,7 @@ class ServerResponse {
 
     public function readAnsi() {
         $result = $this->getLine();
-        $result = mb_convert_encoding($result, mb_internal_encoding(), 'Windows-1251');
+        $result = mb_convert_encoding($result, 'UTF-8', 'Windows-1251');
 
         return $result;
     }
@@ -690,6 +1018,7 @@ class IrbisConnection {
             return true;
         }
 
+    AGAIN:
         $this->clientId = rand(100000, 900000);
         $this->queryId = 1;
         $query = new ClientQuery($this, 'A');
@@ -697,8 +1026,14 @@ class IrbisConnection {
         $query->addAnsi($this->password);
 
         $response = $this->execute($query);
-        // TODO обрабатывать код возврата -3337
-        $response->checkReturnCode();
+        $response->getReturnCode();
+        if ($response->returnCode == -3337) {
+            goto AGAIN;
+        }
+
+        if ($response->returnCode < 0) {
+            return false;
+        }
 
         $this->connected = true;
 
@@ -800,6 +1135,32 @@ class IrbisConnection {
     }
 
     /**
+     * Отправка клиентского запроса на сервер
+     * и получение ответа от него.
+     *
+     * @param ClientQuery $query Клиентский запрос.
+     * @return bool|ServerResponse Ответ сервера.
+     */
+    public function execute(ClientQuery $query) {
+        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        if ($socket === false) {
+            return false;
+        }
+
+        if (!socket_connect($socket, $this->host, $this->port)) {
+            socket_close($socket);
+            return false;
+        }
+
+        $packet = strval($query);
+        socket_write($socket, $packet, strlen($packet));
+        $response = new ServerResponse($socket);
+        $this->queryId++;
+
+        return $response;
+    }
+
+    /**
      * Форматирование записи с указанным MFN.
      *
      * @param string $format Текст формата
@@ -814,8 +1175,8 @@ class IrbisConnection {
 
         $query = new ClientQuery($this, 'G');
         $query->addAnsi($this->database)->newLine();
-        // TODO использовать prepareFormat
-        $query->addAnsi($format)->newLine();
+        $prepared = prepareFormat($format);
+        $query->addAnsi($prepared)->newLine();
         $query->add(1)->newLine();
         $query->add($mfn)->newLine();
         $response = $this->execute($query);
@@ -970,15 +1331,20 @@ class IrbisConnection {
      * Получение списка серверных процессов.
      *
      * @return array|bool
+     * @throws Exception
      */
     public function listProcesses() {
         if (!$this->connected) {
             return false;
         }
 
-        // TODO implement
+        $query = new ClientQuery($this, '+3');
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $lines = $response->readRemainingAnsiLines();
+        $result = ProcessInfo::parse($lines);
 
-        return array();
+        return $result;
     }
 
     /**
@@ -1233,8 +1599,8 @@ class IrbisConnection {
         $query->addUtf($parameters->expression)->newLine();
         $query->add($parameters->numberOfRecords)->newLine();
         $query->add($parameters->firstRecord)->newLine();
-        // TODO использовать prepareFormat
-        $query->addAnsi($parameters->format)->newLine();
+        $prepared = prepareFormat($parameters->format);
+        $query->addAnsi($prepared)->newLine();
         $query->addAnsi($parameters->minMfn)->newLine();
         $query->addAnsi($parameters->maxMfn)->newLine();
         $query->addAnsi($parameters->sequential)->newLine();
@@ -1311,6 +1677,7 @@ class IrbisConnection {
         foreach ($lines as $line) {
             $query->addAnsi($line)->newLine();
         }
+
         $this->execute($query);
 
         return true;
@@ -1359,26 +1726,4 @@ class IrbisConnection {
 
         return true;
     }
-
-    //======================================================================
-
-    function execute(ClientQuery $query) {
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        if ($socket === false) {
-            return false;
-        }
-
-        if (!socket_connect($socket, $this->host, $this->port)) {
-            socket_close($socket);
-            return false;
-        }
-
-        $packet = strval($query);
-        socket_write($socket, $packet, strlen($packet));
-        $response = new ServerResponse($socket);
-        $this->queryId++;
-
-        return $response;
-    }
-
 }
