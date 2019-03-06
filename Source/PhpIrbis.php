@@ -4,6 +4,23 @@
 // Простой клиент для АБИС ИРБИС64.
 //
 
+// Статус записи
+
+const LOGICALLY_DELETED  = 1;  // Запись логически удалена
+const PHYSICALLY_DELETED = 2;  // Запись физически удалена
+const ABSENT             = 4;  // Запись отсутствует
+const NON_ACTUALIZED     = 8;  // Запись не актуализирована
+const LAST_VERSION       = 32; // Последняя версия записи
+const LOCKED_RECORD      = 64; // Запись заблокирована на ввод
+
+// Распространённые форматы
+
+const ALL_FORMAT       = "&uf('+0')";
+const BRIEF_FORMAT     = '@brief';
+const IBIS_FORMAT      = '@ibiskw_h';
+const INFO_FORMAT      = '@info_w';
+const OPTIMIZED_FORMAT = '@';
+
 /**
  * Пустая ли данная строка?
  *
@@ -248,9 +265,42 @@ class SubField {
  * Может содержать произвольное количество подполей.
  */
 class RecordField {
-    public $tag, $value;
+    /**
+     * @var integer Метка поля.
+     */
+    public $tag;
+
+    /**
+     * @var string Значение поля до первого разделителя.
+     */
+    public $value;
+
+    /**
+     * @var array Массив подполей.
+     */
     public $subfields = array();
 
+    /**
+     * Добавление подполя с указанными кодом и значением.
+     *
+     * @param string $code Код подполя.
+     * @param string $value Значение подполя.
+     * @return $this
+     */
+    public function add($code, $value) {
+        $subfield = new SubField();
+        $subfield->code = $code;
+        $subfield->value = $value;
+        array_push($this->subfields, $subfield);
+
+        return $this;
+    }
+
+    /**
+     * Декодирование поля из протокольного представления.
+     *
+     * @param string $line
+     */
     public function decode($line) {
         $this->tag = strtok($line, "#");
         $body = strtok('');
@@ -288,9 +338,53 @@ class RecordField {
  * Запись. Состоит из произвольного количества полей.
  */
 class MarcRecord {
-    public $database, $mfn, $version, $status;
+    /**
+     * @var string Имя базы данных, в которой хранится запись.
+     */
+    public $database = '';
+
+    /**
+     * @var integer MFN записи.
+     */
+    public $mfn = 0;
+
+    /**
+     * @var integer Версия записи.
+     */
+    public $version = 0;
+
+    /**
+     * @var integer Статус записи.
+     */
+    public $status = 0;
+
+    /**
+     * @var array Массив полей.
+     */
     public $fields = array();
 
+    /**
+     * Добавление поля в запись.
+     *
+     * @param integer $tag Метка поля.
+     * @param string $value Значение поля до первого разделителя.
+     * @return RecordField Созданное поле.
+     */
+    public function add($tag, $value='') {
+        $field = new RecordField();
+        $field->tag = $tag;
+        $field->value = $value;
+        array_push($this->fields, $field);
+
+        return $field;
+    }
+
+    /**
+     * Декодирование ответа сервера.
+     *
+     * @param array $lines Массив строк
+     * с клиентским представлением записи.
+     */
     public function decode(array $lines) {
         // mfn and status of the record
         $firstLine = explode('#', $lines[0]);
@@ -308,6 +402,109 @@ class MarcRecord {
             $field->decode($line);
             array_push($this->fields, $field);
         }
+    }
+
+    /**
+     * Получение значения поля (или подполя)
+     * с указанной меткой (и указанным кодом).
+     *
+     * @param integer $tag Метка поля
+     * @param string $code Код подполя
+     * @return string|null
+     */
+    public function fm($tag, $code='') {
+        foreach ($this->fields as $field) {
+            if ($field->tag == $tag) {
+                if ($code) {
+                    foreach ($field->subfields as $subfield) {
+                        if (strcasecmp($subfield->code, $code) == 0) {
+                            return $subfield->value;
+                        }
+                    }
+                } else {
+                    return $field->value;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Получение массива значений поля (или подполя)
+     * с указанной меткой (и указанным кодом).
+     *
+     * @param integer $tag Искомая метка поля.
+     * @param string $code Код подполя.
+     * @return array
+     */
+    public function fma($tag, $code='') {
+        $result = array();
+        foreach ($this->fields as $field) {
+            if ($field->tag == $tag) {
+                if ($code) {
+                    foreach ($field->subfields as $subfield) {
+                        if (strcasecmp($subfield->code, $code) == 0) {
+                            if ($subfield->value) {
+                                array_push($result, $subfield->value);
+                            }
+                        }
+                    }
+                } else {
+                    if ($field->value) {
+                        array_push($result, $field->value);
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Получение указанного поля (с учётом повторения).
+     *
+     * @param integer $tag Метка поля.
+     * @param int $occurrence Номер повторения.
+     * @return RecordField|null
+     */
+    public function getField($tag, $occurrence = 0) {
+        foreach ($this->fields as $field) {
+            if ($field->tag == $tag) {
+                if (!$occurrence) {
+                    return $field;
+                }
+
+                $occurrence--;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Получение массива полей с указанной меткой.
+     *
+     * @param integer $tag Искомая метка поля.
+     * @return array
+     */
+    public function getFields($tag) {
+        $result = array();
+        foreach ($this->fields as $field) {
+            if ($field->tag == $tag) {
+                array_push($result, $field);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return bool Запись удалена
+     * (неважно - логически или физически)?
+     */
+    public function isDeleted() {
+        return boolval($this->status & 3);
     }
 
     public function __toString() {
@@ -337,20 +534,61 @@ class MenuEntry {
  * Файл меню. Состоит из пар строк (см. MenuEntry).
  */
 class MenuFile {
+    /**
+     * @var array Массив пар строк.
+     */
     public $entries = array();
 
+    /**
+     * Отыскивает запись, соответствующую данному коду.
+     *
+     * @param string $code
+     * @return mixed|null
+     */
     public function getEntry($code) {
+        foreach ($this->entries as $entry) {
+            if (strcasecmp($entry->code, $code) == 0) {
+                return $entry;
+            }
+        }
         // TODO implement
-        return false;
+        return null;
     }
 
-    public function getValue($code) {
-        // TODO implement
-        return false;
+    /**
+     * Выдает значение, соответствующее коду.
+     *
+     * @param $code
+     * @param string $defaultValue
+     * @return string
+     */
+    public function getValue($code, $defaultValue='') {
+        $entry = $this->getEntry($code);
+        if (!$entry) {
+            return $defaultValue;
+        }
+
+        return $entry->comment;
     }
 
+    /**
+     * Разбор серверного представления MNU-файла.
+     *
+     * @param array $lines Массив строк.
+     */
     public function parse(array $lines) {
-        // TODO implement
+        $length = count($lines);
+        for ($i=0; $i < $length; $i += 2) {
+            $code = $lines[$i];
+            if (!$code || substr($code, 5) == '*****') {
+                break;
+            }
+            $comment = $lines[$i + 1];
+            $entry = new MenuEntry();
+            $entry->code = $code;
+            $entry->comment = $comment;
+            array_push($this->entries, $entry);
+        }
     }
 
     public function __toString() {
@@ -366,10 +604,18 @@ class MenuFile {
 
 /**
  * Строка INI-файла. Состоит из ключа
- * и (опционального значения).
+ * и (опционального) значения.
  */
 class IniLine {
-    public $key, $value;
+    /**
+     * @var string Ключ.
+     */
+    public $key;
+
+    /**
+     * @var string Значение.
+     */
+    public $value;
 
     public function __toString() {
         return $this->key . ' = ' . $this->value;
@@ -381,7 +627,14 @@ class IniLine {
  * (см. IniLine).
  */
 class IniSection {
+    /**
+     * @var string Имя секции.
+     */
     public $name = '';
+
+    /**
+     * @var array Строки 'ключ=значение'.
+     */
     public $lines = array();
 
     public function __toString() {
@@ -399,6 +652,9 @@ class IniSection {
  * INI-файл. Состоит из секций (см. IniSection).
  */
 class IniFile {
+    /**
+     * @var array Секции INI-файла.
+     */
     public $sections = array();
 
     public function parse(array $lines) {
@@ -427,15 +683,105 @@ class IniFile {
  * Информация о базе данных ИРБИС.
  */
 class DatabaseInfo {
-    public $name, $description, $maxMfn;
-    public $logicallyDeletedRecords;
-    public $physicallyDeletedRecords;
-    public $nonActualizedRecords;
-    public $lockedRecords;
-    public $databaseLocked, $readOnly;
+    /**
+     * @var string Имя базы данных.
+     */
+    public $name = '';
 
-    public function parse(array $lines) {
-        // TODO implement
+    /**
+     * @var string Описание базы данных.
+     */
+    public $description = '';
+
+    /**
+     * @var int Максимальный MFN.
+     */
+    public $maxMfn = 0;
+
+    /**
+     * @var array Логически удалённые записи.
+     */
+    public $logicallyDeletedRecords = array();
+
+    /**
+     * @var array Физически удалённые записи.
+     */
+    public $physicallyDeletedRecords = array();
+
+    /**
+     * @var array Неактуализированные записи.
+     */
+    public $nonActualizedRecords = array();
+
+    /**
+     * @var array Заблокированные записи.
+     */
+    public $lockedRecords = array();
+
+    /**
+     * @var bool Признак блокировки базы данных в целом.
+     */
+    public $databaseLocked = false;
+
+    /**
+     * @var bool База только для чтения.
+     */
+    public $readOnly = false;
+
+    static function parseLine($line) {
+        $result = array();
+        $items = explode("\x1E", $line);
+        foreach ($items as $item) {
+            array_push($result, intval($item));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Разбор ответа сервера (см. getDatabaseInfo).
+     *
+     * @param array $lines Ответ сервера.
+     * @return DatabaseInfo
+     */
+    public static function parseResponse(array $lines) {
+        $result = new DatabaseInfo();
+        $result->logicallyDeletedRecords = self::parseLine($lines[0]);
+        $result->physicallyDeletedRecords = self::parseLine($lines[1]);
+        $result->nonActualizedRecords = self::parseLine($lines[2]);
+        $result->lockedRecords = self::parseLine($lines[3]);
+        $result->maxMfn = intval($lines[4]);
+        $result->databaseLocked = intval($lines[5]) != 0;
+
+
+        return $result;
+    }
+
+    /**
+     * Получение списка баз данных из MNU-файла.
+     *
+     * @param MenuFile $menu Меню.
+     * @return array
+     */
+    public static function parseMenu(MenuFile $menu) {
+        $result = array();
+        foreach ($menu->entries as $entry) {
+            $name = $entry->code;
+            $description = $entry->comment;
+            $readOnly = false;
+            if ($name[0] == '-') {
+                $name = substr($name, 1);
+                $readOnly = true;
+            }
+
+            $db = new DatabaseInfo();
+            $db->name = $name;
+            $db->description = $description;
+            $db->readOnly = $readOnly;
+            array_push($result, $db);
+        }
+
+        return $result;
     }
 
     public function __toString() {
@@ -1191,15 +1537,25 @@ class IrbisConnection {
      *
      * @param string $database Имя базы данных.
      * @return bool|DatabaseInfo
+     * @throws Exception
      */
-    public function getDatabaseInfo($database) {
+    public function getDatabaseInfo($database = '') {
         if (!$this->connected) {
             return false;
         }
 
-        // TODO implement
+        if (isNullOrEmpty($database)) {
+            $database = $this->database;
+        }
 
-        return new DatabaseInfo();
+        $query = new ClientQuery($this, '0');
+        $query->addAnsi($database)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $lines = $response->readRemainingAnsiLines();
+        $result = DatabaseInfo::parseResponse($lines);
+
+        return $result;
     }
 
     /**
@@ -1288,14 +1644,15 @@ class IrbisConnection {
      * @param string $specification Спецификация файла со списком баз.
      * @return array|bool
      */
-    public function listDatabases($specification) {
+    public function listDatabases($specification = '1..dbnam2.mnu') {
         if (!$this->connected) {
             return false;
         }
 
-        // TODO implement
+        $menu = $this->readMenuFile($specification);
+        $result = DatabaseInfo::parseMenu($menu);
 
-        return array();
+        return $result;
     }
 
     /**
@@ -1364,26 +1721,65 @@ class IrbisConnection {
         return true;
     }
 
-    public function readMenu($specification) {
-        $text = $this->readTextFile($specification);
-        if (!$text) {
-            return false;
-        }
-
-        $lines = explode("\x1F\x1E", $text);
-        $result = new MenuFile();
-        $result->parse($lines);
-
-        return $result;
-    }
-
     /**
      * Разбор строки подключения.
      *
      * @param string $connectionString Строка подключения.
+     * @throws IrbisException
      */
     public function parseConnectionString($connectionString) {
-        // TODO implement
+        $items = explode(';', $connectionString);
+        foreach ($items as $item) {
+            $parts = explode('=', $item, 2);
+            if (count($parts) != 2) {
+                throw new IrbisException();
+            }
+
+            $name = strtolower(trim($parts[0]));
+            $value = trim($parts[1]);
+
+            switch ($name) {
+                case 'host':
+                case 'server':
+                case 'address':
+                    $this->host = $value;
+                    break;
+
+                case 'port':
+                    $this->port = intval($value);
+                    break;
+
+                case 'user':
+                case 'username':
+                case 'name':
+                case 'login':
+                    $this->username = $value;
+                    break;
+
+                case 'pwd':
+                case 'password':
+                    $this->password = $value;
+                    break;
+
+                case 'db':
+                case 'database':
+                case 'catalog':
+                    $this->database = $value;
+                    break;
+
+                case 'arm':
+                case 'workstation':
+                    $this->arm = $value;
+                    break;
+
+                case 'debug':
+                    // TODO implement
+                    break;
+
+                default:
+                    throw new IrbisException();
+            }
+        }
     }
 
     /**
@@ -1400,6 +1796,25 @@ class IrbisConnection {
         // TODO implement
 
         return '';
+    }
+
+    /**
+     * Чтение MNU-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return bool|MenuFile
+     */
+    public function readMenuFile($specification) {
+        $text = $this->readTextFile($specification);
+        if (!$text) {
+            return false;
+        }
+
+        $lines = explode("\n", $text);
+        $result = new MenuFile();
+        $result->parse($lines);
+
+        return $result;
     }
 
     /**

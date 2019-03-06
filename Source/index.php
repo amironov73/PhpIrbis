@@ -2,9 +2,18 @@
 
 require_once ('PhpIrbis.php');
 
+function dumpArray($arr) {
+    echo "<p>";
+    foreach ($arr as $item) {
+        echo "$item<br/>";
+    }
+    echo "</p>";
+}
+
 $connection = new IrbisConnection();
 $connection->username = '1';
 $connection->password = '1';
+$connection->arm = 'A';
 
 $connection->connect();
 
@@ -15,9 +24,17 @@ $version = $connection->getServerVersion();
 echo "<p>Версия: {$version->version} {$version->organization}</p>";
 
 $processes = $connection->listProcesses();
-foreach ($processes as $process) {
-    echo "<p>{$process}</p>";
+dumpArray($processes);
+
+$databases = $connection->listDatabases();
+echo "<p>";
+foreach ($databases as $db) {
+    echo "{$db->name} {$db->description}<br/>";
 }
+echo "</p>";
+
+$database = $connection->getDatabaseInfo();
+echo "<p>LOGICALLY DELETED: ", implode(', ', $database->logicallyDeletedRecords), "</p>";
 
 $maxMfn = $connection->getMaxMfn($connection->database);
 echo "<p>MAX MFN: $maxMfn</p>";
