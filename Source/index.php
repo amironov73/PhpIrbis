@@ -4,8 +4,10 @@ require_once ('PhpIrbis.php');
 
 function dumpArray($arr) {
     echo "<p>";
-    foreach ($arr as $item) {
-        echo "$item<br/>";
+    if ($arr) {
+        foreach ($arr as $item) {
+            echo "$item<br/>";
+        }
     }
     echo "</p>";
 }
@@ -35,6 +37,11 @@ echo "</p>";
 
 $database = $connection->getDatabaseInfo();
 echo "<p>LOGICALLY DELETED: ", implode(', ', $database->logicallyDeletedRecords), "</p>";
+
+$users = $connection->getUserList();
+echo "<p>";
+dumpArray($users);
+echo "</p>";
 
 $maxMfn = $connection->getMaxMfn($connection->database);
 echo "<p>MAX MFN: $maxMfn</p>";

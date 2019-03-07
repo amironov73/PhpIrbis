@@ -32,6 +32,17 @@ function isNullOrEmpty($text) {
 }
 
 /**
+ * Строки совпадают с точностью до регистра символов?
+ *
+ * @param string $str1 Первая строка.
+ * @param string $str2 Вторая строка.
+ * @return bool
+ */
+function sameString($str1, $str2) {
+    return strcasecmp($str1, $str2) == 0;
+}
+
+/**
  * Замена переводов строки с ИРБИСных на обычные.
  *
  * @param string $text Текст для замены.
@@ -218,10 +229,29 @@ function describeError($code) {
 }
 
 /**
+ * Получение первого ненулевого значения.
+ *
+ * @param $first
+ * @param $second
+ * @param string $third
+ * @return string
+ */
+function getOne($first, $second, $third='') {
+    return $first ? $first : ($second ? $second : $third);
+}
+
+/**
  * @return array "Хорошие" коды для readRecord.
  */
 function readRecordCodes() {
     return array(-201, -600, -602, -603);
+}
+
+/**
+ * @return array "Хорошие" коды для readTerms.
+ */
+function readTermCodes() {
+    return array(-202, -203, -204);
 }
 
 class IrbisException extends Exception {
@@ -540,6 +570,22 @@ class MenuFile {
     public $entries = array();
 
     /**
+     * Добавление элемента.
+     *
+     * @param string $code Код элемента.
+     * @param string $comment Комментарий.
+     * @return $this
+     */
+    public function add($code, $comment) {
+        $entry = new MenuEntry();
+        $entry->code = $code;
+        $entry->comment = $comment;
+        array_push($this->entries, $entry);
+
+        return $this;
+    }
+
+    /**
      * Отыскивает запись, соответствующую данному коду.
      *
      * @param string $code
@@ -551,7 +597,21 @@ class MenuFile {
                 return $entry;
             }
         }
-        // TODO implement
+
+        $code = trim($code);
+        foreach ($this->entries as $entry) {
+            if (strcasecmp($entry->code, $code) == 0) {
+                return $entry;
+            }
+        }
+
+        $code = self::trimCode($code);
+        foreach ($this->entries as $entry) {
+            if (strcasecmp($entry->code, $code) == 0) {
+                return $entry;
+            }
+        }
+
         return null;
     }
 
@@ -583,12 +643,25 @@ class MenuFile {
             if (!$code || substr($code, 5) == '*****') {
                 break;
             }
+
             $comment = $lines[$i + 1];
             $entry = new MenuEntry();
             $entry->code = $code;
             $entry->comment = $comment;
             array_push($this->entries, $entry);
         }
+    }
+
+    /**
+     * Отрезание лишних символов в коде.
+     *
+     * @param string $code Код.
+     * @return string Очищенный код.
+     */
+    public static function trimCode($code) {
+        $result = trim($code, '-=:');
+
+        return $result;
     }
 
     public function __toString() {
@@ -637,6 +710,59 @@ class IniSection {
      */
     public $lines = array();
 
+    /**
+     * Поиск строки с указанным ключом.
+     *
+     * @param string $key Имя ключа.
+     * @return IniLine|null
+     */
+    public function find($key) {
+        foreach ($this->lines as $line) {
+            if (strcasecmp($line->key, $key) == 0) {
+                return $line;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Получение значения для указанного ключа.
+     *
+     * @param string $key Имя ключа.
+     * @param string $defaultValue Значение по умолчанию.
+     * @return string Найденное значение или значение
+     * по умолчанию.
+     */
+    public function getValue($key, $defaultValue = '') {
+        $found = $this->find($key);
+        return $found ? $found->value : $defaultValue;
+    }
+
+    /**
+     * Удаление элемента с указанным ключом.
+     *
+     * @param string $key Имя ключа.
+     * @return IniSection
+     */
+    public function remove($key) {
+        // TODO implement
+
+        return $this;
+    }
+
+    public function setValue($key, $value) {
+        $item = $this->find($key);
+        if ($item) {
+            $item->value = $value;
+        } else {
+            $item = new IniLine();
+            $item->key = $key;
+            $item->value = $value;
+            array_push($this->lines, $item);
+        }
+    }
+
     public function __toString() {
         $result = '[' . $this->name . ']' . PHP_EOL;
 
@@ -657,8 +783,102 @@ class IniFile {
      */
     public $sections = array();
 
+    /**
+     * Поиск секции с указанным именем.
+     *
+     * @param string $name Имя секции.
+     * @return mixed|null
+     */
+    public function findSection($name) {
+        foreach ($this->sections as $section) {
+            if (strcasecmp($section->name, $name) == 0) {
+                return $section;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Поиск секции с указанным именем или создание
+     * в случае её отсутствия.
+     *
+     * @param string $name Имя секции.
+     * @return IniSection
+     */
+    public function getOrCreateSection($name) {
+        $result = $this->findSection($name);
+        if (!$result) {
+            $result = new IniSection();
+            $result->name = $name;
+            array_push($this->sections, $result);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Получение значения (из одной из секций).
+     *
+     * @param string $sectionName Имя секции.
+     * @param string $key Ключ искомого элемента.
+     * @param string $defaultValue Значение по умолчанию.
+     * @return string Значение найденного элемента
+     * или значение по умолчанию.
+     */
+    public function getValue($sectionName, $key, $defaultValue = '') {
+        $section = $this->findSection($sectionName);
+        if ($section) {
+            return $section->getValue($key, $defaultValue);
+        }
+
+        return $defaultValue;
+    }
+
+    /**
+     * Разбор текстового представления INI-файла.
+     *
+     * @param array $lines Строки INI-файла.
+     */
     public function parse(array $lines) {
-        // TODO implement
+        $section = null;
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+            if (isNullOrEmpty($trimmed)) {
+                continue;
+            }
+
+            if ($trimmed[0] == '[') {
+                $name = substr($trimmed, 1, strlen($trimmed) - 2);
+                $section = new IniSection();
+                $section->name = $name;
+                array_push($this->sections, $section);
+            } else if ($section) {
+                $parts = explode('=', $trimmed, 2);
+                $key = $parts[0];
+                $value = $parts[1];
+                $item = new IniLine();
+                $item->key = $key;
+                $item->value = $value;
+                array_push($section->lines, $item);
+            }
+        }
+    }
+
+    /**
+     * Установка значения элемента (в одной из секций).
+     *
+     * @param string $sectionName Имя секции.
+     * @param string $key Ключ элемента.
+     * @param string $value Значение элемента.
+     * @return $this
+     */
+    public function setValue($sectionName, $key, $value) {
+        $section = $this->getOrCreateSection($sectionName);
+        $section->setValue($key, $value);
+
+        return $this;
     }
 
     public function __toString() {
@@ -930,16 +1150,57 @@ class VersionInfo {
  * (не обязательно о текущем).
  */
 class ClientInfo {
-    public $number;
-    public $ipAddress;
-    public $port;
-    public $name;
-    public $id;
-    public $workstation;
-    public $registered;
-    public $acknowledged;
-    public $lastCommand;
-    public $commandNumber;
+    /**
+     * @var string Порядковый номер.
+     */
+    public $number = '';
+
+    /**
+     * @var string Адрес клиента.
+     */
+    public $ipAddress = '';
+
+    /**
+     * @var string Порт клиента.
+     */
+    public $port = '';
+
+    /**
+     * @var string Логин.
+     */
+    public $name = '';
+
+    /**
+     * @var string Идентификатор клиентской программы
+     * (просто уникальное число).
+     */
+    public $id = '';
+
+    /**
+     * @var string Клиентский АРМ.
+     */
+    public $workstation = '';
+
+    /**
+     * @var string Момент подключения к серверу.
+     */
+    public $registered = '';
+
+    /**
+     * @var string Последнее подтверждение,
+     * посланное серверу.
+     */
+    public $acknowledged = '';
+
+    /**
+     * @var string Последняя команда, посланная серверу.
+     */
+    public $lastCommand = '';
+
+    /**
+     * @var string Номер последней команды.
+     */
+    public $commandNumber = '';
 
     public function parse(array $lines) {
         // TODO implement
@@ -955,18 +1216,106 @@ class ClientInfo {
  * (по данным client_m.mnu).
  */
 class UserInfo {
-    public $number;
-    public $name;
-    public $password;
-    public $cataloger;
-    public $reader;
-    public $circulation;
-    public $acquisitions;
-    public $provision;
-    public $administrator;
+    /**
+     * @var string Номер по порядку в списке.
+     */
+    public $number = '';
 
-    public function parse(array $lines) {
-        // TODO implement
+    /**
+     * @var string Логин.
+     */
+    public $name = '';
+
+    /**
+     * @var string Пароль.
+     */
+    public $password = '';
+
+    /**
+     * @var string Доступность АРМ Каталогизатор.
+     */
+    public $cataloger = '';
+
+    /**
+     * @var string АРМ Читатель.
+     */
+    public $reader = '';
+
+    /**
+     * @var string АРМ Книговыдача.
+     */
+    public $circulation = '';
+
+    /**
+     * @var string АРМ Комплектатор.
+     */
+    public $acquisitions = '';
+
+    /**
+     * @var string АРМ Книгообеспеченность.
+     */
+    public $provision = '';
+
+    /**
+     * @var string АРМ Администратор.
+     */
+    public $administrator = '';
+
+    public static function formatPair($prefix, $value, $default) {
+        if (sameString($value, $default)) {
+            return '';
+        }
+
+        return $prefix . '=' . $value . ';';
+    }
+
+    public function encode() {
+        return $this->name . "\r\n"
+            . $this->password . "\r\n"
+            . self::formatPair('C', $this->cataloger,     'irbisc.ini')
+            . self::formatPair('R', $this->reader,        'irbisr.ini')
+            . self::formatPair('B', $this->circulation,   'irbisb.ini')
+            . self::formatPair('M', $this->acquisitions,  'irbism.ini')
+            . self::formatPair('K', $this->provision,     'irbisk.ini')
+            . self::formatPair('A', $this->administrator, 'irbisa.ini');
+    }
+
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Строки ответа сервера
+     * @return array
+     */
+    public static function parse(array $lines) {
+        $result = array();
+        $userCount = intval($lines[0]);
+        $linesPerUser = intval($lines[1]);
+        if (!$userCount || !$linesPerUser) {
+            return $result;
+        }
+
+        $lines = array_slice($lines, 2);
+        for($i = 0; $i < $userCount; $i++) {
+            if (!$lines) {
+                break;
+            }
+
+            $user = new UserInfo();
+            $user->number        = $lines[0];
+            $user->name          = $lines[1];
+            $user->password      = $lines[2];
+            $user->cataloger     = $lines[3];
+            $user->reader        = $lines[4];
+            $user->circulation   = $lines[5];
+            $user->acquisitions  = $lines[6];
+            $user->provision     = $lines[7];
+            $user->administrator = $lines[8];
+            array_push($result, $user);
+
+            $lines = array_slice($lines, $linesPerUser + 1);
+        }
+
+        return $result;
     }
 
     public function __toString() {
@@ -1549,7 +1898,7 @@ class IrbisConnection {
         }
 
         $query = new ClientQuery($this, '0');
-        $query->addAnsi($database)->newLine();
+        $query->addAnsi($database);
         $response = $this->execute($query);
         $response->checkReturnCode();
         $lines = $response->readRemainingAnsiLines();
@@ -1632,10 +1981,9 @@ class IrbisConnection {
         $query = new ClientQuery($this, '+9');
         $response = $this->execute($query);
         $response->checkReturnCode();
+        $result = UserInfo::parse($response->readRemainingAnsiLines());
 
-        // TODO implement
-
-        return array();
+        return $result;
     }
 
     /**
@@ -1799,6 +2147,25 @@ class IrbisConnection {
     }
 
     /**
+     * Получение INI-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return IniFile|null
+     */
+    public function readIniFile($specification) {
+        $text = $this->readTextFile($specification);
+        if (isNullOrEmpty($text)) {
+            return null;
+        }
+
+        $lines = explode("\n", $text);
+        $result = new IniFile();
+        $result->parse($lines);
+
+        return $result;
+    }
+
+    /**
      * Чтение MNU-файла с сервера.
      *
      * @param string $specification Спецификация файла.
@@ -1883,11 +2250,7 @@ class IrbisConnection {
             return false;
         }
 
-        $command = 'H';
-        if ($parameters->reverseOrder) {
-            $command = 'P';
-        }
-
+        $command = $parameters->reverseOrder ? 'P' : 'H';
         $database = $parameters->database;
         if (isNullOrEmpty($database)) {
             $database = $this->database;
@@ -1899,8 +2262,7 @@ class IrbisConnection {
         $query->add($parameters->numberOfTerms)->newLine();
         $query->addAnsi($parameters->format)->newLine();
         $response = $this->execute($query);
-        // TODO добавить обработку разрешенных кодов
-        $response->getReturnCode();
+        $response->getReturnCode(readTermCodes());
         $result = $response->readRemainingUtfLines();
 
         return $result;
@@ -2021,6 +2383,7 @@ class IrbisConnection {
         $query->addAnsi($parameters->sequential)->newLine();
         $response = $this->execute($query);
         $response->checkReturnCode();
+        // TODO сделать через FoundItem
         $result = $response->readRemainingUtfLines();
 
         return $result;
