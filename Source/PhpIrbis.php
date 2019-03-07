@@ -21,6 +21,23 @@ const IBIS_FORMAT      = '@ibiskw_h';
 const INFO_FORMAT      = '@info_w';
 const OPTIMIZED_FORMAT = '@';
 
+// Распространённые поиски
+
+const KEYWORD_PREFIX    = 'K=';  // Ключевые слова
+const AUTHOR_PREFIX     = 'A=';  // Индивидуальный автор, редактор, составитель
+const COLLECTIVE_PREFIX = 'M=';  // Коллектив или мероприятие
+const TITLE_PREFIX      = 'T=';  // Заглавие
+const INVENTORY_PREFIX  = 'IN='; // Инвентарный номер, штрих-код или радиометка
+const INDEX_PREFIX      = 'I=';  // Шифр документа в базе
+
+// Логические операторы для поиска
+
+const LOGIC_OR                = 0; // Только ИЛИ
+const LOGIC_OR_AND            = 1; // ИЛИ и И
+const LOGIC_OR_AND_NOT        = 2; // ИЛИ, И, НЕТ (по умолчанию)
+const LOGIC_OR_AND_NOT_FIELD  = 3; // ИЛИ, И, НЕТ, И (в поле)
+const LOGIC_OR_AND_NOT_PHRASE = 4; // ИЛИ, И, НЕТ, И (в поле), И (фраза)
+
 /**
  * Пустая ли данная строка?
  *
@@ -550,6 +567,109 @@ class MarcRecord {
 }
 
 /**
+ * Запись в "неразобранном" виде.
+ */
+class RawRecord {
+    /**
+     * @var string Имя базы данных.
+     */
+    public $database = '';
+
+    /**
+     * @var string MFN.
+     */
+    public $mfn = '';
+
+    /**
+     * @var string Статус.
+     */
+    public $status = '';
+
+    /**
+     * @var string Версия.
+     */
+    public $version = '';
+
+    /**
+     * @var array Поля записи.
+     */
+    public $fields = array();
+
+    /**
+     * Декодирование ответа сервера.
+     *
+     * @param array $lines Массив строк
+     * с клиентским представлением записи.
+     */
+    public function decode(array $lines) {
+        // mfn and status of the record
+        $firstLine = explode('#', $lines[0]);
+        $this->mfn = intval($firstLine[0]);
+        $this->status = intval($firstLine[1]);
+
+        // version of the record
+        $secondLine = explode('#', $lines[1]);
+        $this->version = intval($secondLine[1]);
+        $this->fields = array_slice($lines, 2);
+    }
+}
+
+/**
+ * Строка найденной записи.
+ */
+class FoundLine {
+    /**
+     * @var bool Материализована?
+     */
+    public $materialized = false;
+
+    /**
+     * @var int Порядковый номер.
+     */
+    public $serialNumber = 0;
+
+    /**
+     * @var int MFN.
+     */
+    public $mfn = 0;
+
+    /**
+     * @var null Иконка.
+     */
+    public $icon = null;
+
+    /**
+     * @var bool Выбрана (помечена).
+     */
+    public $selected = false;
+
+    /**
+     * @var string Библиографическое описание.
+     */
+    public $description = '';
+
+    /**
+     * @var string Ключ для сортировки.
+     */
+    public $sort = '';
+
+    /**
+     * Преобразование в массив MFN.
+     *
+     * @param array $found Найденные записи.
+     * @return array Массив MFN.
+     */
+    public static function toMfn(array $found) {
+        $result = array();
+        foreach ($found as $item) {
+            array_push($result, $item->mfn);
+        }
+
+        return $result;
+    }
+}
+
+/**
  * Пара строк в меню.
  */
 class MenuEntry {
@@ -751,6 +871,12 @@ class IniSection {
         return $this;
     }
 
+    /**
+     * Установка значения.
+     *
+     * @param string $key
+     * @param string $value
+     */
     public function setValue($key, $value) {
         $item = $this->find($key);
         if ($item) {
@@ -1202,8 +1328,22 @@ class ClientInfo {
      */
     public $commandNumber = '';
 
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Строки ответа.
+     */
     public function parse(array $lines) {
-        // TODO implement
+        $this->number        = $lines[0];
+        $this->ipAddress     = $lines[1];
+        $this->port          = $lines[2];
+        $this->name          = $lines[3];
+        $this->id            = $lines[4];
+        $this->workstation   = $lines[5];
+        $this->registered    = $lines[6];
+        $this->acknowledged  = $lines[7];
+        $this->lastCommand   = $lines[8];
+        $this->commandNumber = $lines[9];
     }
 
     public function __toString() {
@@ -1269,6 +1409,11 @@ class UserInfo {
         return $prefix . '=' . $value . ';';
     }
 
+    /**
+     * Формирование строкового представления пользователя.
+     *
+     * @return string
+     */
     public function encode() {
         return $this->name . "\r\n"
             . $this->password . "\r\n"
@@ -1283,7 +1428,7 @@ class UserInfo {
     /**
      * Разбор ответа сервера.
      *
-     * @param array $lines Строки ответа сервера
+     * @param array $lines Строки ответа сервера.
      * @return array
      */
     public static function parse(array $lines) {
@@ -1363,7 +1508,21 @@ class ServerStat {
     public $totalCommandCount = 0;
 
     public function parse(array $lines) {
-        // TODO implement
+        $this->totalCommandCount = intval($lines[0]);
+        $this->clientCount = intval($lines[1]);
+        $linesPerClient = intval($lines[2]);
+        if (!$linesPerClient) {
+            return;
+        }
+
+        $lines = array_slice($lines, 3);
+
+        for($i=0; $i < $this->clientCount; $i++) {
+            $client = new ClientInfo();
+            $client->parse($lines);
+            array_push($this->runningClients, $client);
+            $lines = array_slice($lines, $linesPerClient + 1);
+        }
     }
 
     public function __toString() {
@@ -1438,6 +1597,104 @@ class TermParameters {
 }
 
 /**
+ * Информация о термине поискового словаря.
+ */
+class TermInfo {
+    /**
+     * @var int Количество ссылок.
+     */
+    public $count = 0;
+
+    /**
+     * @var string Поисковый термин.
+     */
+    public $text = '';
+
+    public static function parse(array $lines) {
+        $result = array();
+        foreach ($lines as $line) {
+            if (!isNullOrEmpty($line)) {
+                $parts = explode('#', $line, 2);
+                $term = new TermInfo();
+                $term->count = intval($parts[0]);
+                $term->text = $parts[1];
+                array_push($result, $term);
+            }
+        }
+
+        return $result;
+    }
+
+    public function __toString() {
+        return $this->text
+            ? $this->count . '#' . $this->text
+            : $this->count;
+    }
+}
+
+/**
+ * Постинг термина в поисковом индексе.
+ */
+class TermPosting {
+    /**
+     * @var int MFN записи с искомым термином.
+     */
+    public $mfn = 0;
+
+    /**
+     * @var int Метка поля с искомым термином.
+     */
+    public $tag = 0;
+
+    /**
+     * @var int Повторение поля.
+     */
+    public $occurrence = 0;
+
+    /**
+     * @var int Количество повторений.
+     */
+    public $count = 0;
+
+    /**
+     * @var string Результат форматирования.
+     */
+    public $text = '';
+
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Строки ответа.
+     * @return array Массив постингов.
+     */
+    public static function parse(array $lines) {
+        $result = array();
+        foreach ($lines as $line) {
+            $parts = explode('#', $line, 5);
+            if (count($parts) < 4) {
+                break;
+            }
+
+            $item = new TermPosting();
+            $item->mfn        = intval($parts[0]);
+            $item->tag        = intval($parts[1]);
+            $item->occurrence = intval($parts[2]);
+            $item->count      = intval($parts[3]);
+            $item->text       = $parts[4];
+            array_push($result, $item);
+        }
+
+        return $result;
+    }
+
+    public function __toString() {
+        return $this->mfn . '#' . $this->tag . '#'
+            . $this->occurrence . '#' . $this->count
+            . '#' . $this->text;
+    }
+}
+
+/**
  * Параметры для поиска записей.
  */
 class SearchParameters {
@@ -1495,6 +1752,110 @@ class SearchParameters {
      * @var bool Признак вложенного вызова.
      */
     public $nested = false;
+}
+
+/**
+ * Сценарий поиска.
+ */
+class SearchScenario {
+    /**
+     * @var string Название поискового атрибута
+     * (автор, инвентарный номер).
+     */
+    public $name = '';
+
+    /**
+     * @var string Префикс соответствующих терминов
+     * в словаре (может быть пустым).
+     */
+    public $prefix = '';
+
+    /**
+     * @var int Тип словаря для соответствующего поиска.
+     */
+    public $dictionaryType = 0;
+
+    /**
+     * @var string Имя файла справочника.
+     */
+    public $menuName = '';
+
+    /**
+     * @var string Имя формата (без расширения).
+     */
+    public $oldFormat = '';
+
+    /**
+     * @var string Способ корректировки по словарю.
+     */
+    public $correction = '';
+
+    /**
+     * @var string Исходное положение переключателя "Усечение".
+     */
+    public $truncation = '';
+
+    /**
+     * @var string Текст подсказки/предупреждения.
+     */
+    public $hint = '';
+
+    /**
+     * @var string Параметр пока не задействован.
+     */
+    public $modByDicAuto = '';
+
+    /**
+     * @var string Применимые логические операторы.
+     */
+    public $logic = '';
+
+    /**
+     * @var string Правила автоматического расширения поиска
+     * на основе авторитетного файла или тезауруса.
+     */
+    public $advance = '';
+
+    /**
+     * @var string Имя формата показа документов.
+     */
+    public $format = '';
+
+    static function get(IniSection $section, $name, $index) {
+        $fullName = 'Item' . $name . $index;
+        return $section->getValue($fullName);
+    }
+
+    /**
+     * Разбор INI-файла.
+     *
+     * @param IniFile $iniFile
+     * @return array
+     */
+    public static function parse(IniFile $iniFile) {
+        $result = array();
+        $section = $iniFile->findSection('SEARCH');
+        if ($section) {
+            $count = intval($section->getValue('ItemNumb'));
+            for($i=0; $i < $count; $i++) {
+                $scenario = new SearchScenario();
+                $scenario->name = self::get($section, "Name", $i);
+                $scenario->prefix = self::get($section, "Pref", $i);
+                $scenario->dictionaryType = intval(self::get($section, "DictionType", $i));
+                $scenario->menuName = self::get($section, "Menu", $i);
+                $scenario->oldFormat = '';
+                $scenario->correction = self::get($section, "ModByDic", $i);
+                $scenario->truncation = self::get($section, "Tranc", $i);
+                $scenario->hint = self::get($section, "Hint", $i);
+                $scenario->modByDicAuto = self::get($section, "ModByDicAuto", $i);
+                $scenario->logic = self::get($section, "Logic", $i);
+                $scenario->advance = self::get($section, "Adv", $i);
+                $scenario->format = self::get($section, "Pft", $i);
+            }
+        }
+
+        return $result;
+    }
 }
 
 /**
@@ -2133,7 +2494,7 @@ class IrbisConnection {
     /**
      * Расформатирование таблицы.
      *
-     * @param TableDefinition $definition Определение таблицы
+     * @param TableDefinition $definition Определение таблицы.
      * @return bool|string
      */
     public function printTable (TableDefinition $definition) {
@@ -2141,9 +2502,22 @@ class IrbisConnection {
             return false;
         }
 
-        // TODO implement
+        $database = getOne($definition->database, $this->database);
 
-        return '';
+        $query = new ClientQuery($this, '7');
+        $query->addAnsi($database)->newLine();
+        $query->addAnsi($definition->table)->newLine();
+        $query->addAnsi('')->newLine(); // вместо заголовков
+        $query->addAnsi($definition->mode)->newLine();
+        $query->addAnsi($definition->searchQuery)->newLine();
+        $query->add($definition->minMfn)->newLine();
+        $query->add($definition->maxMfn)->newLine();
+        $query->addUtf($definition->sequentialQuery)->newLine();
+        $query->addAnsi(''); // вместо перечня MFN
+        $response = $this->execute($query);
+        $result = $response->readRemainingUtfText();
+
+        return $result;
     }
 
     /**
@@ -2185,9 +2559,68 @@ class IrbisConnection {
     }
 
     /**
-     * Чтение указанной записи.
+     * Считывание постингов из поискового индекса.
+     *
+     * @param PostingParameters $parameters Параметры постингов.
+     * @return array|bool Массив постингов.
+     * @throws Exception
+     */
+    public function readPostings(PostingParameters $parameters) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $database = getOne($parameters->database, $this->database);
+
+        $query = new ClientQuery($this, 'I');
+        $query->addAnsi($database)->newLine();
+        $query->add($parameters->numberOfPostings)->newLine();
+        $query->add($parameters->firstPosting)->newLine();
+        $query->addAnsi($parameters->format)->newLine();
+        if (!$parameters->listOfTerms) {
+            $query->addUtf($parameters->term)->newLine();
+        } else {
+            foreach ($parameters->listOfTerms as $term) {
+                $query->addUtf($term)->newLine();
+            }
+        }
+
+        $response = $this->execute($query);
+        $response->checkReturnCode(readTermCodes());
+        $lines = $response->readRemainingUtfLines();
+        $result = TermPosting::parse($lines);
+
+        return $result;
+    }
+
+    /**
+     * Чтение указанной записи в "сыром" виде.
      *
      * @param string $mfn MFN записи
+     * @return bool|RawRecord
+     * @throws Exception
+     */
+    public function readRawRecord($mfn) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'C');
+        $query->addAnsi($this->database)->newLine();
+        $query->add($mfn)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode(readRecordCodes());
+        $result = new RawRecord();
+        $result->decode($response->readRemainingUtfLines());
+        $result->database = $this->database;
+
+        return $result;
+    }
+
+    /**
+     * Чтение указанной записи.
+     *
+     * @param integer $mfn MFN записи
      * @return bool|MarcRecord
      * @throws Exception
      */
@@ -2200,10 +2633,10 @@ class IrbisConnection {
         $query->addAnsi($this->database)->newLine();
         $query->add($mfn)->newLine();
         $response = $this->execute($query);
-        // TODO добавить разрешенные коды
-        $response->checkReturnCode();
+        $response->checkReturnCode(readRecordCodes());
         $result = new MarcRecord();
         $result->decode($response->readRemainingUtfLines());
+        $result->database = $this->database;
 
         return $result;
     }
@@ -2219,17 +2652,23 @@ class IrbisConnection {
             return false;
         }
 
-        // TODO implement
+        $iniFile = $this->readIniFile($specification);
+        if (!$iniFile) {
+            return false;
+        }
 
-        return array();
+        $result = SearchScenario::parse($iniFile);
+
+        return $result;
     }
 
     /**
-     * Простое получение термов поискового словаря.
+     * Простое получение терминов поискового словаря.
      *
-     * @param string $startTerm Начальный терм.
-     * @param int $numberOfTerms Необходимое количество термов.
+     * @param string $startTerm Начальный термин.
+     * @param int $numberOfTerms Необходимое количество терминов.
      * @return array|bool
+     * @throws Exception
      */
     public function readTerms($startTerm, $numberOfTerms=100) {
         $parameters = new TermParameters();
@@ -2244,6 +2683,7 @@ class IrbisConnection {
      *
      * @param TermParameters $parameters Параметры термов.
      * @return array|bool
+     * @throws Exception
      */
     public function readTermsEx(TermParameters $parameters) {
         if (!$this->connected) {
@@ -2262,8 +2702,9 @@ class IrbisConnection {
         $query->add($parameters->numberOfTerms)->newLine();
         $query->addAnsi($parameters->format)->newLine();
         $response = $this->execute($query);
-        $response->getReturnCode(readTermCodes());
-        $result = $response->readRemainingUtfLines();
+        $response->checkReturnCode(readTermCodes());
+        $lines = $response->readRemainingUtfLines();
+        $result = TermInfo::parse($lines);
 
         return $result;
     }
@@ -2440,6 +2881,31 @@ class IrbisConnection {
     }
 
     /**
+     * Разблокирование записей.
+     *
+     * @param string $database База данных.
+     * @param array $mfnList Массив MFN.
+     * @return bool
+     */
+    public function unlockRecords($database, array $mfnList) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $database = getOne($database, $this->database);
+
+        $query = new ClientQuery($this, 'Q');
+        $query->addAnsi($database)->newLine();
+        foreach ($mfnList as $mfn) {
+            $query->add($mfn)->newLine();
+        }
+
+        $this->execute($query);
+
+        return true;
+    }
+
+    /**
      * Обновление строк серверного INI-файла
      * для текущего пользователя.
      *
@@ -2472,7 +2938,11 @@ class IrbisConnection {
             return false;
         }
 
-        // TODO implement
+        $query = new ClientQuery($this, '+7');
+        foreach ($users as $user) {
+            $query->addAnsi($user->encode())->newLine();
+        }
+        $this->execute($query);
 
         return true;
     }

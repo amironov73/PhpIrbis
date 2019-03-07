@@ -43,6 +43,11 @@ echo "<p>";
 dumpArray($users);
 echo "</p>";
 
+$stat = $connection->getServerStat();
+echo "<p>";
+dumpArray($stat->runningClients);
+echo "</p>";
+
 $maxMfn = $connection->getMaxMfn($connection->database);
 echo "<p>MAX MFN: $maxMfn</p>";
 
