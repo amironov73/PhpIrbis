@@ -38,6 +38,16 @@ const LOGIC_OR_AND_NOT        = 2; // ИЛИ, И, НЕТ (по умолчани�
 const LOGIC_OR_AND_NOT_FIELD  = 3; // ИЛИ, И, НЕТ, И (в поле)
 const LOGIC_OR_AND_NOT_PHRASE = 4; // ИЛИ, И, НЕТ, И (в поле), И (фраза)
 
+// Коды АРМ
+
+const ADMINISTRATOR = 'A'; // Адмнистратор
+const CATALOGER     = 'C'; // Каталогизатор
+const ACQUSITIONS   = 'M'; // Комплектатор
+const READER        = 'R'; // Читатель
+const CIRCULATION   = 'B'; // Книговыдача
+const BOOKLAND      = 'B'; // Книговыдача
+const PROVISITON    = 'K'; // Книгообеспеченность
+
 /**
  * Пустая ли данная строка?
  *
@@ -445,9 +455,11 @@ class MarcRecord {
 
         // fields
         foreach ($lines as $line) {
-            $field = new RecordField();
-            $field->decode($line);
-            array_push($this->fields, $field);
+            if ($line) {
+                $field = new RecordField();
+                $field->decode($line);
+                array_push($this->fields, $field);
+            }
         }
     }
 
@@ -653,6 +665,34 @@ class FoundLine {
      */
     public $sort = '';
 
+    public static function parse(array $lines) {
+        $result = array();
+        foreach ($lines as $line) {
+            $parts = explode('#', $line, 2);
+            $item = new FoundLine();
+            $item->mfn = $parts[0];
+            $item->description = $parts[1];
+            array_push($result, $item);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Преобразование в массив библиографических описаний.
+     *
+     * @param array $found Найденные записи.
+     * @return array Массив описаний.
+     */
+    public static function toDescription(array $found) {
+        $result = array();
+        foreach ($found as $item) {
+            array_push($result, $item->description);
+        }
+
+        return $result;
+    }
+
     /**
      * Преобразование в массив MFN.
      *
@@ -666,6 +706,12 @@ class FoundLine {
         }
 
         return $result;
+    }
+
+    public function __toString() {
+        return $this->description
+            ? $this->mfn . '#' . $this->description
+            : strval($this->mfn);
     }
 }
 
@@ -866,7 +912,12 @@ class IniSection {
      * @return IniSection
      */
     public function remove($key) {
-        // TODO implement
+        for ($i=0; $i < count($this->lines); $i++) {
+            if (sameString($this->lines[$i]->key, $key)) {
+                unset($this->lines[$i]);
+                break;
+            }
+        }
 
         return $this;
     }
@@ -1026,6 +1077,85 @@ class IniFile {
 }
 
 /**
+ * Узел дерева TRE-файла.
+ */
+class TreeNode {
+    /**
+     * @var array Дочерние узлы.
+     */
+    public $children = array();
+
+    /**
+     * @var string Значение, хранящееся в узле.
+     */
+    public $value = '';
+
+    /**
+     * @var int Уровень вложенности узла.
+     */
+    public $level = 0;
+
+    /**
+     * Добавление дочернего узла с указанным значением.
+     *
+     * @param $value
+     * @return $this
+     */
+    public function add($value) {
+        $child = new TreeNode();
+        $child->value = $value;
+        array_push($this->children, $child);
+
+        return $this;
+    }
+}
+
+/**
+ * Дерево, хранящееся в TRE-файле.
+ */
+class TreeFile {
+    /**
+     * @var array Корни дерева.
+     */
+    public $roots = array();
+
+    private function arrange1() {
+        // TODO implement
+    }
+
+    private function arrange2() {
+        // TODO implement
+    }
+
+    private function countIndent() {
+        // TODO implement
+    }
+
+    /**
+     * Добавление корневого элемента.
+     *
+     * @param string $value Значение элемента.
+     * @return TreeNode Созданный элемент.
+     */
+    public function addRoot($value) {
+        $result = new TreeNode();
+        $result->value = $value;
+        array_push($this->roots, $result);
+
+        return $result;
+    }
+
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Строки с ответом сервера.
+     */
+    public function parse(array $lines) {
+        // TODO implement
+    }
+}
+
+/**
  * Информация о базе данных ИРБИС.
  */
 class DatabaseInfo {
@@ -1098,7 +1228,6 @@ class DatabaseInfo {
         $result->lockedRecords = self::parseLine($lines[3]);
         $result->maxMfn = intval($lines[4]);
         $result->databaseLocked = intval($lines[5]) != 0;
-
 
         return $result;
     }
@@ -1472,15 +1601,50 @@ class UserInfo {
  * Данные для команды TableCommand
  */
 class TableDefinition {
-    public $database;
-    public $table;
+    /**
+     * @var string Имя базы данных.
+     */
+    public $database = '';
+
+    /**
+     * @var string Имя таблицы.
+     */
+    public $table = '';
+
+    /**
+     * @var array Заголовки таблицы.
+     */
     public $headers = array();
-    public $mode;
-    public $searchQuery;
-    public $minMfn;
-    public $maxMfn;
-    public $sequentialQuery;
-    public $mfnList;
+
+    /**
+     * @var string Режим таблицы.
+     */
+    public $mode = '';
+
+    /**
+     * @var string Поисковый запрос.
+     */
+    public $searchQuery = '';
+
+    /**
+     * @var int Минимальный MFN.
+     */
+    public $minMfn = 0;
+
+    /**
+     * @var int Максимальный MFN.
+     */
+    public $maxMfn = 0;
+
+    /**
+     * @var string Запрос для последовательного поиска.
+     */
+    public $sequentialQuery = '';
+
+    /**
+     * @var array Сиписок MFN, по которым строится таблица.
+     */
+    public $mfnList = array();
 
     public function __toString() {
         return $this->table;
@@ -1526,8 +1690,13 @@ class ServerStat {
     }
 
     public function __toString() {
-        // TODO implement
-        return '';
+        $result = strval($this->totalCommandCount) . "\n"
+            . strval($this->clientCount) . "\n" . '8' . "\n";
+        foreach ($this->runningClients as $client) {
+            $result .= (strval($client) . "\n");
+        }
+
+        return $result;
     }
 }
 
@@ -1877,12 +2046,25 @@ class ClientQuery {
         $this->newLine();
     }
 
+    /**
+     * Добавляем целое число
+     * (по факту выходит кодировка ANSI).
+     *
+     * @param integer $value Число.
+     * @return $this
+     */
     public function add($value) {
         $this->addAnsi(strval($value));
 
         return $this;
     }
 
+    /**
+     * Добавляем текст в кодировке ANSI.
+     *
+     * @param string $value Добавляемый текст.
+     * @return $this
+     */
     public function addAnsi($value) {
         $converted = mb_convert_encoding($value, 'Windows-1251');
         $this->accumulator .= $converted;
@@ -1890,12 +2072,23 @@ class ClientQuery {
         return $this;
     }
 
+    /**
+     * Добавляем текст в кодировке UTF-8.
+     *
+     * @param string $value Добавляемый текст.
+     * @return $this
+     */
     public function addUtf($value) {
         $this->accumulator .= $value;
 
         return $this;
     }
 
+    /**
+     * Добавляем перевод строки.
+     *
+     * @return $this
+     */
     public function newLine() {
         $this->accumulator .= chr(10);
 
@@ -1950,6 +2143,20 @@ class ServerResponse {
         }
     }
 
+    /**
+     * Отладочная печать
+     *
+     * @param mixed $debug Управление отладкой
+     */
+    public function debug($debug) {
+        // TODO implement
+    }
+
+    /**
+     * Чтение строки без преобразования кодировок.
+     *
+     * @return string Прочитанная строка.
+     */
     public function getLine() {
         $result = '';
         while ($this->offset < $this->answerLength) {
@@ -1969,11 +2176,23 @@ class ServerResponse {
         return $result;
     }
 
+    /**
+     * Получение кода возврата.
+     * Вызывается один раз.
+     * Отрицательное число свидетельствует о проблеме.
+     *
+     * @return int Код возврата.
+     */
     public function getReturnCode() {
         $this->returnCode = $this->readInteger();
         return $this->returnCode;
     }
 
+    /**
+     * Чтение строки в кодировке ANSI.
+     *
+     * @return string Прочитанная строка.
+     */
     public function readAnsi() {
         $result = $this->getLine();
         $result = mb_convert_encoding($result, 'UTF-8', 'Windows-1251');
@@ -1981,12 +2200,22 @@ class ServerResponse {
         return $result;
     }
 
+    /**
+     * Чтение целого числа.
+     *
+     * @return int Прочитанное число.
+     */
     public function readInteger() {
         $line = $this->getLine();
 
         return intval($line);
     }
 
+    /**
+     * Чтение оставшихся строк в кодировке ANSI.
+     *
+     * @return array
+     */
     public function readRemainingAnsiLines() {
         $result = array();
 
@@ -1998,13 +2227,24 @@ class ServerResponse {
         return $result;
     }
 
+    /**
+     * Чтение оставшегося текста в кодировке ANSI.
+     *
+     * @return bool|string
+     */
     public function readRemainingAnsiText() {
         $result = substr($this->answer, $this->offset);
+        $this->offset = $this->answerLength;
         $result = mb_convert_encoding($result, mb_internal_encoding(), 'Windows-1251');
 
         return $result;
     }
 
+    /**
+     * Чтение оставшихся строк в кодировке UTF-8.
+     *
+     * @return array
+     */
     public function readRemainingUtfLines() {
         $result = array();
 
@@ -2016,12 +2256,23 @@ class ServerResponse {
         return $result;
     }
 
+    /**
+     * Чтение оставшегося текста в кодировке UTF-8.
+     *
+     * @return bool|string
+     */
     public function readRemainingUtfText() {
         $result = substr($this->answer, $this->offset);
+        $this->offset = $this->answerLength;
 
         return $result;
     }
 
+    /**
+     * Чтение строки в кодировке UTF-8.
+     *
+     * @return string
+     */
     public function readUtf() {
         return $this->getLine();
     }
@@ -2031,13 +2282,61 @@ class ServerResponse {
  * Подключение к ИРБИС-серверу.
  */
 class IrbisConnection {
-    public $host = '127.0.0.1', $port = 6666;
-    public $username = '', $password = '';
-    public $database = 'IBIS', $arm = 'C';
+    /**
+     * @var string Адрес сервера (можно как my.domain.com,
+     * так и 192.168.1.1).
+     */
+    public $host = '127.0.0.1';
+
+    /**
+     * @var int Порт сервера.
+     */
+    public $port = 6666;
+
+    /**
+     * @var string Логин пользователя. Регистр символов не учитывается.
+     */
+    public $username = '';
+
+    /**
+     * @var string Пароль пользователя. Регистр символов учитывается.
+     */
+    public $password = '';
+
+    /**
+     * @var string Имя текущей базы данных.
+     */
+    public $database = 'IBIS';
+
+    /**
+     * @var string Код АРМа.
+     */
+    public $arm = CATALOGER;
+
+    /**
+     * @var int Идентификатор клиента.
+     * Задаётся автоматически при подключении к серверу.
+     */
     public $clientId = 0;
+
+    /**
+     * @var int Последовательный номер запроса к серверу.
+     * Ведётся автоматически.
+     */
     public $queryId = 0;
 
     private $connected = false;
+
+    /**
+     * @var bool Признак отладки.
+     */
+    private $debug = false;
+
+    //================================================================
+
+    function __destruct() {
+        $this->disconnect();
+    }
 
     //================================================================
 
@@ -2168,8 +2467,10 @@ class IrbisConnection {
      */
     public function deleteRecord($mfn) {
         $record = $this->readRecord($mfn);
-        $record->status |= 1;
-        $this->writeRecord($record);
+        if (($record->status & LOGICALLY_DELETED) == 0) {
+            $record->status |= LOGICALLY_DELETED;
+            $this->writeRecord($record);
+        }
     }
 
     /**
@@ -2209,8 +2510,14 @@ class IrbisConnection {
         }
 
         $packet = strval($query);
+
+        if ($this->debug) {
+            // TODO implement debug
+        }
+
         socket_write($socket, $packet, strlen($packet));
         $response = new ServerResponse($socket);
+        $response->debug($this->debug);
         $this->queryId++;
 
         return $response;
@@ -2238,6 +2545,43 @@ class IrbisConnection {
         $response = $this->execute($query);
         $response->checkReturnCode();
         $result = $response->readRemainingUtfText();
+
+        return $result;
+    }
+
+    /**
+     * Расформатирование нескольких записей.
+     *
+     * @param string $format Формат.
+     * @param array $mfnList Массив MFN.
+     * @return array|bool
+     * @throws Exception
+     */
+    public function formatRecords($format, array $mfnList) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        if (!$mfnList) {
+            return array();
+        }
+
+        $query = new ClientQuery($this, 'G');
+        $query->addAnsi($this->database)->newLine();
+        $prepared = prepareFormat($format);
+        $query->addAnsi($prepared)->newLine();
+        $query->add(count($mfnList))->newLine();
+        foreach ($mfnList as $mfn) {
+            $query->add($mfn)->newLine();
+        }
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $lines = $response->readRemainingUtfLines();
+        $result = array();
+        foreach ($lines as $line) {
+            $parts = explode('#', $line, 2);
+            array_push($result, $parts[1]);
+        }
 
         return $result;
     }
@@ -2482,7 +2826,7 @@ class IrbisConnection {
                     break;
 
                 case 'debug':
-                    // TODO implement
+                    $this->debug = $value;
                     break;
 
                 default:
@@ -2642,6 +2986,50 @@ class IrbisConnection {
     }
 
     /**
+     * Чтение с сервера нескольких записей.
+     *
+     * @param array $mfnList Массив MFN.
+     * @return array|bool
+     * @throws Exception
+     */
+    public function readRecords(array $mfnList) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        if (!$mfnList) {
+            return array();
+        }
+
+        if (count($mfnList) == 1) {
+            return $this->readRecord($mfnList[0]);
+        }
+
+        $query = new ClientQuery($this, 'G');
+        $query->addAnsi($this->database)->newLine();
+        $query->addAnsi(ALL_FORMAT)->newLine();
+        $query->add(count($mfnList))->newLine();
+        foreach ($mfnList as $mfn) {
+            $query->add($mfn)->newLine();
+        }
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $lines = $response->readRemainingUtfLines();
+        $result = array();
+        foreach ($lines as $line) {
+            $parts = explode('#', $line, 2);
+            $parts = explode("\x1F", $parts[1]);
+            $parts = array_slice($parts, 1);
+            $record = new MarcRecord();
+            $record->decode($parts);
+            $record->database = $this->database;
+            array_push($result, $record);
+        }
+
+        return $result;
+    }
+
+    /**
      * Загрузка сценариев поиска с сервера.
      *
      * @param string $specification Спецификация.
@@ -2730,6 +3118,25 @@ class IrbisConnection {
     }
 
     /**
+     * Чтение TRE-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return bool|TreeFile
+     */
+    public function readTreeFile($specification) {
+        $text = $this->readTextFile($specification);
+        if (!$text) {
+            return false;
+        }
+
+        $lines = explode("\n", $text);
+        $result = new TreeFile();
+        $result->parse($lines);
+
+        return $result;
+    }
+
+    /**
      * Пересоздание словаря.
      *
      * @param string $database База данных.
@@ -2791,8 +3198,10 @@ class IrbisConnection {
     public function search($expression) {
         $parameters = new SearchParameters();
         $parameters->expression = $expression;
+        $found = $this->searchEx($parameters);
+        $result = FoundLine::toMfn($found);
 
-        return $this->searchEx($parameters);
+        return $result;
     }
 
     /**
@@ -2824,8 +3233,36 @@ class IrbisConnection {
         $query->addAnsi($parameters->sequential)->newLine();
         $response = $this->execute($query);
         $response->checkReturnCode();
-        // TODO сделать через FoundItem
-        $result = $response->readRemainingUtfLines();
+        $response->readInteger(); // Число найденных записей.
+        $lines = $response->readRemainingUtfLines();
+        $result = FoundLine::parse($lines);
+
+        return $result;
+    }
+
+    /**
+     * Поиск записей с их одновременным считыванием.
+     *
+     * @param string $expression Поисковое выражение.
+     * @param int $limit Максимальное количество загружаемых записей.
+     * @return array|bool
+     * @throws Exception
+     */
+    public function searchRead($expression, $limit=0) {
+        $parameters = new SearchParameters();
+        $parameters->expression = $expression;
+        $parameters->format = ALL_FORMAT;
+        $parameters->numberOfRecords = $limit;
+        $found = $this->searchEx($parameters);
+        $result = array();
+        foreach ($found as $item) {
+            $lines = explode("\x1F", $item->description);
+            $lines = array_slice($lines, 1);
+            $record = new MarcRecord();
+            $record->decode($lines);
+            $record->database = $this->database;
+            array_push($result, $record);
+        }
 
         return $result;
     }
