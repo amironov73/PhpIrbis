@@ -307,6 +307,11 @@ class SubField {
      */
     public $value;
 
+    /**
+     * Декодирование подполя из протокольного представления.
+     *
+     * @param string $line
+     */
     public function decode($line) {
         $this->code = $line[0];
         $this->value = substr($line, 1);
@@ -566,15 +571,26 @@ class MarcRecord {
         return boolval($this->status & 3);
     }
 
-    public function __toString() {
-        $result = $this->mfn . '#' . $this->status . "\x1F\x1E"
-            . '0#' . $this->version . "\x1F\x1E";
+    /**
+     * Кодирование записи в протокольное представление.
+     *
+     * @param string $delimiter Разделитель строк.
+     * В зависимости от ситуации ИРБИСный или обычный.
+     * @return string
+     */
+    public function encode($delimiter = "\x1F\x1E") {
+        $result = $this->mfn . '#' . $this->status . $delimiter
+            . '0#' . $this->version . $delimiter;
 
         foreach ($this->fields as $field) {
-            $result .= ($field . "\x1F\x1E");
+            $result .= ($field . $delimiter);
         }
 
         return $result;
+    }
+
+    public function __toString() {
+        return $this->encode();
     }
 }
 
@@ -1096,6 +1112,14 @@ class TreeNode {
     public $level = 0;
 
     /**
+     * TreeNode constructor.
+     * @param string $value
+     */
+    public function __construct($value = '') {
+        $this->value = $value;
+    }
+
+    /**
      * Добавление дочернего узла с указанным значением.
      *
      * @param $value
@@ -1108,6 +1132,10 @@ class TreeNode {
 
         return $this;
     }
+
+    public function __toString() {
+        return $this->value;
+    }
 }
 
 /**
@@ -1119,16 +1147,49 @@ class TreeFile {
      */
     public $roots = array();
 
-    private function arrange1() {
-        // TODO implement
+    private static function arrange1(array $list, $level) {
+        $count = count($list);
+        $index = 0;
+
+        while ($index < $count) {
+            $next = self::arrange2($list, $level, $index, $count);
+            $index = $next;
+        }
     }
 
-    private function arrange2() {
-        // TODO implement
+    private static function arrange2(array $list, $level, $index, $count) {
+        $next = $index + 1;
+        $level2 = $level + 1;
+
+        $parent = $list[$index];
+        while ($next < $count) {
+            $child = $list[$next];
+            if ($child->level < $level) {
+                break;
+            }
+
+            if ($child->level == $level2) {
+                array_push($parent->children, $child);
+            }
+
+            $next++;
+        }
+
+        return $next;
     }
 
-    private function countIndent() {
-        // TODO implement
+    private static function countIndent($text) {
+        $result = 0;
+        $length = strlen($text);
+        for($i = 0; $i < $length; $i++) {
+           if ($text[$i] == "\t") {
+               $result++;
+           } else {
+               break;
+           }
+        }
+
+        return $result;
     }
 
     /**
@@ -1149,9 +1210,55 @@ class TreeFile {
      * Разбор ответа сервера.
      *
      * @param array $lines Строки с ответом сервера.
+     * @throws IrbisException
      */
     public function parse(array $lines) {
-        // TODO implement
+        if (!count($lines)) {
+            return;
+        }
+
+        $list = array();
+        $currentLevel = 0;
+        $line = $lines[0];
+        if (self::countIndent($line) != 0) {
+            throw new IrbisException();
+        }
+
+        array_push($list, new TreeNode($line));
+        $lines = array_slice($lines, 1);
+        foreach ($lines as $line) {
+            if (isNullOrEmpty($line)) {
+                continue;
+            }
+
+            $level = self::countIndent($line);
+            if ($level > ($currentLevel + 1)) {
+                throw new IrbisException();
+            }
+
+            $currentLevel = $level;
+            $line = substr($line, $currentLevel);
+            $node = new TreeNode($line);
+            $node->level = $currentLevel;
+            array_push($list, $node);
+        }
+
+        $maxLevel = 0;
+        foreach ($list as $item) {
+            if ($item->level > $maxLevel) {
+                $maxLevel = $item->level;
+            }
+        }
+
+        for ($level = 0; $level < $maxLevel; $level++) {
+            self::arrange1($list, $level);
+        }
+
+        foreach ($list as $item) {
+            if ($item->level == 0) {
+                array_push($this->roots, $item);
+            }
+        }
     }
 }
 
@@ -2104,10 +2211,37 @@ class ClientQuery {
  * Ответ сервера.
  */
 class ServerResponse {
+    /**
+     * @var string Код команды (дублирует запрос).
+     */
     public $command = '';
+
+    /**
+     * @var int Идентификатор клиента (дублирует запрос).
+     */
     public $clientId = 0;
+
+    /**
+     * @var int Номер команды (дублирует запрос).
+     */
     public $queryId = 0;
+
+    /**
+     * @var int Код возврата (бывает не у всех ответов).
+     */
     public $returnCode = 0;
+
+    /**
+     * @var int Размер ответа в байтах
+     * (в некоторых сценариях не возвращается).
+     */
+    public $answerSize = 0;
+
+    /**
+     * @var string Версия сервера
+     * (в некоторых сценариях не возвращается).
+     */
+    public $serverVersion = '';
 
     private $answer;
     private $offset;
@@ -2124,7 +2258,9 @@ class ServerResponse {
         $this->command = $this->readAnsi();
         $this->clientId = $this->readInteger();
         $this->queryId = $this->readInteger();
-        for ($i=0; $i < 7; $i++) {
+        $this->answerSize = $this->readInteger();
+        $this->serverVersion = $this->readAnsi();
+        for ($i=0; $i < 5; $i++) {
             $this->readAnsi();
         }
     }
@@ -2133,12 +2269,13 @@ class ServerResponse {
      * Проверка кода возврата.
      *
      * @param array $goodCodes Разрешенные коды возврата.
-     * @throws Exception
+     * @throws IrbisException
      */
     public function checkReturnCode(array $goodCodes=array()) {
         if ($this->getReturnCode() < 0) {
             if (!in_array($this->returnCode, $goodCodes)) {
-                throw new IrbisException(describeError($this->returnCode),$this->returnCode);
+                throw new IrbisException(describeError($this->returnCode),
+                    $this->returnCode);
             }
         }
     }
@@ -2159,6 +2296,7 @@ class ServerResponse {
      */
     public function getLine() {
         $result = '';
+
         while ($this->offset < $this->answerLength) {
             $symbol = $this->answer[$this->offset];
             $this->offset++;
@@ -2325,6 +2463,22 @@ class IrbisConnection {
      */
     public $queryId = 0;
 
+    /**
+     * @var string Версия сервера (доступна после подключения).
+     */
+    public $serverVersion = '';
+
+    /**
+     * @var IniFile Серверный INI-файл (доступен после подключения).
+     */
+    public $iniFile = null;
+
+    /**
+     * @var int Интервал подтверждения, минуты
+     * (доступен после подключения).
+     */
+    public $interval = 0;
+
     private $connected = false;
 
     /**
@@ -2346,7 +2500,7 @@ class IrbisConnection {
      * @param string $database Имя базы данных.
      * @param integer $mfn MFN, подлежащий актуализации.
      * @return bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function actualizeRecord($database, $mfn) {
         if (!$this->connected) {
@@ -2366,7 +2520,7 @@ class IrbisConnection {
      * Подключение к серверу ИРБИС64.
      *
      * @return bool
-     * @throws Exception
+     * @throws IrbisException
      */
     function connect() {
         if ($this->connected) {
@@ -2391,6 +2545,11 @@ class IrbisConnection {
         }
 
         $this->connected = true;
+        $this->serverVersion = $response->serverVersion;
+        $this->interval = intval($response->readUtf());
+        $lines = $response->readRemainingAnsiLines();
+        $this->iniFile = new IniFile();
+        $this->iniFile->parse($lines);
 
         return true;
     }
@@ -2402,7 +2561,7 @@ class IrbisConnection {
      * @param string $description Описание в свободной форме.
      * @param int $readerAccess Читатель будет иметь доступ?
      * @return bool
-     * @throws Exception
+     * @throws IrbisException
      */
     function createDatabase($database, $description, $readerAccess=1) {
         if (!$this->connected) {
@@ -2424,7 +2583,7 @@ class IrbisConnection {
      *
      * @param string $database Имя базы данных.
      * @return bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function createDictionary($database) {
         if (!$this->connected) {
@@ -2444,7 +2603,7 @@ class IrbisConnection {
      *
      * @param string $database Имя удаляемой базы данных.
      * @return bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function deleteDatabase($database) {
         if (!$this->connected) {
@@ -2463,7 +2622,7 @@ class IrbisConnection {
      * Удаление записи по её MFN.
      *
      * @param integer $mfn MFN удаляемой записи.
-     * @throws Exception
+     * @throws IrbisException
      */
     public function deleteRecord($mfn) {
         $record = $this->readRecord($mfn);
@@ -2529,7 +2688,7 @@ class IrbisConnection {
      * @param string $format Текст формата
      * @param integer $mfn MFN записи
      * @return bool|string
-     * @throws Exception
+     * @throws IrbisException
      */
     public function formatRecord($format, $mfn) {
         if (!$this->connected) {
@@ -2555,7 +2714,7 @@ class IrbisConnection {
      * @param string $format Формат.
      * @param array $mfnList Массив MFN.
      * @return array|bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function formatRecords($format, array $mfnList) {
         if (!$this->connected) {
@@ -2591,7 +2750,7 @@ class IrbisConnection {
      *
      * @param string $database Имя базы данных.
      * @return bool|DatabaseInfo
-     * @throws Exception
+     * @throws IrbisException
      */
     public function getDatabaseInfo($database = '') {
         if (!$this->connected) {
@@ -2617,7 +2776,7 @@ class IrbisConnection {
      *
      * @param string $database Имя базы данных.
      * @return bool|integer
-     * @throws Exception
+     * @throws IrbisException
      */
     public function getMaxMfn($database) {
         if (!$this->connected) {
@@ -2636,7 +2795,7 @@ class IrbisConnection {
      * Получение статистики с сервера.
      *
      * @return bool|ServerStat
-     * @throws Exception
+     * @throws IrbisException
      */
     public function getServerStat() {
         if (!$this->connected) {
@@ -2656,7 +2815,7 @@ class IrbisConnection {
      * Получение версии сервера.
      *
      * @return bool|VersionInfo
-     * @throws Exception
+     * @throws IrbisException
      */
     public function getServerVersion() {
         if (!$this->connected) {
@@ -2676,7 +2835,7 @@ class IrbisConnection {
      * Получение списка пользователей с сервера.
      *
      * @return array|bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function getUserList() {
         if (!$this->connected) {
@@ -2741,7 +2900,7 @@ class IrbisConnection {
      * Получение списка серверных процессов.
      *
      * @return array|bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function listProcesses() {
         if (!$this->connected) {
@@ -2907,7 +3066,7 @@ class IrbisConnection {
      *
      * @param PostingParameters $parameters Параметры постингов.
      * @return array|bool Массив постингов.
-     * @throws Exception
+     * @throws IrbisException
      */
     public function readPostings(PostingParameters $parameters) {
         if (!$this->connected) {
@@ -2942,7 +3101,7 @@ class IrbisConnection {
      *
      * @param string $mfn MFN записи
      * @return bool|RawRecord
-     * @throws Exception
+     * @throws IrbisException
      */
     public function readRawRecord($mfn) {
         if (!$this->connected) {
@@ -2966,7 +3125,7 @@ class IrbisConnection {
      *
      * @param integer $mfn MFN записи
      * @return bool|MarcRecord
-     * @throws Exception
+     * @throws IrbisException
      */
     public function readRecord($mfn) {
         if (!$this->connected) {
@@ -2990,7 +3149,7 @@ class IrbisConnection {
      *
      * @param array $mfnList Массив MFN.
      * @return array|bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function readRecords(array $mfnList) {
         if (!$this->connected) {
@@ -3056,7 +3215,7 @@ class IrbisConnection {
      * @param string $startTerm Начальный термин.
      * @param int $numberOfTerms Необходимое количество терминов.
      * @return array|bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function readTerms($startTerm, $numberOfTerms=100) {
         $parameters = new TermParameters();
@@ -3071,7 +3230,7 @@ class IrbisConnection {
      *
      * @param TermParameters $parameters Параметры термов.
      * @return array|bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function readTermsEx(TermParameters $parameters) {
         if (!$this->connected) {
@@ -3122,6 +3281,7 @@ class IrbisConnection {
      *
      * @param string $specification Спецификация файла.
      * @return bool|TreeFile
+     * @throws IrbisException
      */
     public function readTreeFile($specification) {
         $text = $this->readTextFile($specification);
@@ -3193,7 +3353,7 @@ class IrbisConnection {
      *
      * @param string $expression Выражение для поиска по словарю.
      * @return array|bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function search($expression) {
         $parameters = new SearchParameters();
@@ -3209,7 +3369,7 @@ class IrbisConnection {
      *
      * @param SearchParameters $parameters Параметры поиска.
      * @return array|bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function searchEx(SearchParameters $parameters) {
         if (!$this->connected) {
@@ -3246,7 +3406,7 @@ class IrbisConnection {
      * @param string $expression Поисковое выражение.
      * @param int $limit Максимальное количество загружаемых записей.
      * @return array|bool
-     * @throws Exception
+     * @throws IrbisException
      */
     public function searchRead($expression, $limit=0) {
         $parameters = new SearchParameters();
@@ -3390,25 +3550,50 @@ class IrbisConnection {
      * @param MarcRecord $record Запись для сохранения (новая или ранее считанная).
      * @param int $lockFlag Оставить запись заблокированной?
      * @param int $actualize Актуализировать словарь?
+     * @param bool $dontParse Не разбирать результат.
      * @return bool
+     * @throws IrbisException
      */
-    public function writeRecord(MarcRecord $record, $lockFlag=0, $actualize=1) {
+    public function writeRecord(MarcRecord $record, $lockFlag=0, $actualize=1,
+                                $dontParse=false) {
         if (!$this->connected) {
             return false;
         }
 
-        $database = $record->database;
-        if (!$database) {
-            $database = $this->database;
-        }
-
+        $database = getOne($record->database, $this->database);
         $query = new ClientQuery($this, 'D');
         $query->addAnsi($database)->newLine();
         $query->add($lockFlag)->newLine();
         $query->add($actualize)->newLine();
-        // TODO implement properly
-        $query->addUtf(strval($record));
+        $query->addUtf($record->encode())->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        if (!$dontParse) {
+            $record->fields = array();
+            $temp = $response->readRemainingUtfLines();
+            $lines = array($temp[0]);
+            $lines = array_merge($lines, explode("\x1E", $temp[1]));
+            $record->decode($lines);
+            $record->database = $database;
+        }
 
-        return true;
+        return $response->returnCode;
+    }
+
+    /**
+     * Сохранение текстового файла на сервере.
+     *
+     * @param string $specification Спецификация файла
+     * (включая текст файла).
+     * @return bool
+     */
+    public function writeTextFile($specification) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'L');
+        $query->addAnsi($specification);
+        $this->execute($query);
     }
 }

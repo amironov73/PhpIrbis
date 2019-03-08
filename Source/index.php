@@ -17,7 +17,16 @@ $connection->username = '1';
 $connection->password = '1';
 $connection->arm = 'A';
 
-$connection->connect();
+if (!$connection->connect()) {
+    echo "Не удалось подключиться!";
+    die(1);
+}
+
+$ini = $connection->iniFile;
+echo "<p>VERSION: {$connection->serverVersion}<br/>";
+echo "INTERVAL: {$connection->interval}<br/>";
+$dbnnamecat = $ini->getValue('Main', 'DBNNAMECAT');
+echo "DBNAMECAT: {$dbnnamecat}</p>";
 
 //$connection->noOp();
 //echo '<p>NO OP</p>';
@@ -80,8 +89,19 @@ echo "<p>Версия: {$version->version} {$version->organization}</p>";
 //$records = $connection->readRecords(array(10, 20, 30));
 //dumpArray($records);
 
-$records = $connection->searchRead("K=ALG$", 10);
-dumpArray($records);
+//$records = $connection->searchRead("K=ALG$", 10);
+//dumpArray($records);
+
+//$record = new MarcRecord();
+//$record->add(100, 'Field100/1');
+//$record->add(100, 'Field100/2');
+//$record->add(200)->add('a', 'SubA')->add('b', 'SubB');
+//$record->add(920, 'PAZK');
+//$connection->writeRecord($record);
+//echo "<p>{$record}</p>";
+
+$tree = $connection->readTreeFile("3.IBIS.II.TRE");
+dumpArray($tree->roots);
 
 $connection->disconnect();
 
