@@ -1349,6 +1349,10 @@ class DatabaseInfo {
         $result = array();
         foreach ($menu->entries as $entry) {
             $name = $entry->code;
+            if ($name == '*****') {
+                break;
+            }
+
             $description = $entry->comment;
             $readOnly = false;
             if ($name[0] == '-') {
@@ -2851,6 +2855,14 @@ class IrbisConnection {
     }
 
     /**
+     * @return bool Получение статуса,
+     * подключен ли клиент в настоящее время.
+     */
+    public function isConnected() {
+        return $this->connected;
+    }
+
+    /**
      * Получение списка баз данных с сервера.
      *
      * @param string $specification Спецификация файла со списком баз.
@@ -2920,7 +2932,9 @@ class IrbisConnection {
      * Пустая операция (используется для периодического
      * подтверждения подключения клиента).
      *
-     * @return bool
+     * @return bool Всегда true при наличии подключения,
+     * т. к. код возврата не анализируется.
+     * Всегда false при отсутствии подключения.
      */
     public function noOp() {
         if (!$this->connected) {
@@ -2942,9 +2956,13 @@ class IrbisConnection {
     public function parseConnectionString($connectionString) {
         $items = explode(';', $connectionString);
         foreach ($items as $item) {
+            if (isNullOrEmpty($item)){
+                continue;
+            }
+
             $parts = explode('=', $item, 2);
             if (count($parts) != 2) {
-                throw new IrbisException();
+                continue;
             }
 
             $name = strtolower(trim($parts[0]));
@@ -2989,7 +3007,7 @@ class IrbisConnection {
                     break;
 
                 default:
-                    throw new IrbisException();
+                    throw new IrbisException("Unknown key {$name}");
             }
         }
     }
