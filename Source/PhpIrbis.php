@@ -2190,6 +2190,7 @@ class SearchScenario {
                 $scenario->logic = self::get($section, "Logic", $i);
                 $scenario->advance = self::get($section, "Adv", $i);
                 $scenario->format = self::get($section, "Pft", $i);
+                array_push($result, $scenario);
             }
         }
 
@@ -2802,7 +2803,7 @@ class IrbisConnection {
         $result = array();
         foreach ($lines as $line) {
             $parts = explode('#', $line, 2);
-            array_push($result, $parts[1]);
+            array_push($result, irbisToDos($parts[1]));
         }
 
         return $result;
@@ -3682,4 +3683,106 @@ class IrbisConnection {
         $query->addAnsi($specification);
         $this->execute($query);
     }
-}
+} // class IrbisConnection
+
+class IrbisUI {
+
+    /**
+     * @var IrbisConnection Активное подключение к серверу.
+     */
+    public $connection;
+
+    /**
+     * Конструктор.
+     *
+     * @param IrbisConnection $connection Активное (!) подключение к серверу.
+     * @throws IrbisException
+     */
+    public function __construct(IrbisConnection $connection) {
+        if (!$connection->isConnected()) {
+            throw new IrbisException();
+        }
+
+        $this->connection = $connection;
+    }
+
+    /**
+     * Вывод выпадающего списка баз данных.
+     *
+     * @param string $class
+     * @param string $selected
+     * @throws IrbisException
+     */
+    public function listDatabases($class='', $selected='') {
+        $dbnnamecat = $this->connection->iniFile->getValue('Main', 'DBNNAMECAT', 'dbnam3.mnu');
+        $databases = $this->connection->listDatabases('1..' . $dbnnamecat);
+        if (!$databases) {
+            throw new IrbisException();
+        }
+
+        $classText = '';
+        if ($class) {
+            $classText = " class='{$class}'";
+        }
+        echo "<select name='catalogBox'$classText>" . PHP_EOL;
+        foreach ($databases as $database) {
+            $selectedText = '';
+            if (sameString($database->name, $selected)) {
+                $selectedText = ' selected';
+            }
+            echo "<option value='{$database->name}'$selectedText>{$database->description}</option>" . PHP_EOL;
+        }
+        echo "</select>" . PHP_EOL;
+    }
+
+    /**
+     * Получение сценариев поиска.
+     *
+     * @return array
+     * @throws IrbisException
+     */
+    public function getSearchScenario() {
+        $ini = $this->connection->iniFile;
+        $fileName = $ini->getValue("MAIN", 'SearchIni'); // ???
+        $section = $ini->findSection("SEARCH");
+        if (!$section) {
+            throw new IrbisException();
+        }
+        $result = SearchScenario::parse($ini);
+
+        return $result;
+    }
+
+    /**
+     * Вывод выпадающего списка сценариев поиска.
+     *
+     * @param $name
+     * @param $scenarios
+     * @param string $class
+     * @param int $selectedIndex
+     * @param string $selectedValue
+     */
+    public function listSearchScenario($name, $scenarios, $class='', $selectedIndex=-1,
+            $selectedValue='') {
+        echo "<select name='$name'>" . PHP_EOL;
+        $classText = '';
+        if ($class) {
+            $classText = " class='$class'";
+        }
+        $index = 0;
+        foreach ($scenarios as $scenario) {
+            $selectedText = '';
+            if ($selectedValue) {
+                if (sameString($scenario->prefix, $selectedValue)) {
+                    $selectedText = ' selected';
+                }
+            } else if ($index == $selectedIndex) {
+                $selectedText = ' selected';
+            }
+            echo "<option value='{$scenario->prefix}'$selectedText$classText>{$scenario->name}</option>" . PHP_EOL;
+            $index++;
+        }
+        echo "</select>" . PHP_EOL;
+    }
+
+} // class IrbisUI
