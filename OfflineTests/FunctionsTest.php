@@ -1,6 +1,6 @@
 <?php
 
-require_once ('PhpIrbis.php');
+require_once '../Source/PhpIrbis.php';
 
 class FunctionsTest extends PHPUnit_Framework_TestCase
 {

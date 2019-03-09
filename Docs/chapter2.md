@@ -26,7 +26,7 @@ port        |integer | Порт|6666
 username    |string  | Имя (логин) пользователя|пустая строка
 password    |string  | Пароль пользователя|пустая строка
 database    |string  | Имя базы данных|'IBIS'
-workstation |strin   | Тип АРМа (см. таблицу ниже)| 'C'
+workstation |string  | Тип АРМа (см. таблицу ниже)| 'C'
 
 Типы АРМов
 
@@ -152,6 +152,13 @@ $record->add(999, '123');
 $client->writeRecord($record);
 ```
 
+#### Удаление записи на сервере
+
+```php
+$mfn = 123;
+$client->deleteRecord($mfn);
+```
+
 #### Поиск записей
 
 ```php
@@ -160,3 +167,109 @@ echo "Найдено записей: " . count($found);
 ```
 
 Обратите внимание, что поисковый запрос заключен в дополнительные кавычки. Эти кавычки явлются элементом синтаксиса поисковых запросов ИРБИС64, и лучше их не опускать.
+
+#### Расширенный поиск
+
+Функция | Назначение
+--------|-----------
+searchEx | Расширенный поиск
+
+#### Форматирование записей
+
+```php
+$mfn = 123;
+$format = BRIEF_FORMAT;
+$text = $client->formatRecord($format, $mfn);
+echo '<p>Результат форматирования: ' . $text . '</p>';
+```
+
+Форматирование нескольких записей:
+
+```php
+$mfns = array ( 12, 34, 56 );
+$format = BRIEF_FORMAT;
+$lines = $client->formatRecords($format, $mfns);
+echo '<p>Результаты:<br/>' . implode('<br/>', $lines) . '</p>';
+```
+
+# Печать таблиц
+
+```php
+$table = new TableDefinition();
+$table->database = 'IBIS';
+$table->table = '@tabf1w';
+$table->searchQuery = '"T=A$"';
+$text = $client->printTable($table);
+```
+
+#### Работа с контекстом
+
+Функция | Назначение
+--------|-----------
+listFiles | Получение списка файлов на сервере
+readIniFile | Получение INI-файла с сервера
+readMenuFile | Получение MNU-файла с сервера
+readSearchScenario | Загрузка сценариев поиска с сервера
+readTextFile | Получение текстового файла с сервера
+readTreeFile | Получение TRE-файла с сервера
+updateIniFile | Обновление строк серверного INI-файла
+writeTextFile | Сохранение текстового файла на сервере
+
+#### Работа с мастер-файлом
+
+Функция | Назначение
+--------|-----------
+readRawRecord | Чтение указанной записи в "сыром" виде
+writeRawRecord | Сохранение на сервере "сырой" записи
+
+#### Работа со словарем
+
+Функция | Назначение
+--------|-----------
+readPostings | Чтение постингов поискового словаря
+readTerms | Чтение терминов поискового словаря
+readTermsEx | Расширенное чтение терминов
+
+#### Информационные функции
+
+Функция | Назначение
+--------|-----------
+getDatabaseInfo | Получение информации о базе данных
+getMaxMfn | Получение максимального MFN для указанной базы данных
+getServerVersion | Получение версии сервера
+listDatabases | Получение списка баз данных с сервера
+toConnectionString | Получение строки подключения
+
+#### Администраторские функции
+
+Нижеперечисленные записи доступны лишь из АРМ "Администратор", поэтому подключаться к серверу необходимо так:
+
+```php
+$client = new IrbisConnection();
+$client->username = 'librarian';
+$client->password = 'secret';
+$client->workstation = ADMINISTRATOR;
+if (!$client->connect()) {
+    echo 'Не удалось подключиться!';
+    die(1);
+}
+```
+
+Функция | Назначение
+--------|-----------
+actualizeRecord | Актуализация записи
+createDatabase | Создание базы данных
+createDictionary | Создание словаря
+deleteDatabase | Удаление базы данных
+getServerStat | Получение статистики с сервера
+getUserList | Получение списка пользователей с сервера
+listProcesses | Получение списка серверных процессов
+reloadDictionary | Пересоздание словаря
+reloadMasterFile | Пересоздание мастер-файла
+restartServer | Перезапуск сервера
+truncateDatabase | Опустошение базы данных
+unlockDatabase | Разблокирование базы данных
+unlockRecords | Разблокирование записей
+updateUserList | Обновление списка пользователей на сервере
+
+[Предыдущая глава](chapter1.md) [Следующая глава](chapter3.md)

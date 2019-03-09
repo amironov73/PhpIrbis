@@ -15,7 +15,7 @@ function dumpArray($arr) {
 $connection = new IrbisConnection();
 $connection->username = '1';
 $connection->password = '1';
-$connection->arm = 'A';
+$connection->workstation = 'A';
 
 if (!$connection->connect()) {
     echo "Не удалось подключиться!";

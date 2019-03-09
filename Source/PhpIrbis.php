@@ -317,6 +317,22 @@ class SubField {
         $this->value = substr($line, 1);
     }
 
+    /**
+     * Верификация подполя.
+     *
+     * @param bool $throw Бросать ли исключение при ошибке?
+     * @return bool Результат верификации.
+     * @throws IrbisException
+     */
+    public function verify($throw = true) {
+        $result = $this->code && $this->value;
+        if (!$result && $throw) {
+            throw new IrbisException();
+        }
+
+        return $result;
+    }
+
     public function __toString() {
         return '^' . $this->code . $this->value;
     }
@@ -383,6 +399,31 @@ class RecordField {
                 array_push($this->subfields, $sf);
             }
         }
+    }
+
+    /**
+     * Верификация поля.
+     *
+     * @param bool $throw Бросать ли исключение при ошибке?
+     * @return bool Результат верификации.
+     * @throws IrbisException
+     */
+    public function verify($throw = true) {
+        $result = $this->tag && ($this->value || count($this->subfields));
+        if ($result && $this->subfields) {
+            foreach ($this->subfields as $subfield) {
+                $result = $subfield->verify($throw);
+                if (!$result) {
+                    break;
+                }
+            }
+        }
+
+        if (!$result && $throw) {
+            throw new IrbisException();
+        }
+
+        return $result;
     }
 
     public function __toString() {
@@ -584,6 +625,24 @@ class MarcRecord {
 
         foreach ($this->fields as $field) {
             $result .= ($field . $delimiter);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Верификация записи.
+     *
+     * @param bool $throw Бросать ли исключение при ошибке?
+     * @return bool Результат верификации.
+     */
+    public function verify($throw = true) {
+        $result = false;
+        foreach ($this->fields as $field) {
+            $result = $field->verify($throw);
+            if (!$result) {
+                break;
+            }
         }
 
         return $result;
@@ -2146,7 +2205,7 @@ class ClientQuery {
 
     public function __construct(IrbisConnection $connection, $command) {
         $this->addAnsi($command)->newLine();
-        $this->addAnsi($connection->arm)->newLine();
+        $this->addAnsi($connection->workstation)->newLine();
         $this->addAnsi($command)->newLine();
         $this->addAnsi($connection->clientId)->newLine();
         $this->addAnsi($connection->queryId)->newLine();
@@ -2453,7 +2512,7 @@ class IrbisConnection {
     /**
      * @var string Код АРМа.
      */
-    public $arm = CATALOGER;
+    public $workstation = CATALOGER;
 
     /**
      * @var int Идентификатор клиента.
@@ -2999,7 +3058,7 @@ class IrbisConnection {
 
                 case 'arm':
                 case 'workstation':
-                    $this->arm = $value;
+                    $this->workstation = $value;
                     break;
 
                 case 'debug':
@@ -3244,9 +3303,9 @@ class IrbisConnection {
     }
 
     /**
-     * Получение термов поискового словаря.
+     * Получение терминов поискового словаря.
      *
-     * @param TermParameters $parameters Параметры термов.
+     * @param TermParameters $parameters Параметры терминов.
      * @return array|bool
      * @throws IrbisException
      */
@@ -3456,7 +3515,7 @@ class IrbisConnection {
             . ';username=' . $this->username
             . ';password=' . $this->password
             . ';database=' . $this->database
-            . ';arm='      . $this->arm . ';';
+            . ';arm='      . $this->workstation . ';';
     }
 
     /**
@@ -3560,6 +3619,15 @@ class IrbisConnection {
         $this->execute($query);
 
         return true;
+    }
+
+    /**
+     * Сохранение на сервере "сырой" записи.
+     *
+     * @param RawRecord $record Запись для сохранения.
+     */
+    public function writeRawRecord(RawRecord $record) {
+        // TODO implement
     }
 
     /**
