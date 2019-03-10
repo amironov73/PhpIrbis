@@ -49,6 +49,16 @@ const BOOKLAND      = 'B'; // Книговыдача
 const PROVISITON    = 'K'; // Книгообеспеченность
 
 /**
+ * Разделитель строк в ИРБИС.
+ */
+const IRBIS_DELIMITER = "\x1F\x1E";
+
+/**
+ * Короткая версия разделителя строк ИРБИС.
+ */
+const SHORT_DELIMITER = "\x1E";
+
+/**
  * Пустая ли данная строка?
  *
  * @param string $text Строка для изучения.
@@ -76,7 +86,7 @@ function sameString($str1, $str2) {
  * @return mixed
  */
 function irbisToDos($text) {
-    return str_replace("\x1F\x1E", "\n", $text);
+    return str_replace(IRBIS_DELIMITER, "\n", $text);
 }
 
 /**
@@ -86,7 +96,7 @@ function irbisToDos($text) {
  * @return array
  */
 function irbisToLines($text) {
-    return explode("\x1F\x1E", $text);
+    return explode(IRBIS_DELIMITER, $text);
 }
 
 /**
@@ -308,6 +318,17 @@ class SubField {
     public $value;
 
     /**
+     * Конструктор подполя.
+     *
+     * @param string $code Код подполя.
+     * @param string $value Значение подполя.
+     */
+    public function __construct($code='', $value='') {
+        $this->code = $code;
+        $this->value = $value;
+    }
+
+    /**
      * Декодирование подполя из протокольного представления.
      *
      * @param string $line
@@ -359,6 +380,17 @@ class RecordField {
     public $subfields = array();
 
     /**
+     * Конструктор поля.
+     *
+     * @param int $tag Метка поля.
+     * @param string $value Значение поля.
+     */
+    public function __construct($tag=0, $value='') {
+        $this->tag = $tag;
+        $this->value = $value;
+    }
+
+    /**
      * Добавление подполя с указанными кодом и значением.
      *
      * @param string $code Код подполя.
@@ -370,6 +402,18 @@ class RecordField {
         $subfield->code = $code;
         $subfield->value = $value;
         array_push($this->subfields, $subfield);
+
+        return $this;
+    }
+
+    /**
+     * Очищает поле (удаляет значение и все подполя).
+     *
+     * @return $this
+     */
+    public function clear() {
+        $this->value = '';
+        $this->subfields = array();
 
         return $this;
     }
@@ -399,6 +443,38 @@ class RecordField {
                 array_push($this->subfields, $sf);
             }
         }
+    }
+
+    /**
+     * Возвращает первое вхождение подполя с указанным кодом.
+     *
+     * @param string $code Код искомого подполя.
+     * @return SubField|null Найденное подполе.
+     */
+    public function getFirstSubField($code) {
+        foreach ($this->subfields as $subfield) {
+            if (sameString($subfield->code, $code)) {
+                return $subfield;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Возвращает значение первого вхождения подполя с указанным кодом.
+     *
+     * @param string $code Код искомого подполя.
+     * @return string
+     */
+    public function getFirstSubFieldValue($code) {
+        foreach ($this->subfields as $subfield) {
+            if (sameString($subfield->code, $code)) {
+                return $subfield->value;
+            }
+        }
+
+        return '';
     }
 
     /**
@@ -480,6 +556,17 @@ class MarcRecord {
         array_push($this->fields, $field);
 
         return $field;
+    }
+
+    /**
+     * Очистка записи (удаление всех полей).
+     *
+     * @return $this
+     */
+    public function clear() {
+        $this->fields = array();
+
+        return this;
     }
 
     /**
@@ -619,7 +706,7 @@ class MarcRecord {
      * В зависимости от ситуации ИРБИСный или обычный.
      * @return string
      */
-    public function encode($delimiter = "\x1F\x1E") {
+    public function encode($delimiter = IRBIS_DELIMITER) {
         $result = $this->mfn . '#' . $this->status . $delimiter
             . '0#' . $this->version . $delimiter;
 
@@ -654,7 +741,7 @@ class MarcRecord {
 }
 
 /**
- * Запись в "неразобранном" виде.
+ * Запись в "сыром" ("неразобранном") виде.
  */
 class RawRecord {
     /**
@@ -698,6 +785,24 @@ class RawRecord {
         $secondLine = explode('#', $lines[1]);
         $this->version = intval($secondLine[1]);
         $this->fields = array_slice($lines, 2);
+    }
+
+    /**
+     * Кодирование записи в протокольное представление.
+     *
+     * @param string $delimiter Разделитель строк.
+     * В зависимости от ситуации ИРБИСный или обычный.
+     * @return string
+     */
+    public function encode($delimiter=IRBIS_DELIMITER) {
+        $result = $this->mfn . '#' . $this->status . $delimiter
+            . '0#' . $this->version . $delimiter;
+
+        foreach ($this->fields as $field) {
+            $result .= ($field . $delimiter);
+        }
+
+        return $result;
     }
 }
 
@@ -1372,7 +1477,7 @@ class DatabaseInfo {
 
     static function parseLine($line) {
         $result = array();
-        $items = explode("\x1E", $line);
+        $items = explode(SHORT_DELIMITER, $line);
         foreach ($items as $item) {
             array_push($result, intval($item));
         }
@@ -1768,7 +1873,7 @@ class UserInfo {
 }
 
 /**
- * Данные для команды TableCommand
+ * Данные для метода printTable.
  */
 class TableDefinition {
     /**
@@ -1906,7 +2011,7 @@ class PostingParameters {
 }
 
 /**
- * Параметры для запроса термов с сервера.
+ * Параметры для запроса терминов с сервера.
  */
 class TermParameters {
     /**
@@ -1915,7 +2020,7 @@ class TermParameters {
     public $database = '';
 
     /**
-     * @var int Количество считываемых термов.
+     * @var int Количество считываемых терминов.
      */
     public $numberOfTerms = 0;
 
@@ -2034,7 +2139,7 @@ class TermPosting {
 }
 
 /**
- * Параметры для поиска записей.
+ * Параметры для поиска записей (метод searchEx).
  */
 class SearchParameters {
     /**
@@ -3659,12 +3764,32 @@ class IrbisConnection {
             $record->fields = array();
             $temp = $response->readRemainingUtfLines();
             $lines = array($temp[0]);
-            $lines = array_merge($lines, explode("\x1E", $temp[1]));
+            $lines = array_merge($lines, explode(SHORT_DELIMITER, $temp[1]));
             $record->decode($lines);
             $record->database = $database;
         }
 
         return $response->returnCode;
+    }
+
+    public function writeRecords(array $records) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        if (!$records) {
+            return true;
+        }
+
+        if (count($records) == 1) {
+            $this->writeRecord($records[0]);
+
+            return true;
+        }
+
+        // TODO implement
+
+        return true;
     }
 
     /**

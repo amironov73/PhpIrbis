@@ -92,14 +92,6 @@ echo "<p>Версия: {$version->version} {$version->organization}</p>";
 //$records = $connection->searchRead("K=ALG$", 10);
 //dumpArray($records);
 
-//$record = new MarcRecord();
-//$record->add(100, 'Field100/1');
-//$record->add(100, 'Field100/2');
-//$record->add(200)->add('a', 'SubA')->add('b', 'SubB');
-//$record->add(920, 'PAZK');
-//$connection->writeRecord($record);
-//echo "<p>{$record}</p>";
-
 $tree = $connection->readTreeFile("3.IBIS.II.TRE");
 dumpArray($tree->roots);
 

@@ -1,5 +1,30 @@
 {
-    "name": "amironov73/phpirbis",
-    "description": "Simple client for IRBIS64",
-    "version": "0.1.0"
+  "name": "amironov73/phpirbis",
+  "description": "Simple client for IRBIS64",
+  "keywords": [
+    "IRBIS",
+    "IRBIS64",
+    "ИРБИС",
+    "ИРБИС64"
+  ],
+  "license": "MIT",
+  "version": "0.1.0",
+  "homepage": "https://github.com/amironov73/PhpIrbis",
+  "authors": [
+    {
+      "name": "Alexey Mironov",
+      "email": "amironov73@gmail.com",
+      "homepage": "http://mironov.online",
+      "role": "developer"
+    }
+  ],
+  "require": {
+    "php": ">= 5.4.0"
+  },
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/amironov73/PhpIrbis.git"
+    }
+  ]
 }
