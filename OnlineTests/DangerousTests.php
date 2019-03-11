@@ -1,6 +1,6 @@
 <?php
 
-require_once ('PhpIrbis.php');
+require_once ('../Source/PhpIrbis.php');
 
 function dumpArray($arr) {
     echo "<ol>";

@@ -4,6 +4,18 @@
 // Простой клиент для АБИС ИРБИС64.
 //
 
+// Кодировки
+//
+// ВАЖНО! Предполагается, что внутренняя кодировка символов в PHP -- UTF-8
+// И строковые литералы в PHP-файлах хранятся также в кодировке UTF-8
+// Если это не так, возможны проблемы
+//
+
+const UTF_ENCODING = 'UTF-8';
+const ANSI_ENCODING = 'Windows-1251';
+
+mb_internal_encoding(UTF_ENCODING);
+
 // Статус записи
 
 const LOGICALLY_DELETED  = 1;  // Запись логически удалена
@@ -291,7 +303,7 @@ function readTermCodes() {
     return array(-202, -203, -204);
 }
 
-class IrbisException extends Exception {
+final class IrbisException extends Exception {
     public function __construct($message = "",
                                 $code = 0,
                                 Throwable $previous = null) {
@@ -306,7 +318,7 @@ class IrbisException extends Exception {
 /**
  * Подполе записи. Состоит из кода и значения.
  */
-class SubField {
+final class SubField {
     /**
      * @var string Код подполя.
      */
@@ -363,7 +375,7 @@ class SubField {
  * Поле записи. Состоит из тега и (опционального) значения.
  * Может содержать произвольное количество подполей.
  */
-class RecordField {
+final class RecordField {
     /**
      * @var integer Метка поля.
      */
@@ -516,7 +528,7 @@ class RecordField {
 /**
  * Запись. Состоит из произвольного количества полей.
  */
-class MarcRecord {
+final class MarcRecord {
     /**
      * @var string Имя базы данных, в которой хранится запись.
      */
@@ -566,7 +578,7 @@ class MarcRecord {
     public function clear() {
         $this->fields = array();
 
-        return this;
+        return $this;
     }
 
     /**
@@ -743,7 +755,7 @@ class MarcRecord {
 /**
  * Запись в "сыром" ("неразобранном") виде.
  */
-class RawRecord {
+final class RawRecord {
     /**
      * @var string Имя базы данных.
      */
@@ -809,7 +821,7 @@ class RawRecord {
 /**
  * Строка найденной записи.
  */
-class FoundLine {
+final class FoundLine {
     /**
      * @var bool Материализована?
      */
@@ -898,7 +910,7 @@ class FoundLine {
 /**
  * Пара строк в меню.
  */
-class MenuEntry {
+final class MenuEntry {
     public $code, $comment;
 
     public function __toString() {
@@ -909,7 +921,7 @@ class MenuEntry {
 /**
  * Файл меню. Состоит из пар строк (см. MenuEntry).
  */
-class MenuFile {
+final class MenuFile {
     /**
      * @var array Массив пар строк.
      */
@@ -1025,7 +1037,7 @@ class MenuFile {
  * Строка INI-файла. Состоит из ключа
  * и (опционального) значения.
  */
-class IniLine {
+final class IniLine {
     /**
      * @var string Ключ.
      */
@@ -1045,7 +1057,7 @@ class IniLine {
  * Секция INI-файла. Состоит из строк
  * (см. IniLine).
  */
-class IniSection {
+final class IniSection {
     /**
      * @var string Имя секции.
      */
@@ -1134,7 +1146,7 @@ class IniSection {
 /**
  * INI-файл. Состоит из секций (см. IniSection).
  */
-class IniFile {
+final class IniFile {
     /**
      * @var array Секции INI-файла.
      */
@@ -1254,12 +1266,12 @@ class IniFile {
 
         return $result;
     }
-}
+} // class IniFile
 
 /**
  * Узел дерева TRE-файла.
  */
-class TreeNode {
+final class TreeNode {
     /**
      * @var array Дочерние узлы.
      */
@@ -1300,12 +1312,12 @@ class TreeNode {
     public function __toString() {
         return $this->value;
     }
-}
+} // class TreeNode
 
 /**
  * Дерево, хранящееся в TRE-файле.
  */
-class TreeFile {
+final class TreeFile {
     /**
      * @var array Корни дерева.
      */
@@ -1424,12 +1436,12 @@ class TreeFile {
             }
         }
     }
-}
+} // class TreeFile
 
 /**
  * Информация о базе данных ИРБИС.
  */
-class DatabaseInfo {
+final class DatabaseInfo {
     /**
      * @var string Имя базы данных.
      */
@@ -1537,12 +1549,12 @@ class DatabaseInfo {
     public function __toString() {
         return $this->name;
     }
-}
+} // class DatabaseInfo
 
 /**
  * Информация о запущенном на ИРБИС-сервере процессе.
  */
-class ProcessInfo {
+final class ProcessInfo {
     /**
      * @var string Просто порядковый номер в списке.
      */
@@ -1626,12 +1638,12 @@ class ProcessInfo {
     public function __toString() {
         return "{$this->number} {$this->ipAddress} {$this->name}";
     }
-}
+} // class ProcessInfo
 
 /**
  * Информация о версии ИРБИС-сервера.
  */
-class VersionInfo {
+final class VersionInfo {
     /**
      * @var string На какое юридическое лицо приобретен сервер.
      */
@@ -1673,13 +1685,13 @@ class VersionInfo {
     public function __toString() {
         return $this->version;
     }
-}
+} // class VersionInfo
 
 /**
  * Информация о клиенте, подключенном к серверу ИРБИС
  * (не обязательно о текущем).
  */
-class ClientInfo {
+final class ClientInfo {
     /**
      * @var string Порядковый номер.
      */
@@ -1753,13 +1765,13 @@ class ClientInfo {
     public function __toString() {
         return $this->ipAddress;
     }
-}
+} // class ClientInfo
 
 /**
  * Информация о зарегистрированном пользователе системы
  * (по данным client_m.mnu).
  */
-class UserInfo {
+final class UserInfo {
     /**
      * @var string Номер по порядку в списке.
      */
@@ -1870,12 +1882,12 @@ class UserInfo {
     public function __toString() {
         return $this->name;
     }
-}
+} // class UserInfo
 
 /**
  * Данные для метода printTable.
  */
-class TableDefinition {
+final class TableDefinition {
     /**
      * @var string Имя базы данных.
      */
@@ -1924,12 +1936,12 @@ class TableDefinition {
     public function __toString() {
         return $this->table;
     }
-}
+} // class TableDefinition
 
 /**
  * Статистика работы ИРБИС-сервера.
  */
-class ServerStat {
+final class ServerStat {
     /**
      * @var array Подключенные клиенты.
      */
@@ -1973,12 +1985,12 @@ class ServerStat {
 
         return $result;
     }
-}
+} // class ServerStat
 
 /**
  * Параметры для запроса постингов с сервера.
  */
-class PostingParameters {
+final class PostingParameters {
     /**
      * @var string База данных.
      */
@@ -2008,12 +2020,12 @@ class PostingParameters {
      * @var array Список термов.
      */
     public $listOfTerms = array();
-}
+} // class PostingParameters
 
 /**
  * Параметры для запроса терминов с сервера.
  */
-class TermParameters {
+final class TermParameters {
     /**
      * @var string Имя базы данных.
      */
@@ -2038,12 +2050,12 @@ class TermParameters {
      * @var string Формат.
      */
     public $format = '';
-}
+} // class TermParameters
 
 /**
  * Информация о термине поискового словаря.
  */
-class TermInfo {
+final class TermInfo {
     /**
      * @var int Количество ссылок.
      */
@@ -2074,12 +2086,12 @@ class TermInfo {
             ? $this->count . '#' . $this->text
             : $this->count;
     }
-}
+} // class TermInfo
 
 /**
  * Постинг термина в поисковом индексе.
  */
-class TermPosting {
+final class TermPosting {
     /**
      * @var int MFN записи с искомым термином.
      */
@@ -2136,12 +2148,12 @@ class TermPosting {
             . $this->occurrence . '#' . $this->count
             . '#' . $this->text;
     }
-}
+} // class TermPosting
 
 /**
  * Параметры для поиска записей (метод searchEx).
  */
-class SearchParameters {
+final class SearchParameters {
     /**
      * @var string Имя базы данных.
      */
@@ -2196,12 +2208,12 @@ class SearchParameters {
      * @var bool Признак вложенного вызова.
      */
     public $nested = false;
-}
+} // class SearchParameters
 
 /**
  * Сценарий поиска.
  */
-class SearchScenario {
+final class SearchScenario {
     /**
      * @var string Название поискового атрибута
      * (автор, инвентарный номер).
@@ -2301,20 +2313,165 @@ class SearchScenario {
 
         return $result;
     }
-}
+} // class SearchScenario
+
+/**
+ * PAR-файл -- содержит пути к файлам базы данных ИРБИС.
+ */
+final class ParFile {
+
+    // Пример файла IBIS.PAR:
+    //
+    // 1=.\datai\ibis\
+    // 2=.\datai\ibis\
+    // 3=.\datai\ibis\
+    // 4=.\datai\ibis\
+    // 5=.\datai\ibis\
+    // 6=.\datai\ibis\
+    // 7=.\datai\ibis\
+    // 8=.\datai\ibis\
+    // 9=.\datai\ibis\
+    // 10=.\datai\ibis\
+    // 11=f:\webshare\
+
+    /**
+     * @var string Путь к файлу XRF.
+     */
+    public $xrf = '';
+
+    /**
+     * @var string Путь к файлу MST.
+     */
+    public $mst = '';
+
+    /**
+     * @var string Путь к файлу CNT.
+     */
+    public $cnt = '';
+
+    /**
+     * @var string Путь к файлу N01.
+     */
+    public $n01 = '';
+
+    /**
+     * @var string В ИРБИС64 не используется.
+     */
+    public $n02 = '';
+
+    /**
+     * @var string Путь к файлу L01.
+     */
+    public $l01 = '';
+
+    /**
+     * @var string В ИРБИС64 не используется.
+     */
+    public $l02 = '';
+
+    /**
+     * @var string Путь к файлу IFP.
+     */
+    public $ifp = '';
+
+    /**
+     * @var string Путь к файлу ANY.
+     */
+    public $any = '';
+
+    /**
+     * @var string Путь к PFT-файлам.
+     */
+    public $pft = '';
+
+    /**
+     * @var string Расположение внешних объектов (поле 951).
+     * Параметр появился в версии 2012.
+     */
+    public $ext = '';
+
+    /**
+     * ParFile constructor.
+     * @param string $mst Путь к MST-файлу.
+     */
+    public function __construct($mst = '') {
+        $this->mst = $mst;
+        $this->xrf = $mst;
+        $this->cnt = $mst;
+        $this->l01 = $mst;
+        $this->l02 = $mst;
+        $this->n01 = $mst;
+        $this->n02 = $mst;
+        $this->ifp = $mst;
+        $this->any = $mst;
+        $this->pft = $mst;
+        $this->ext = $mst;
+    }
+
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Ответ сервера.
+     * @throws IrbisException
+     */
+    public function parse(array $lines) {
+        $map = array();
+        foreach ($lines as $line) {
+            if (isNullOrEmpty($line)) {
+                continue;
+            }
+
+            $parts = explode('=', $line, 2);
+            if (count($parts) != 2) {
+                throw new IrbisException();
+            }
+
+            $key = trim($parts[0]);
+            $value = trim($parts[1]);
+            $map[$key] = $value;
+        }
+
+        $this->xrf = $map['1'];
+        $this->mst = $map['2'];
+        $this->cnt = $map['3'];
+        $this->n01 = $map['4'];
+        $this->n02 = $map['5'];
+        $this->l01 = $map['6'];
+        $this->l02 = $map['7'];
+        $this->ifp = $map['8'];
+        $this->any = $map['9'];
+        $this->pft = $map['10'];
+        $this->ext = $map['11'];
+    }
+
+    public function __toString() {
+        return '1='  . $this->xrf . PHP_EOL
+            .  '2='  . $this->mst . PHP_EOL
+            .  '3='  . $this->cnt . PHP_EOL
+            .  '4='  . $this->n01 . PHP_EOL
+            .  '5='  . $this->n02 . PHP_EOL
+            .  '6='  . $this->l01 . PHP_EOL
+            .  '7='  . $this->l02 . PHP_EOL
+            .  '8='  . $this->ifp . PHP_EOL
+            .  '9='  . $this->any . PHP_EOL
+            .  '10=' . $this->pft . PHP_EOL
+            .  '11=' . $this->ext . PHP_EOL;
+    }
+
+} // class ParFile
 
 /**
  * Клиентский запрос.
  */
-class ClientQuery {
+final class ClientQuery {
     private $accumulator = '';
 
     public function __construct(IrbisConnection $connection, $command) {
         $this->addAnsi($command)->newLine();
         $this->addAnsi($connection->workstation)->newLine();
         $this->addAnsi($command)->newLine();
-        $this->addAnsi($connection->clientId)->newLine();
-        $this->addAnsi($connection->queryId)->newLine();
+        $this->add($connection->clientId)->newLine();
+        $this->add($connection->queryId)->newLine();
         $this->addAnsi($connection->password)->newLine();
         $this->addAnsi($connection->username)->newLine();
         $this->newLine();
@@ -2342,7 +2499,7 @@ class ClientQuery {
      * @return $this
      */
     public function addAnsi($value) {
-        $converted = mb_convert_encoding($value, 'Windows-1251');
+        $converted = mb_convert_encoding($value, ANSI_ENCODING, UTF_ENCODING);
         $this->accumulator .= $converted;
 
         return $this;
@@ -2374,12 +2531,12 @@ class ClientQuery {
     public function __toString() {
         return strlen($this->accumulator) . chr(10) . $this->accumulator;
     }
-}
+} // class ClientQuery
 
 /**
  * Ответ сервера.
  */
-class ServerResponse {
+final class ServerResponse {
     /**
      * @var string Код команды (дублирует запрос).
      */
@@ -2450,7 +2607,7 @@ class ServerResponse {
     }
 
     /**
-     * Отладочная печать
+     * Отладочная печать.
      *
      * @param mixed $debug Управление отладкой
      */
@@ -2502,7 +2659,7 @@ class ServerResponse {
      */
     public function readAnsi() {
         $result = $this->getLine();
-        $result = mb_convert_encoding($result, 'UTF-8', 'Windows-1251');
+        $result = mb_convert_encoding($result, UTF_ENCODING, ANSI_ENCODING);
 
         return $result;
     }
@@ -2583,12 +2740,12 @@ class ServerResponse {
     public function readUtf() {
         return $this->getLine();
     }
-}
+} // class ServerResponse
 
 /**
  * Подключение к ИРБИС-серверу.
  */
-class IrbisConnection {
+final class IrbisConnection {
     /**
      * @var string Адрес сервера (можно как my.domain.com,
      * так и 192.168.1.1).
@@ -3245,6 +3402,26 @@ class IrbisConnection {
     }
 
     /**
+     * Чтение PAR-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return bool|ParFile
+     * @throws IrbisException
+     */
+    public function readParFile($specification) {
+        $text = $this->readTextFile($specification);
+        if (!$text) {
+            return false;
+        }
+
+        $lines = explode("\n", $text);
+        $result = new ParFile();
+        $result->parse($lines);
+
+        return $result;
+    }
+
+    /**
      * Считывание постингов из поискового индекса.
      *
      * @param PostingParameters $parameters Параметры постингов.
@@ -3772,6 +3949,13 @@ class IrbisConnection {
         return $response->returnCode;
     }
 
+    /**
+     * Сохранение записей на сервере.
+     *
+     * @param array $records Записи.
+     * @return bool
+     * @throws IrbisException
+     */
     public function writeRecords(array $records) {
         if (!$this->connected) {
             return false;
@@ -3807,10 +3991,12 @@ class IrbisConnection {
         $query = new ClientQuery($this, 'L');
         $query->addAnsi($specification);
         $this->execute($query);
+
+        return true;
     }
 } // class IrbisConnection
 
-class IrbisUI {
+final class IrbisUI {
 
     /**
      * @var IrbisConnection Активное подключение к серверу.
@@ -3847,15 +4033,15 @@ class IrbisUI {
 
         $classText = '';
         if ($class) {
-            $classText = " class='{$class}'";
+            $classText = "class='{$class}'";
         }
-        echo "<select name='catalogBox'$classText>" . PHP_EOL;
+        echo "<select name='catalogBox' $classText>" . PHP_EOL;
         foreach ($databases as $database) {
             $selectedText = '';
             if (sameString($database->name, $selected)) {
-                $selectedText = ' selected';
+                $selectedText = 'selected';
             }
-            echo "<option value='{$database->name}'$selectedText>{$database->description}</option>" . PHP_EOL;
+            echo "<option value='{$database->name}' $selectedText>{$database->description}</option>" . PHP_EOL;
         }
         echo "</select>" . PHP_EOL;
     }
@@ -3899,12 +4085,12 @@ class IrbisUI {
             $selectedText = '';
             if ($selectedValue) {
                 if (sameString($scenario->prefix, $selectedValue)) {
-                    $selectedText = ' selected';
+                    $selectedText = 'selected';
                 }
             } else if ($index == $selectedIndex) {
-                $selectedText = ' selected';
+                $selectedText = 'selected';
             }
-            echo "<option value='{$scenario->prefix}'$selectedText$classText>{$scenario->name}</option>" . PHP_EOL;
+            echo "<option value='{$scenario->prefix}' $selectedText $classText>{$scenario->name}</option>" . PHP_EOL;
             $index++;
         }
         echo "</select>" . PHP_EOL;

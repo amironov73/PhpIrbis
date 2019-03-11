@@ -1,6 +1,6 @@
 <?php
 
-require_once ('PhpIrbis.php');
+require_once ('../Source/PhpIrbis.php');
 
 function dumpArray($arr) {
     echo "<ol>";
@@ -92,8 +92,11 @@ echo "<p>Версия: {$version->version} {$version->organization}</p>";
 //$records = $connection->searchRead("K=ALG$", 10);
 //dumpArray($records);
 
-$tree = $connection->readTreeFile("3.IBIS.II.TRE");
+$tree = $connection->readTreeFile('3.IBIS.II.TRE');
 dumpArray($tree->roots);
+
+$par = $connection->readParFile('1..IBIS.PAR');
+echo "<p><pre>$par</pre></p>";
 
 $connection->disconnect();
 
