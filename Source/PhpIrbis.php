@@ -176,7 +176,7 @@ function removeComments($text) {
     }
 
     return $result;
-}
+} // function removeComments
 
 /**
  * Подготовка динамического формата
@@ -217,15 +217,19 @@ function prepareFormat ($text) {
     }
 
     return $result;
-}
+} // function prepareFormat
 
 /**
  * Получение описания по коду ошибки, возвращенному сервером.
  *
- * @param integer $code
- * @return mixed
+ * @param integer $code Код ошибки.
+ * @return string Словесное описание ошибки.
  */
 function describeError($code) {
+    if ($code >= 0) {
+        return 'Нет ошибки';
+    }
+
     $errors = array (
         -100 => 'Заданный MFN вне пределов БД',
         -101 => 'Ошибочный размер полки',
@@ -258,7 +262,7 @@ function describeError($code) {
         -705 => 'Ошибка загрузки словаря',
         -800 => 'Ошибка в параметрах глобальной корректировки',
         -801 => 'ERR_GBL_REP',
-        -801 => 'ERR_GBL_MET',
+        -802 => 'ERR_GBL_MET',
         -1111 => 'Ошибка исполнения сервера (SERVER_EXECUTE_ERROR)',
         -2222 => 'Ошибка в протоколе (WRONG_PROTOCOL)',
         -3333 => 'Незарегистрированный клиент (ошибка входа на сервер) (клиент не в списке)',
@@ -274,20 +278,10 @@ function describeError($code) {
         -8888 => 'Общая ошибка'
     );
 
-    return $errors[$code];
-}
+    $result = $errors[$code] ?: 'Неизвестная ошибка';
 
-/**
- * Получение первого ненулевого значения.
- *
- * @param $first
- * @param $second
- * @param string $third
- * @return string
- */
-function getOne($first, $second, $third='') {
-    return $first ? $first : ($second ? $second : $third);
-}
+    return $result;
+} // function describeError
 
 /**
  * @return array "Хорошие" коды для readRecord.
@@ -313,7 +307,7 @@ final class IrbisException extends Exception {
     public function __toString() {
         return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
     }
-}
+} // class IrbisException
 
 /**
  * Подполе записи. Состоит из кода и значения.
@@ -369,7 +363,7 @@ final class SubField {
     public function __toString() {
         return '^' . $this->code . $this->value;
     }
-}
+} // class SubField
 
 /**
  * Поле записи. Состоит из тега и (опционального) значения.
@@ -523,7 +517,7 @@ final class RecordField {
 
         return $result;
     }
-}
+} // class RecordField
 
 /**
  * Запись. Состоит из произвольного количества полей.
@@ -750,7 +744,7 @@ final class MarcRecord {
     public function __toString() {
         return $this->encode();
     }
-}
+} // class MarcRecord
 
 /**
  * Запись в "сыром" ("неразобранном") виде.
@@ -816,10 +810,10 @@ final class RawRecord {
 
         return $result;
     }
-}
+} // class RawRecord
 
 /**
- * Строка найденной записи.
+ * Строка найденной записи в ответе сервера.
  */
 final class FoundLine {
     /**
@@ -905,7 +899,7 @@ final class FoundLine {
             ? $this->mfn . '#' . $this->description
             : strval($this->mfn);
     }
-}
+} // class FoundLine
 
 /**
  * Пара строк в меню.
@@ -916,7 +910,7 @@ final class MenuEntry {
     public function __toString() {
         return $this->code . ' - ' . $this->comment;
     }
-}
+} // class MenuEntry
 
 /**
  * Файл меню. Состоит из пар строк (см. MenuEntry).
@@ -1031,7 +1025,7 @@ final class MenuFile {
 
         return $result;
     }
-}
+} // class MenuFile
 
 /**
  * Строка INI-файла. Состоит из ключа
@@ -1051,7 +1045,7 @@ final class IniLine {
     public function __toString() {
         return $this->key . ' = ' . $this->value;
     }
-}
+} // class IniLine
 
 /**
  * Секция INI-файла. Состоит из строк
@@ -1141,7 +1135,7 @@ final class IniSection {
 
         return $result;
     }
-}
+} // class IniSection
 
 /**
  * INI-файл. Состоит из секций (см. IniSection).
@@ -1929,7 +1923,7 @@ final class TableDefinition {
     public $sequentialQuery = '';
 
     /**
-     * @var array Сиписок MFN, по которым строится таблица.
+     * @var array Список MFN, по которым строится таблица.
      */
     public $mfnList = array();
 
@@ -1958,6 +1952,11 @@ final class ServerStat {
      */
     public $totalCommandCount = 0;
 
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Строки ответа сервера.
+     */
     public function parse(array $lines) {
         $this->totalCommandCount = intval($lines[0]);
         $this->clientCount = intval($lines[1]);
@@ -2012,7 +2011,7 @@ final class PostingParameters {
     public $numberOfPostings = 0;
 
     /**
-     * @var string Терм.
+     * @var string Термин.
      */
     public $term = '';
 
@@ -2037,12 +2036,12 @@ final class TermParameters {
     public $numberOfTerms = 0;
 
     /**
-     * @var bool Возвращать в обратном порядке.
+     * @var bool Возвращать в обратном порядке?
      */
     public $reverseOrder = false;
 
     /**
-     * @var string Начальный терм.
+     * @var string Начальный термин.
      */
     public $startTerm = '';
 
@@ -3566,8 +3565,7 @@ final class IrbisConnection {
             return false;
         }
 
-        $database = getOne($definition->database, $this->database);
-
+        $database = $definition->database ?: $this->database;
         $query = new ClientQuery($this, '7');
         $query->addAnsi($database)->newLine();
         $query->addAnsi($definition->table)->newLine();
@@ -3674,8 +3672,7 @@ final class IrbisConnection {
             return false;
         }
 
-        $database = getOne($parameters->database, $this->database);
-
+        $database = $parameters->database ?: $this->database;
         $query = new ClientQuery($this, 'I');
         $query->addAnsi($database)->newLine();
         $query->add($parameters->numberOfPostings)->newLine();
@@ -4137,8 +4134,7 @@ final class IrbisConnection {
             return true;
         }
 
-        $database = getOne($database, $this->database);
-
+        $database = $database ?: $this->database;
         $query = new ClientQuery($this, 'Q');
         $query->addAnsi($database)->newLine();
         foreach ($mfnList as $mfn) {
@@ -4217,7 +4213,7 @@ final class IrbisConnection {
             return false;
         }
 
-        $database = getOne($record->database, $this->database);
+        $database = $record->database ?: $this->database;
         $query = new ClientQuery($this, 'D');
         $query->addAnsi($database)->newLine();
         $query->add($lockFlag)->newLine();
