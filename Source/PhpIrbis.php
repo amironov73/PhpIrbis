@@ -27,11 +27,11 @@ const LOCKED_RECORD      = 64; // Запись заблокирована на �
 
 // Распространённые форматы
 
-const ALL_FORMAT       = "&uf('+0')";
-const BRIEF_FORMAT     = '@brief';
-const IBIS_FORMAT      = '@ibiskw_h';
-const INFO_FORMAT      = '@info_w';
-const OPTIMIZED_FORMAT = '@';
+const ALL_FORMAT       = "&uf('+0')";  // Полные данные по полям
+const BRIEF_FORMAT     = '@brief';     // Краткое библиографическое описание
+const IBIS_FORMAT      = '@ibiskw_h';  // Формат IBIS (старый)
+const INFO_FORMAT      = '@info_w';    // Информационный формат
+const OPTIMIZED_FORMAT = '@';          // Оптимизированный формат
 
 // Распространённые поиски
 
@@ -162,7 +162,7 @@ function removeComments($text) {
                         $result .= $c;
                     }
                 }
-                else if ($c == "'" || $c == '""' || $c == '|') {
+                else if ($c == "'" || $c == '"' || $c == '|') {
                     $state = $c;
                     $result .= $c;
                 }
@@ -204,7 +204,7 @@ function prepareFormat ($text) {
         }
     }
 
-    if ($flag) {
+    if (!$flag) {
         return $text;
     }
 
@@ -2461,6 +2461,200 @@ final class ParFile {
 } // class ParFile
 
 /**
+ * Строка OPT-файла.
+ */
+final class OptLine {
+    /**
+     * @var string Паттерн.
+     */
+    public $pattern = '';
+
+    /**
+     * @var string Соответствующий рабочий лист.
+     */
+    public $worksheet = '';
+
+    public function parse($text) {
+        $parts = preg_split("/\s+/", trim($text), 2, PREG_SPLIT_NO_EMPTY);
+        if (count($parts) != 2) {
+            throw new IrbisException();
+        }
+
+        $this->pattern = $parts[0];
+        $this->worksheet = $parts[1];
+    }
+
+    public function __toString() {
+        return $this->pattern . ' ' . $this->worksheet;
+    }
+} // class OptLine
+
+/**
+ * OPT-файл -- файл оптимизации рабочих листов и форматов показа.
+ */
+final class OptFile {
+    // Пример OPT-файла
+    //
+    // 920
+    // 5
+    // PAZK  PAZK42
+    // PVK   PVK42
+    // SPEC  SPEC42
+    // J     !RPJ51
+    // NJ    !NJ31
+    // NJP   !NJ31
+    // NJK   !NJ31
+    // AUNTD AUNTD42
+    // ASP   ASP42
+    // MUSP  MUSP
+    // SZPRF SZPRF
+    // BOUNI BOUNI
+    // IBIS  IBIS
+    // +++++ PAZK42
+    // *****
+
+    /**
+     * @var int Длина рабочего листа.
+     */
+    public $worksheetLength = 5;
+
+    /**
+     * @var int Метка поля рабочего листа.
+     */
+    public $worksheetTag = 920;
+
+    /**
+     * @var array Строки с паттернами.
+     */
+    public $lines = array();
+
+    /**
+     * Получение рабочего листа записи.
+     *
+     * @param MarcRecord $record Запись
+     * @return string Рабочий лист.
+     */
+    public function getWorksheet(MarcRecord $record) {
+        return $record.fm($this->worksheetTag);
+    }
+
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Строки OPT-файла.
+     * @throws IrbisException
+     */
+    public function parse(array $lines) {
+        $this->worksheetTag = intval($lines[0]);
+        $this->worksheetLength = intval($lines[1]);
+        $lines = array_slice($lines, 2);
+        foreach ($lines as $line) {
+            if (isNullOrEmpty($line)) {
+                continue;
+            }
+
+            if ($line[0] == '*') {
+                break;
+            }
+
+            $item = new OptLine();
+            $item->parse($line);
+            array_push($this->lines, $item);
+        }
+    }
+
+    public static function sameChar($pattern, $testable) {
+        if ($pattern == '+') {
+            return true;
+        }
+
+        return strtolower($pattern) == strtolower($testable);
+    }
+
+    /**
+     * Сопоставление строки с OPT-шаблоном.
+     *
+     * @param string $pattern Шаблон.
+     * @param string $testable Проверяемая строка.
+     * @return bool Совпало?
+     */
+    public static function sameText($pattern, $testable) {
+        if (!$pattern) {
+            return false;
+        }
+
+        if (!$testable) {
+            return $pattern[0] == '+';
+        }
+
+        $patternIndex = 0;
+        $testableIndex = 0;
+        while (true) {
+            $patternChar = $pattern[$patternIndex];
+            $testableChar = $testable[$testableIndex];
+            $patternNext = $patternIndex++ < strlen($pattern);
+            $testableNext = $testableIndex++ < strlen($testable);
+
+            if ($patternNext && !$testableNext) {
+                if ($patternChar == '+') {
+                    while ($patternIndex < strlen($pattern)) {
+                        $patternChar = $pattern[$patternIndex];
+                        $patternIndex++;
+                        if ($patternChar != '+') {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+            }
+
+            if ($patternNext != $testableNext) {
+                return false;
+            }
+
+            if (!$patternNext) {
+                return true;
+            }
+
+            if (!self::sameChar($patternChar, $testableChar)) {
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Подбор значения для указанного текста.
+     *
+     * @param string $text Проверяемый текст.
+     * @return string|null Найденное значение либо null.
+     */
+    public function resolveWorksheet($text) {
+        foreach ($this->lines as $line) {
+            if (self::sameText($line->pattern, $text)) {
+                return $line->worksheet;
+            }
+        }
+
+        return null;
+    }
+
+    public function __toString() {
+        $result = strval($this->worksheetTag) . PHP_EOL
+            . strval($this->worksheetLength) . PHP_EOL;
+
+        foreach ($this->lines as $line) {
+            $result .= (strval($line) . PHP_EOL);
+        }
+
+        $result .= '*****' . PHP_EOL;
+
+        return $result;
+    }
+
+} // class OptFile
+
+/**
  * Клиентский запрос.
  */
 final class ClientQuery {
@@ -2952,7 +3146,7 @@ final class IrbisConnection {
      */
     public function deleteRecord($mfn) {
         $record = $this->readRecord($mfn);
-        if (($record->status & LOGICALLY_DELETED) == 0) {
+        if (!$record->isDeleted()) {
             $record->status |= LOGICALLY_DELETED;
             $this->writeRecord($record);
         }
@@ -3011,8 +3205,8 @@ final class IrbisConnection {
     /**
      * Форматирование записи с указанным MFN.
      *
-     * @param string $format Текст формата
-     * @param integer $mfn MFN записи
+     * @param string $format Текст формата.
+     * @param integer $mfn MFN записи.
      * @return bool|string
      * @throws IrbisException
      */
@@ -3025,6 +3219,33 @@ final class IrbisConnection {
         $query->addAnsi($this->database)->newLine();
         $prepared = prepareFormat($format);
         $query->addAnsi($prepared)->newLine();
+        $query->add(1)->newLine();
+        $query->add($mfn)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $result = $response->readRemainingUtfText();
+
+        return $result;
+    }
+
+    /**
+     * Форматирование записи с указанным MFN. 
+     * Текст формата может содержать любые символы Unicode.
+     *
+     * @param string $format Текст формата.
+     * @param integer $mfn MFN записи.
+     * @return bool|string
+     * @throws IrbisException
+     */
+    public function formatRecordUtf($format, $mfn) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'G');
+        $query->addAnsi($this->database)->newLine();
+        $prepared = prepareFormat($format);
+        $query->addUtf('!' . $prepared)->newLine();
         $query->add(1)->newLine();
         $query->add($mfn)->newLine();
         $response = $this->execute($query);
@@ -3402,6 +3623,26 @@ final class IrbisConnection {
     }
 
     /**
+     * Чтение MNU-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return bool|OptFile
+     * @throws IrbisException
+     */
+    public function readOptFile($specification) {
+        $text = $this->readTextFile($specification);
+        if (!$text) {
+            return false;
+        }
+
+        $lines = explode("\n", $text);
+        $result = new OptFile();
+        $result->parse($lines);
+
+        return $result;
+    }
+
+    /**
      * Чтение PAR-файла с сервера.
      *
      * @param string $specification Спецификация файла.
@@ -3765,7 +4006,7 @@ final class IrbisConnection {
      *
      * @param string $expression Поисковое выражение.
      * @param int $limit Максимальное количество загружаемых записей.
-     * @return array|bool
+     * @return array
      * @throws IrbisException
      */
     public function searchRead($expression, $limit=0) {
@@ -3774,6 +4015,10 @@ final class IrbisConnection {
         $parameters->format = ALL_FORMAT;
         $parameters->numberOfRecords = $limit;
         $found = $this->searchEx($parameters);
+        if (!$found) {
+            return array();
+        }
+
         $result = array();
         foreach ($found as $item) {
             $lines = explode("\x1F", $item->description);
@@ -3785,6 +4030,24 @@ final class IrbisConnection {
         }
 
         return $result;
+    }
+
+    /**
+     * Поиск и считывание одной записи, соответствующей выражению.
+     * Если таких записей больше одной, то будет считана любая из них.
+     * Если таких записей нет, будет возвращен null.
+     *
+     * @param string $expression Поисковое выражение.
+     * @return MarcRecord|null
+     * @throws IrbisException
+     */
+    public function searchSingleRecord($expression) {
+        $found = $this->searchRead($expression, 1);
+        if (count($found)) {
+            return $found[0];
+        }
+
+        return null;
     }
 
     /**
@@ -3820,6 +4083,27 @@ final class IrbisConnection {
     }
 
     /**
+     * Восстановление записи по её MFN.
+     *
+     * @param integer $mfn MFN восстанавливаемой записи.
+     * @return bool|MarcRecord
+     * @throws IrbisException
+     */
+    public function undeleteRecord($mfn) {
+        $record = $this->readRecord($mfn);
+        if (!$record) {
+            return $record;
+        }
+
+        if ($record->isDeleted()) {
+            $record->status &= ~LOGICALLY_DELETED;
+            $this->writeRecord($record);
+        }
+
+        return $record;
+    }
+
+    /**
      * Разблокирование указанной базы данных.
      *
      * @param string $database База данных.
@@ -3847,6 +4131,10 @@ final class IrbisConnection {
     public function unlockRecords($database, array $mfnList) {
         if (!$this->connected) {
             return false;
+        }
+
+        if (count($mfnList) == 0) {
+            return true;
         }
 
         $database = getOne($database, $this->database);
@@ -3920,7 +4208,7 @@ final class IrbisConnection {
      * @param int $lockFlag Оставить запись заблокированной?
      * @param int $actualize Актуализировать словарь?
      * @param bool $dontParse Не разбирать результат.
-     * @return bool
+     * @return bool|integer
      * @throws IrbisException
      */
     public function writeRecord(MarcRecord $record, $lockFlag=0, $actualize=1,

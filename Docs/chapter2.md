@@ -159,6 +159,13 @@ $mfn = 123;
 $client->deleteRecord($mfn);
 ```
 
+Восстановление записи:
+
+```php
+$mfn = 123;
+$record = $client->undeleteRecord($mfn);
+```
+
 #### Поиск записей
 
 ```php
@@ -168,11 +175,38 @@ echo "Найдено записей: " . count($found);
 
 Обратите внимание, что поисковый запрос заключен в дополнительные кавычки. Эти кавычки явлются элементом синтаксиса поисковых запросов ИРБИС64, и лучше их не опускать.
 
-#### Расширенный поиск
+Поиск с одновременной загрузкой записей:
 
-Функция | Назначение
---------|-----------
-searchEx | Расширенный поиск
+```php
+$records = $client->searchRead('"A=ПУШКИН$"', 50);
+echo "Найдено записей: " . count($records);
+```
+
+Поиск и загрузка единственной записи:
+
+```php
+$record = $client->searchSingleRecord('"I=65.304.13-772296"');
+if (!$record) {
+    echo 'Не нашли!';
+}
+```
+
+Расширенный поиск: можно задать не только количество возвращаемых записей, но и расформатировать их.
+
+```php
+$parameters = new SearchParameters();
+$parameters->expression = '"A=ПУШКИН$"';
+$parameters->format = BRIEF_FORMAT;
+$parameters->numberOfRecords = 5;
+$found = $client->searchEx($parameters);
+if (!$found) {
+    echo 'Не нашли';
+} else {
+    // в $found находится массив FoundLine
+    $first = $found[0];
+    echo "<p>MFN: {$first->mfn}, DESCRIPTION: {$first->description}</p>";
+}
+```
 
 #### Форматирование записей
 
@@ -180,6 +214,15 @@ searchEx | Расширенный поиск
 $mfn = 123;
 $format = BRIEF_FORMAT;
 $text = $client->formatRecord($format, $mfn);
+echo '<p>Результат форматирования: ' . $text . '</p>';
+```
+
+При необходимости можно использовать в формате все символы UNICODE:
+
+```php
+$mfn = 123;
+$format = "'Ἀριστοτέλης: ', v200^a";
+$text = $client->formatRecordUtf($format, $mfn);
 echo '<p>Результат форматирования: ' . $text . '</p>';
 ```
 

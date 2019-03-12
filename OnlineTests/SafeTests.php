@@ -92,11 +92,35 @@ echo "<p>Версия: {$version->version} {$version->organization}</p>";
 //$records = $connection->searchRead("K=ALG$", 10);
 //dumpArray($records);
 
+$mfn = 123;
+$format = "'Ἀριστοτέλης: ', v200^a";
+$text = $connection->formatRecordUtf($format, $mfn);
+echo '<p>Результат форматирования: ' . $text . '</p>';
+
+$parameters = new SearchParameters();
+$parameters->expression = '"A=ПУШКИН$"';
+$parameters->format = BRIEF_FORMAT;
+$parameters->numberOfRecords = 5;
+$found = $connection->searchEx($parameters);
+if (!$found) {
+    echo 'Не нашли';
+} else {
+    $first = $found[0];
+    echo "<p>MFN: {$first->mfn}, DESCRIPTION: {$first->description}</p>";
+}
+
+$single = $connection->searchSingleRecord('"I=65.304.13-772296"');
+echo "<p>$single</p>";
+
 $tree = $connection->readTreeFile('3.IBIS.II.TRE');
 dumpArray($tree->roots);
 
 $par = $connection->readParFile('1..IBIS.PAR');
 echo "<p><pre>$par</pre></p>";
+
+$opt = $connection->readOptFile('3.IBIS.WS31.OPT');
+echo "<p><pre>$opt</pre></p>";
+echo "<p>{$opt->resolveWorksheet('ASP')}</p>";
 
 $connection->disconnect();
 
