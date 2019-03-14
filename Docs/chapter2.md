@@ -233,7 +233,7 @@ $lines = $client->formatRecords($format, $mfns);
 echo '<p>Результаты:<br/>' . implode('<br/>', $lines) . '</p>';
 ```
 
-# Печать таблиц
+#### Печать таблиц
 
 ```php
 $table = new TableDefinition();

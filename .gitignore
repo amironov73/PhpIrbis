@@ -25,3 +25,8 @@ hs_err_pid*
 # IDEA
 .idea/
 
+# Vendor folder
+vendor/
+
+# Composer
+composer.phar
