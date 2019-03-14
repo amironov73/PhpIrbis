@@ -16,7 +16,6 @@ $client->host = 'irbis.rsl.ru';
 $client->port = 5555;
 $client->username = 'ninja';
 $client.password = 'i_am_invisible';
-}
 ```
 
 Поле|Тип|Назначение|Значение по умолчанию
@@ -86,7 +85,6 @@ unset($client); // Происходит неявный вызов disconnect()
 $client->connect();
 // Получаем имя MNU-файла, хранящего перечень форматов
 $formatMenuName = $client->iniFile->getValue('Main', 'FmtMnu', 'FMT31.MNU');
-}
 ```
 
 Полученный с сервера INI-файл хранится в поле `iniFile`.
