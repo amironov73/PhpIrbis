@@ -430,7 +430,7 @@ final class RecordField {
      * @param string $line
      */
     public function decode($line) {
-        $this->tag = strtok($line, "#");
+        $this->tag = intval(strtok($line, "#"));
         $body = strtok('');
 
         if ($body[0] == '^') {
