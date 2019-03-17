@@ -21,17 +21,40 @@
 
 ### Установка
 
-PhpIrbis можно загрузить с GitHub: [https://github.com/amironov73/PhpIrbis](https://github.com/amironov73/PhpIrbis).
-
-Подключение `PhpIrbis` к своему проекту тривиально: достаточно скачать с GitHub файл `PhpIrbis.php` и сослаться на него, например, в директиве `require` или `include`:
+PhpIrbis можно загрузить с GitHub: [https://github.com/amironov73/PhpIrbis](https://github.com/amironov73/PhpIrbis). Подключение `PhpIrbis` в этом случае к своему проекту тривиально: достаточно скачать с GitHub файл `PhpIrbis.php`, положить его рядом с другими файлами с исходным кодом и сослаться на него, например, в директиве `require` или `include`:
 
 ```php
 require_once 'PhpIrbis.php';
 ```
 
-Также можно подключить `PhpIrbis` с помощью Composer:
+Файл `PhpIrbis.php` содержит в себе весь необходимый код.
 
-![phpstorm](img/phpstorm.png)
+Однако предпочтительным способом является подключение библиотеки `PhpIrbis` с помощью Composer:
+
+![Подключение в интерфейсе PhpStorm](img/phpstorm.png)
+
+В файле `composer.json` достаточно добавить директиву `require`, ссылающуюся на пакет `amironov73/phpirbis`:
+
+```json
+{
+  "name": "vendor_name/package_name",
+  "description": "description_text",
+  "require": {
+    "amironov73/phpirbis": "dev-master"
+  }
+}
+```
+
+Composer создаёт в файле `vendor/autoload.php` автоматический загрузчик классов, которым можно воспользоваться так:
+
+```php
+// подключаем сгенерированный загрузчик
+require __DIR__ . '/../vendor/autoload.php';
+
+$connection = new IrbisConnection();
+$record = new MarcRecord();
+// и так далее
+```
 
 ### Примеры программ
 
