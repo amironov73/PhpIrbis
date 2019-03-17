@@ -137,6 +137,14 @@ $mfns = array(12, 34, 56);
 $records = $client->readRecords($mfns);
 ```
 
+Можно прочитать определенную версию записи
+
+```php
+$mfn = 123;
+$version = 3;
+$record = $client->readRecordVersion($mfn, $version);
+```
+
 #### Сохранение записи на сервере
 
 ```php
@@ -187,6 +195,13 @@ $record = $client->searchSingleRecord('"I=65.304.13-772296"');
 if (!$record) {
     echo 'Не нашли!';
 }
+```
+
+Количество записей, соответствующих поисковому выражению:
+
+```php
+$expression = '"A=ПУШКИН$"';
+$count = $client->searchCount($expression);
 ```
 
 Расширенный поиск: можно задать не только количество возвращаемых записей, но и расформатировать их.
@@ -298,10 +313,12 @@ if (!$client->connect()) {
 
 Функция | Назначение
 --------|-----------
+actualizeDatabase | Актуализация базы данных
 actualizeRecord | Актуализация записи
 createDatabase | Создание базы данных
 createDictionary | Создание словаря
 deleteDatabase | Удаление базы данных
+deleteFile | Удаление файла на сервере 
 getServerStat | Получение статистики с сервера
 getUserList | Получение списка пользователей с сервера
 listProcesses | Получение списка серверных процессов
@@ -312,5 +329,9 @@ truncateDatabase | Опустошение базы данных
 unlockDatabase | Разблокирование базы данных
 unlockRecords | Разблокирование записей
 updateUserList | Обновление списка пользователей на сервере
+
+#### Расширение функциональности
+
+**executeAnyCommand(string $command, array $params)** -- выполнение произвольной команды с параметрами в кодировке ANSI.
 
 [Предыдущая глава](chapter1.md) [Следующая глава](chapter3.md)

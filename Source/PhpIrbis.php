@@ -3014,11 +3014,23 @@ final class IrbisConnection {
     //================================================================
 
     /**
+     * Актуализация всех неактуализированных записей
+     * в указанной базе данных.
+     *
+     * @param string $database Имя базы данных.
+     * @return bool Признак успешности операции.
+     * @throws IrbisException
+     */
+    public function actualizeDatabase($database) {
+        return $this->actualizeRecord($database, 0);
+    }
+
+    /**
      * Актуализация записи с указанным MFN.
      *
      * @param string $database Имя базы данных.
      * @param integer $mfn MFN, подлежащий актуализации.
-     * @return bool
+     * @return bool Признак успещности операции.
      * @throws IrbisException
      */
     public function actualizeRecord($database, $mfn) {
@@ -3138,6 +3150,16 @@ final class IrbisConnection {
     }
 
     /**
+     * Удаление на сервере указанного файла.
+     *
+     * @param string $fileName Спецификация файла.
+     * @throws IrbisException
+     */
+    public function deleteFile($fileName) {
+        $this->formatRecord("&uf('+9K$fileName')", 1);
+    }
+
+    /**
      * Удаление записи по её MFN.
      *
      * @param integer $mfn MFN удаляемой записи.
@@ -3197,6 +3219,28 @@ final class IrbisConnection {
         $response = new ServerResponse($socket);
         $response->debug($this->debug);
         $this->queryId++;
+
+        return $response;
+    }
+
+    /**
+     * Выполнение произвольной команды.
+     *
+     * @param string $command Код команды.
+     * @param array $params Опциональные параметры в кодировке ANSI.
+     * @return bool|ServerResponse
+     */
+    public function executeAnyCommand($command, array $params=[]) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, $command);
+        foreach ($params as $param) {
+            $query->addAnsi($param)->newLine();
+        }
+
+        $response = $this->execute($query);
 
         return $response;
     }
@@ -3743,6 +3787,32 @@ final class IrbisConnection {
     }
 
     /**
+     * Чтение указанной версии записи.
+     *
+     * @param integer $mfn MFN записи
+     * @param integer $version Версия записи
+     * @return bool|MarcRecord
+     * @throws IrbisException
+     */
+    public function readRecordVersion($mfn, $version) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'C');
+        $query->addAnsi($this->database)->newLine();
+        $query->add($mfn)->newLine();
+        $query->add($version);
+        $response = $this->execute($query);
+        $response->checkReturnCode(readRecordCodes());
+        $result = new MarcRecord();
+        $result->decode($response->readRemainingUtfLines());
+        $result->database = $this->database;
+
+        return $result;
+    }
+
+    /**
      * Чтение с сервера нескольких записей.
      *
      * @param array $mfnList Массив MFN.
@@ -3958,6 +4028,31 @@ final class IrbisConnection {
         $parameters->expression = $expression;
         $found = $this->searchEx($parameters);
         $result = FoundLine::toMfn($found);
+
+        return $result;
+    }
+
+    /**
+     * Определение количества записей,
+     * соответствующих поисковому выражению.
+     *
+     * @param string $expression Поисковое выражение.
+     * @return int Количество соответствующих записей.
+     * @throws IrbisException
+     */
+    public function searchCount($expression) {
+        if (!$this->connected) {
+            return 0;
+        }
+
+        $query = new ClientQuery($this, 'K');
+        $query->addAnsi($this->database)->newLine();
+        $query->addUtf($expression)->newLine();
+        $query->add(0)->newLine();
+        $query->add(0);
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $result = $response->readInteger(); // Число найденных записей
 
         return $result;
     }
@@ -4192,9 +4287,24 @@ final class IrbisConnection {
      * Сохранение на сервере "сырой" записи.
      *
      * @param RawRecord $record Запись для сохранения.
+     * @return bool|int
+     * @throws IrbisException
      */
     public function writeRawRecord(RawRecord $record) {
-        // TODO implement
+        if (!$this->connected) {
+            return false;
+        }
+
+        $database = $record->database ?: $this->database;
+        $query = new ClientQuery($this, 'D');
+        $query->addAnsi($database)->newLine();
+        $query->add(0)->newLine();
+        $query->add(1)->newLine();
+        $query->addUtf($record->encode())->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+
+        return $response->returnCode;
     }
 
     /**

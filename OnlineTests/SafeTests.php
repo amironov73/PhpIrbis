@@ -1,5 +1,7 @@
 <?php
 
+header('Content-Type: text/html; charset=utf-8');
+
 require_once ('../Source/PhpIrbis.php');
 
 function dumpArray($arr) {
@@ -108,6 +110,9 @@ if (!$found) {
     $first = $found[0];
     echo "<p>MFN: {$first->mfn}, DESCRIPTION: {$first->description}</p>";
 }
+
+$count = $connection->searchCount('"A=ПУШКИН$"');
+echo "<p>COUNT: $count</p>";
 
 $single = $connection->searchSingleRecord('"I=65.304.13-772296"');
 echo "<p>$single</p>";
