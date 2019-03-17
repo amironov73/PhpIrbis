@@ -28,5 +28,8 @@
       "type": "git",
       "url": "https://github.com/amironov73/PhpIrbis.git"
     }
-  ]
+  ],
+  "autoload": {
+    "classmap": ["Source/PhpIrbis.php"]
+  }
 }
