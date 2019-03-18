@@ -60,6 +60,27 @@ const CIRCULATION   = 'B'; // Книговыдача
 const BOOKLAND      = 'B'; // Книговыдача
 const PROVISITON    = 'K'; // Книгообеспеченность
 
+// Команды глобальной корректировки
+
+const ADD_FIELD        = 'ADD';
+const DELETE_FIELD     = 'DEL';
+const REPLACE_FIELD    = 'REP';
+const CHANGE_FIELD     = 'CHA';
+const CHANGE_WITH_CASE = 'CHAC';
+const DELETE_RECORD    = 'DELR';
+const UNDELETE_RECORD  = 'UNDELR';
+const CORRECT_RECORD   = 'CORREC';
+const CREATE_RECORD    = 'NEWMFN';
+const EMPTY_RECORD     = 'EMPTY';
+const UNDO_RECORD      = 'UNDOR';
+const GBL_END          = 'END';
+const GBL_IF           = 'IF';
+const GBL_FI           = 'FI';
+const GBL_ALL          = 'ALL';
+const GBL_REPEAT       = 'REPEAT';
+const GBL_UNTIL        = 'UNTIL';
+const PUTLOG           = 'PUTLOG';
+
 /**
  * Разделитель строк в ИРБИС.
  */
@@ -2654,6 +2675,133 @@ final class OptFile {
 } // class OptFile
 
 /**
+ * Оператор глобальной корректировки с параметрами.
+ */
+final class GblStatement {
+    /**
+     * @var string Команда, например, ADD или DEL.
+     */
+    public $command = '';
+
+    /**
+     * @var string Первый параметр, как правило, спецификация поля/подполя.
+     */
+    public $parameter1 = '';
+
+    /**
+     * @var string Второй параметр, как правило, спецификация повторения.
+     */
+    public $parameter2 = '';
+
+    /**
+     * @var string Первый формат, например, выражение для замены.
+     */
+    public $format1 = '';
+
+    /**
+     * @var string Второй формат, например, заменяющее выражение.
+     */
+    public $format2 = '';
+
+    /**
+     * GblStatement constructor.
+     *
+     * @param string $command Команда.
+     * @param string $parameter1 Параметр 1.
+     * @param string $parameter2 Параметр 2.
+     * @param string $format1 Формат 1.
+     * @param string $format2 Формат 2.
+     */
+    public function __construct($command,
+                                $parameter1 = 'XXXXXXXXX',
+                                $parameter2 = 'XXXXXXXXX',
+                                $format1    = 'XXXXXXXXX',
+                                $format2    = 'XXXXXXXXX')
+    {
+        $this->command = $command;
+        $this->parameter1 = $parameter1;
+        $this->parameter2 = $parameter2;
+        $this->format1 = $format1;
+        $this->format2 = $format2;
+    }
+
+    public function __toString() {
+        return $this->command . IRBIS_DELIMITER
+            . $this->parameter1 . IRBIS_DELIMITER
+            . $this->parameter2 . IRBIS_DELIMITER
+            . $this->format1 . IRBIS_DELIMITER
+            . $this->format2 . IRBIS_DELIMITER;
+    }
+
+} // class GblStatement
+
+/**
+ * Установки для глобальной корректировки.
+ */
+final class GblSettings {
+    /**
+     * @var bool Актуализировать записи?
+     */
+    public $actualize = true;
+
+    /**
+     * @var bool Запускать autoin.gbl?
+     */
+    public $autoin = false;
+
+    /**
+     * @var string Имя базы данных.
+     */
+    public $database = '';
+
+    /**
+     * @var string Имя файла.
+     */
+    public $filename = '';
+
+    /**
+     * @var int MFN первой записи.
+     */
+    public $firstRecord = 0;
+
+    /**
+     * @var bool Применять формальный контроль?
+     */
+    public $formalControl = false;
+
+    /**
+     * @var int Максимальный MFN.
+     */
+    public $maxMfn = 0;
+
+    /**
+     * @var array Список MFN для обработки.
+     */
+    public $mfnList = array();
+
+    /**
+     * @var int Минимальный MFN. 0 означает "все записи в базе".
+     */
+    public $minMfn = 0;
+
+    /**
+     * @var int Число обрабатываемых записей.
+     */
+    public $numberOfRecords = 0;
+
+    /**
+     * @var string Поисковое выражение.
+     */
+    public $searchExpression = '';
+
+    /**
+     * @var array Массив операторов.
+     */
+    public $statements = array();
+
+} // class GblSettings
+
+/**
  * Клиентский запрос.
  */
 final class ClientQuery {
@@ -3065,7 +3213,10 @@ final class IrbisConnection {
         $query->addAnsi($this->username)->newLine();
         $query->addAnsi($this->password);
 
-        $response = $this->execute($query);
+        if (!$response = $this->execute($query)) {
+            return false;
+        }
+
         $response->getReturnCode();
         if ($response->returnCode == -3337) {
             goto AGAIN;
@@ -3436,6 +3587,64 @@ final class IrbisConnection {
         $response = $this->execute($query);
         $response->checkReturnCode();
         $result = UserInfo::parse($response->readRemainingAnsiLines());
+
+        return $result;
+    }
+
+    /**
+     * Глобальная корректировка.
+     *
+     * @param GblSettings $settings Параметры корректировки.
+     * @return array|bool
+     * @throws IrbisException
+     */
+    public function globalCorrection(GblSettings $settings) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, '5');
+        $database = $settings->database ?: $this->database;
+        $query->addAnsi($database)->newLine();
+        $query->add(intval($settings->actualize))->newLine();
+        if  (!isNullOrEmpty($settings->filename)) {
+            $query->addAnsi('@' + $settings->filename)->newLine();
+        } else {
+            $encoded = '!0' . IRBIS_DELIMITER;
+            foreach ($settings->statements as $statement) {
+                $encoded .= strval($statement);
+            }
+            $encoded .= IRBIS_DELIMITER;
+            $query->addUtf($encoded)->newLine();
+        }
+        $query->addAnsi($settings->searchExpression)->newLine();
+        $query->add($settings->firstRecord)->newLine();
+        $query->add($settings->numberOfRecords)->newLine();
+        $query->newLine();
+        if (!$settings->mfnList) {
+            $count = $settings->maxMfn - $settings->minMfn + 1;
+            $query->add($count)->newLine();
+            for ($mfn = $settings->minMfn; $mfn < $settings->maxMfn; $mfn++) {
+                $query->add($mfn)->newLine();
+            }
+        } else {
+            $query->add(count($settings->mfnList))->newLine();
+            foreach ($settings->mfnList as $item) {
+                $query->add($item)->newLine();
+            }
+        }
+
+        if (!$settings->formalControl) {
+            $query->addAnsi('*')->newLine();
+        }
+
+        if (!$settings->autoin) {
+            $query->addAnsi('&')->newLine();
+        }
+
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $result = $response->readRemainingAnsiLines();
 
         return $result;
     }

@@ -330,6 +330,21 @@ unlockDatabase | Разблокирование базы данных
 unlockRecords | Разблокирование записей
 updateUserList | Обновление списка пользователей на сервере
 
+#### Глобальная корректировка
+
+```php
+$settings = new GblSettings();
+$settings->database = "IBIS";
+$settings->mfnList = array(1, 2, 3);
+$settings->statements = array (
+  new GblStatement(ADD_FIELD, '3000', 'XXXXXXXXX', "'Hello'")
+);
+$result = $connection->globalCorrection($settings);
+foreach($result as $line) {
+    echo "<br/>$line";
+}
+```
+
 #### Расширение функциональности
 
 **executeAnyCommand(string $command, array $params)** -- выполнение произвольной команды с параметрами в кодировке ANSI.

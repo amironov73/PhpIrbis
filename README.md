@@ -1,6 +1,6 @@
 # PhpIrbis
 
-ManagedIrbis ported to PHP 5. Available on Packagist.
+ManagedIrbis ported to PHP 5. Available on [Packagist](https://packagist.org/packages/amironov73/phpirbis).
 
 [![Latest Stable Version](https://poser.pugx.org/amironov73/phpirbis/v/stable)](https://packagist.org/packages/amironov73/phpirbis) 
 [![Total Downloads](https://poser.pugx.org/amironov73/phpirbis/downloads)](https://packagist.org/packages/amironov73/phpirbis)
