@@ -3498,10 +3498,7 @@ final class IrbisConnection {
             return false;
         }
 
-        if (isNullOrEmpty($database)) {
-            $database = $this->database;
-        }
-
+        $database = $database ?: $this->database;
         $query = new ClientQuery($this, '0');
         $query->addAnsi($database);
         $response = $this->execute($query);
@@ -4115,16 +4112,13 @@ final class IrbisConnection {
         }
 
         $command = $parameters->reverseOrder ? 'P' : 'H';
-        $database = $parameters->database;
-        if (isNullOrEmpty($database)) {
-            $database = $this->database;
-        }
-
+        $database = $parameters->database ?: $this->database;
         $query = new ClientQuery($this, $command);
         $query->addAnsi($database)->newLine();
         $query->addUtf($parameters->startTerm)->newLine();
         $query->add($parameters->numberOfTerms)->newLine();
-        $query->addAnsi($parameters->format)->newLine();
+        $prepared = prepareFormat($parameters->format);
+        $query->addAnsi($prepared)->newLine();
         $response = $this->execute($query);
         $response->checkReturnCode(readTermCodes());
         $lines = $response->readRemainingUtfLines();
@@ -4278,11 +4272,7 @@ final class IrbisConnection {
             return false;
         }
 
-        $database = $parameters->database;
-        if (isNullOrEmpty($database)) {
-            $database = $this->database;
-        }
-
+        $database = $parameters->database ?: $this->database;
         $query = new ClientQuery($this, 'K');
         $query->addAnsi($database)->newLine();
         $query->addUtf($parameters->expression)->newLine();

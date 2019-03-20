@@ -12,7 +12,7 @@ Now supported PHP 5.4+ on Windows (Open Server) and Ubuntu Linux.
 ![phpstorm](Docs/img/phpstorm.png)
 
 ```php
-require_once 'PhpIrbis.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 $connection = new IrbisConnection();
 $connectString = 'host=127.0.0.1;user=librarian;password=secret;';
