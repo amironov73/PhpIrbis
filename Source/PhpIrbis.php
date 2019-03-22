@@ -2949,11 +2949,9 @@ final class ServerResponse {
 
     /**
      * Отладочная печать.
-     *
-     * @param mixed $debug Управление отладкой
      */
-    public function debug($debug) {
-        // TODO implement
+    public function debug() {
+        file_put_contents('php://stderr', print_r($this->answer, TRUE));
     }
 
     /**
@@ -3363,12 +3361,14 @@ final class IrbisConnection {
         $packet = strval($query);
 
         if ($this->debug) {
-            // TODO implement debug
+            file_put_contents('php://stderr', print_r($packet, TRUE));
         }
 
         socket_write($socket, $packet, strlen($packet));
         $response = new ServerResponse($socket);
-        $response->debug($this->debug);
+        if ($this->debug) {
+            $response->debug();
+        }
         $this->queryId++;
 
         return $response;
@@ -3415,6 +3415,37 @@ final class IrbisConnection {
         $query->addAnsi($prepared)->newLine();
         $query->add(1)->newLine();
         $query->add($mfn)->newLine();
+        $response = $this->execute($query);
+        $response->checkReturnCode();
+        $result = $response->readRemainingUtfText();
+
+        return $result;
+    }
+
+    /**
+     * Форматирование записи в клиентском представлении.
+     *
+     * @param string $format Текст формата.
+     * @param MarcRecord $record Запись.
+     * @return bool|string
+     * @throws IrbisException
+     */
+    public function formatVirtualRecord($format, MarcRecord $record) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        if (!$record) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'G');
+        $database = $record->database ?: $this->database;
+        $query->addAnsi($this->database)->newLine();
+        $prepared = prepareFormat($format);
+        $query->addAnsi($prepared)->newLine();
+        $query->add(-2)->newLine();
+        $query->addUtf($record->encode());
         $response = $this->execute($query);
         $response->checkReturnCode();
         $result = $response->readRemainingUtfText();
@@ -4546,10 +4577,14 @@ final class IrbisConnection {
      * Сохранение записей на сервере.
      *
      * @param array $records Записи.
+     * @param int $lockFlag
+     * @param int $actualize
+     * @param bool $dontParse
      * @return bool
      * @throws IrbisException
      */
-    public function writeRecords(array $records) {
+    public function writeRecords(array $records, $lockFlag=0, $actualize=1,
+                                 $dontParse=false) {
         if (!$this->connected) {
             return false;
         }
@@ -4564,7 +4599,32 @@ final class IrbisConnection {
             return true;
         }
 
-        // TODO implement
+        $query = new ClientQuery($this, '6');
+        $query->add($lockFlag)->newLine();
+        $query->add($actualize)->newLine();
+        foreach ($records as $record) {
+            $database = $record->database ?: $this->database;
+            $query->addUtf($database . IRBIS_DELIMITER . $record->encode())->newLine();
+        }
+
+        $response = $this->execute($query);
+        $response->getReturnCode();
+
+        if (!$dontParse) {
+            $lines = $response->readRemainingUtfLines();
+            for ($i = 0; $i < count($records); $i++) {
+                $text = $lines[$i];
+                if (isNullOrEmpty($text)) {
+                    continue;
+                }
+
+                $record = $records[$i];
+                $record->clear();
+                $record->database = $record->database ?: $this->database;
+                $recordLines = irbisToLines($text);
+                $record->parse($recordLines);
+            }
+        }
 
         return true;
     }

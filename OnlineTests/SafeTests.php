@@ -127,6 +127,15 @@ $opt = $connection->readOptFile('3.IBIS.WS31.OPT');
 echo "<p><pre>$opt</pre></p>";
 echo "<p>{$opt->resolveWorksheet('ASP')}</p>";
 
+$record = new MarcRecord();
+$field = $record->add(200);
+$field->add('a', 'Заглавие')
+    ->add('e', 'Подзаголовочные')
+    ->add('f', 'Ответственность');
+$format = 'v200^a, | : |v200^e, | / |v200^f';
+$text = $connection->formatVirtualRecord($format, $record);
+echo "<p>$text</p>";
+
 $connection->disconnect();
 
 echo '<p>ALL DONE</p>';
