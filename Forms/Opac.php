@@ -101,7 +101,7 @@ try {
 
     $ui = new IrbisUI($connection);
 
-    echo "<form action='opac.php' method='post' accept-charset='UTF-8' name='searchForm' id='searchForm'>" . PHP_EOL;
+    echo "<form action='Opac.php' method='post' accept-charset='UTF-8' name='searchForm' id='searchForm'>" . PHP_EOL;
     echo "<table class='searchTable'>" . PHP_EOL;
 
     // Выбор каталога
