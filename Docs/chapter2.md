@@ -155,7 +155,18 @@ $record = $client->readRecord(123);
 $record->add(999, '123');
 
 // Отсылаем запись на сервер
-$client->writeRecord($record);
+$newMaxMfn = $client->writeRecord($record);
+echo "New MaxMFN: $newMaxMfn";
+```
+
+Сохранение нескольких записей (возможно, из разных баз данных):
+
+```php
+$records = array();
+...
+if (!$client->writeRecords($records))) {
+    echo "Failure!";
+}
 ```
 
 #### Удаление записи на сервере
