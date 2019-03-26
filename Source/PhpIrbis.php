@@ -3038,7 +3038,7 @@ final class ServerResponse {
     public function readRemainingAnsiText() {
         $result = substr($this->answer, $this->offset);
         $this->offset = $this->answerLength;
-        $result = mb_convert_encoding($result, mb_internal_encoding(), 'Windows-1251');
+        $result = mb_convert_encoding($result, mb_internal_encoding(), ANSI_ENCODING);
 
         return $result;
     }
@@ -4311,8 +4311,8 @@ final class IrbisConnection {
         $query->add($parameters->firstRecord)->newLine();
         $prepared = prepareFormat($parameters->format);
         $query->addAnsi($prepared)->newLine();
-        $query->addAnsi($parameters->minMfn)->newLine();
-        $query->addAnsi($parameters->maxMfn)->newLine();
+        $query->add($parameters->minMfn)->newLine();
+        $query->add($parameters->maxMfn)->newLine();
         $query->addAnsi($parameters->sequential)->newLine();
         $response = $this->execute($query);
         $response->checkReturnCode();
@@ -4481,6 +4481,10 @@ final class IrbisConnection {
     public function updateIniFile(array $lines) {
         if (!$this->connected) {
             return false;
+        }
+
+        if (!$lines) {
+            return true;
         }
 
         $query = new ClientQuery($this, '8');

@@ -77,7 +77,6 @@
 $showTable = true;
 
 $fio      = $_REQUEST['fio'];
-$ticket   = $_REQUEST['ticket'];
 $group    = $_REQUEST['group'];
 $phone    = $_REQUEST['phone'];
 $date     = $_REQUEST['date'];
@@ -85,13 +84,13 @@ $time     = $_REQUEST['time'];
 $number   = $_REQUEST['number'];
 $software = $_REQUEST['software'];
 
-if ($fio || $ticket || $group || $phone
-    || $date || $time || $number || $software) {
+if ($fio || $group || $phone || $date
+    || $time || $number || $software) {
 
     $showTable = false;
 
-    if (!$fio || !$ticket || !$group || !$phone
-        || !$date || !$time || !$number || !$software) {
+    if (!$fio || !$group || !$phone || !$date
+        || !$time || !$number || !$software) {
 
         $showTable = true;
         echo "<p class='message'>Должны быть заполнены все поля!</p>";
@@ -123,49 +122,57 @@ if ($showTable) :
             <tr>
                 <td class="caption">Фамилия, имя, отчество</td>
                 <td class="value">
-                    <input name="fio" class="value" type="text" autocomplete="off">
-                </td>
-            </tr>
-            <tr>
-                <td class="caption">Читательский билет</td>
-                <td class="value">
-                    <input name="ticket" class="value" type="text" autocomplete="off">
+                    <input name="fio" class="value" type="text"
+                           value="<?=$fio?>"
+                           autocomplete="off">
                 </td>
             </tr>
             <tr>
                 <td class="caption">Учебная группа</td>
                 <td class="value">
-                    <input name="group" class="value" type="text" autocomplete="off">
+                    <input name="group" class="value" type="text"
+                           value="<?=$group?>"
+                           autocomplete="off">
                 </td>
             </tr>
             <tr>
                 <td class="caption">Телефон для связи</td>
                 <td class="value">
-                    <input name="phone" class="value" type="text" autocomplete="off">
+                    <input name="phone" class="value" type="text"
+                           value="<?=phone?>"
+                           autocomplete="off">
                 </td>
             </tr>
             <tr>
                 <td class="caption">Дата бронирования</td>
                 <td class="value">
-                    <input name="date" class="value" type="text" autocomplete="off">
+                    <input name="date" class="value" type="text"
+                           value="<?=date?>"
+                           autocomplete="off">
                 </td>
             </tr>
             <tr>
                 <td class="caption">Время бронирования</td>
                 <td class="value">
-                    <input name="time" class="value" type="text" autocomplete="off">
+                    <input name="time" class="value" type="text"
+                           value="<?=time?>"
+                           autocomplete="off">
                 </td>
             </tr>
             <tr>
                 <td class="caption">Номер компьютера</td>
                 <td class="value">
-                    <input name="number" class="value" type="text">
+                    <input name="number" class="value" type="text"
+                           value="<?=number?>"
+                           autocomplete="off">
                 </td>
             </tr>
             <tr>
                 <td class="caption">Необходимое ПО</td>
                 <td class="value">
-                    <input name="software" class="value" type="text">
+                    <input name="software" class="value" type="text"
+                           value="<?=$software?>"
+                           autocomplete="off">
                 </td>
             </tr>
             <tr>
