@@ -1043,6 +1043,7 @@ final class MenuFile {
         foreach ($this->entries as $entry) {
             $result .= ($entry . PHP_EOL);
         }
+        $result .= "*****\n";
 
         return $result;
     }
@@ -2102,9 +2103,7 @@ final class TermInfo {
     }
 
     public function __toString() {
-        return $this->text
-            ? $this->count . '#' . $this->text
-            : $this->count;
+        return $this->count . '#' . $this->text;
     }
 } // class TermInfo
 
@@ -3747,6 +3746,42 @@ final class IrbisConnection {
         $response->checkReturnCode();
         $lines = $response->readRemainingAnsiLines();
         $result = ProcessInfo::parse($lines);
+
+        return $result;
+    }
+
+    /**
+     * Получение списка терминов с указанным префиксом.
+     *
+     * @param string $prefix Префикс.
+     * @return array Термы (очищенные от префикса).
+     * @throws IrbisException
+     */
+    public function listTerms($prefix) {
+        $result = array();
+
+        if (!$this->connected) {
+            return $result;
+        }
+
+        $prefixLength = strlen($prefix);
+        $startTerm = $prefix;
+        $lastTerm = $startTerm;
+        while (true) {
+            $terms = $this->readTerms($startTerm, 512);
+            foreach ($terms as $term) {
+                $text = $term->text;
+                if (strcmp(substr($text, 0, $prefixLength), $prefix)) {
+                    break 2;
+                }
+                if ($text != $startTerm) {
+                    $lastTerm = $text;
+                    $text = substr($text, $prefixLength);
+                    array_push($result, $text);
+                }
+            }
+            $startTerm = $lastTerm;
+        }
 
         return $result;
     }

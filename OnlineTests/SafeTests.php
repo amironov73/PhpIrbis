@@ -136,6 +136,9 @@ $format = 'v200^a, | : |v200^e, | / |v200^f';
 $text = $connection->formatVirtualRecord($format, $record);
 echo "<p>$text</p>";
 
+$languages = $connection->listTerms("J=");
+dumpArray($languages);
+
 $connection->disconnect();
 
 echo '<p>ALL DONE</p>';
