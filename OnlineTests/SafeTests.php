@@ -28,7 +28,7 @@ $ini = $connection->iniFile;
 echo "<p>VERSION: {$connection->serverVersion}<br/>";
 echo "INTERVAL: {$connection->interval}<br/>";
 $dbnnamecat = $ini->getValue('Main', 'DBNNAMECAT');
-echo "DBNAMECAT: {$dbnnamecat}</p>";
+echo "DBNNAMECAT: {$dbnnamecat}</p>";
 
 //$connection->noOp();
 //echo '<p>NO OP</p>';
@@ -71,13 +71,17 @@ echo "<p>Версия: {$version->version} {$version->organization}</p>";
 //$files = $connection->listFiles("3.IBIS.brief.*");
 //echo '<p>' . implode(', ', $files) . '</p>';
 
-//$found = $connection->search("K=ALG$");
-//echo '<p>ALG$</p>';
-//echo '<p>' . implode(', ', $found) . '</p>';
+$found = $connection->search("K=ALG$");
+echo '<p>ALG$</p>';
+echo '<p>' . implode(', ', $found) . '</p>' . PHP_EOL;
 
-//$found = $connection->search("K=БЕТОН$");
-//echo '<p>БЕТОН</p>';
-//echo '<p>' . implode(', ', $found) . '</p>';
+$found = $connection->search("K=БЕТОН$");
+echo '<p>БЕТОН</p>';
+echo '<p>' . implode(', ', $found) . '</p>' . PHP_EOL;
+
+$found = $connection->searchAll("K=БЕТОН$");
+echo '<p>БЕТОН ALL</p>';
+echo '<p>' . implode(', ', $found) . '</p>' . PHP_EOL;
 
 //$record = $connection->readRecord(123);
 //echo '<p>' .  $record->mfn . ' => ' . count($record->fields)  . '</p>';

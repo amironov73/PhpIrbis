@@ -872,14 +872,38 @@ final class FoundLine {
      */
     public $sort = '';
 
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Строки ответа сервера.
+     * @return array Массив найденных записей с MFN
+     * и биб. описанием (опционально).
+     */
     public static function parse(array $lines) {
         $result = array();
         foreach ($lines as $line) {
             $parts = explode('#', $line, 2);
             $item = new FoundLine();
-            $item->mfn = $parts[0];
+            $item->mfn = intval($parts[0]);
             $item->description = $parts[1];
             array_push($result, $item);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Разбор ответа сервера.
+     *
+     * @param array $lines Строки ответа сервера.
+     * @return array Массив MFN найденных записей.
+     */
+    public static function parseMfn(array $lines) {
+        $result = array();
+        foreach ($lines as $line) {
+            $parts = explode('#', $line, 2);
+            $mfn = intval($parts[0]);
+            array_push($result, $mfn);
         }
 
         return $result;
@@ -1137,14 +1161,18 @@ final class IniSection {
      * @param string $value
      */
     public function setValue($key, $value) {
-        $item = $this->find($key);
-        if ($item) {
-            $item->value = $value;
+        if (!$value) {
+            remove($key);
         } else {
-            $item = new IniLine();
-            $item->key = $key;
-            $item->value = $value;
-            array_push($this->lines, $item);
+            $item = $this->find($key);
+            if ($item) {
+                $item->value = $value;
+            } else {
+                $item = new IniLine();
+                $item->key = $key;
+                $item->value = $value;
+                array_push($this->lines, $item);
+            }
         }
     }
 
@@ -3905,12 +3933,11 @@ final class IrbisConnection {
      * @return IniFile|null
      */
     public function readIniFile($specification) {
-        $text = $this->readTextFile($specification);
-        if (isNullOrEmpty($text)) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines) {
             return null;
         }
 
-        $lines = explode("\n", $text);
         $result = new IniFile();
         $result->parse($lines);
 
@@ -3924,12 +3951,11 @@ final class IrbisConnection {
      * @return bool|MenuFile
      */
     public function readMenuFile($specification) {
-        $text = $this->readTextFile($specification);
-        if (!$text) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines) {
             return false;
         }
 
-        $lines = explode("\n", $text);
         $result = new MenuFile();
         $result->parse($lines);
 
@@ -3944,12 +3970,11 @@ final class IrbisConnection {
      * @throws IrbisException
      */
     public function readOptFile($specification) {
-        $text = $this->readTextFile($specification);
-        if (!$text) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines) {
             return false;
         }
 
-        $lines = explode("\n", $text);
         $result = new OptFile();
         $result->parse($lines);
 
@@ -3964,12 +3989,11 @@ final class IrbisConnection {
      * @throws IrbisException
      */
     public function readParFile($specification) {
-        $text = $this->readTextFile($specification);
-        if (!$text) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines) {
             return false;
         }
 
-        $lines = explode("\n", $text);
         $result = new ParFile();
         $result->parse($lines);
 
@@ -4214,6 +4238,26 @@ final class IrbisConnection {
     }
 
     /**
+     * Получение текстового файла в виде массива строк.
+     *
+     * @param string $specification Спецификация файла.
+     * @return array
+     */
+    public function readTextLines($specification) {
+        if (!$this->connected) {
+            return false;
+        }
+
+        $query = new ClientQuery($this, 'L');
+        $query->addAnsi($specification)->newLine();
+        $response = $this->execute($query);
+        $result = $response->readAnsi();
+        $result = irbisToLines($result);
+
+        return $result;
+    }
+
+    /**
      * Чтение TRE-файла с сервера.
      *
      * @param string $specification Спецификация файла.
@@ -4221,12 +4265,11 @@ final class IrbisConnection {
      * @throws IrbisException
      */
     public function readTreeFile($specification) {
-        $text = $this->readTextFile($specification);
-        if (!$text) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines) {
             return false;
         }
 
-        $lines = explode("\n", $text);
         $result = new TreeFile();
         $result->parse($lines);
 
@@ -4286,7 +4329,7 @@ final class IrbisConnection {
     }
 
     /**
-     * Простой поиск записей.
+     * Простой поиск записей (не более 32 тыс. записей).
      *
      * @param string $expression Выражение для поиска по словарю.
      * @return array|bool
@@ -4297,6 +4340,53 @@ final class IrbisConnection {
         $parameters->expression = $expression;
         $found = $this->searchEx($parameters);
         $result = FoundLine::toMfn($found);
+
+        return $result;
+    }
+
+    /**
+     * Поиск всех записей (даже если их окажется больше 32 тыс.).
+     *
+     * @param string $expression Выражение для поиска по словарю.
+     * @return array MFN найденных записей.
+     * @throws IrbisException
+     */
+    public function searchAll($expression) {
+        $result = array();
+        if (!$this->connected) {
+            return $result;
+        }
+
+        $firstRecord = 1;
+
+        while (true) {
+            $query = new ClientQuery($this, 'K');
+            $query->addAnsi($this->database)->newLine();
+            $query->addUtf($expression)->newLine();
+            $query->add(0)->newLine();
+            $query->add($firstRecord)->newLine();
+            $response = $this->execute($query);
+            $response->checkReturnCode();
+            if ($firstRecord == 1) {
+                $totalCount = $response->readInteger();
+                if (!$totalCount) {
+                    break;
+                }
+            } else {
+                $response->readInteger(); // Eat the line
+            }
+
+            $lines = $response->readRemainingUtfLines();
+            $found = FoundLine::parseMfn($lines);
+            if (!$found) {
+                break;
+            }
+            $result = $result + $found;
+            $firstRecord += count($found);
+            if ($firstRecord >= $totalCount) {
+                break;
+            }
+        }
 
         return $result;
     }
