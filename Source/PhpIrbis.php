@@ -387,7 +387,7 @@ final class SubField {
 } // class SubField
 
 /**
- * Поле записи. Состоит из тега и (опционального) значения.
+ * Поле записи. Состоит из метки и (опционального) значения.
  * Может содержать произвольное количество подполей.
  */
 final class RecordField {
@@ -3343,6 +3343,7 @@ final class IrbisConnection {
      */
     public function deleteRecord($mfn) {
         $record = $this->readRecord($mfn);
+        // TODO правильно реагировать, если запись не удалось прочитать
         if (!$record->isDeleted()) {
             $record->status |= LOGICALLY_DELETED;
             $this->writeRecord($record);
@@ -4417,7 +4418,7 @@ final class IrbisConnection {
     }
 
     /**
-     * Поиск записей.
+     * Расширенный поиск записей.
      *
      * @param SearchParameters $parameters Параметры поиска.
      * @return array|bool
@@ -4499,6 +4500,7 @@ final class IrbisConnection {
 
     /**
      * Выдача строки подключения для текущего соединения.
+     * Соединение не обязательно должно быть установлено.
      *
      * @return string
      */
