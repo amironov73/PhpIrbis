@@ -1264,9 +1264,7 @@ final class IniFile {
 
             if ($trimmed[0] == '[') {
                 $name = substr($trimmed, 1, strlen($trimmed) - 2);
-                $section = new IniSection();
-                $section->name = $name;
-                array_push($this->sections, $section);
+                $section = $this->getOrCreateSection($name);
             } else if ($section) {
                 $parts = explode('=', $trimmed, 2);
                 $key = $parts[0];
