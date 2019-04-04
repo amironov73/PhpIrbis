@@ -100,7 +100,7 @@ echo '<p>' . implode(', ', $found) . '</p>' . PHP_EOL;
 
 $mfn = 123;
 $format = "'Ἀριστοτέλης: ', v200^a";
-$text = $connection->formatRecordUtf($format, $mfn);
+$text = $connection->formatRecord($format, $mfn);
 echo '<p>Результат форматирования: ' . $text . '</p>';
 
 $parameters = new SearchParameters();

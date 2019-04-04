@@ -2261,7 +2261,7 @@ final class SearchParameters {
 final class SearchScenario {
     /**
      * @var string Название поискового атрибута
-     * (автор, инвентарный номер).
+     * (автор, инвентарный номер и т. д.).
      */
     public $name = '';
 
@@ -2872,6 +2872,31 @@ final class ClientQuery {
     }
 
     /**
+     * Добавляем формат. Кодировка UTF8.
+     *
+     * @param string $format Формат.
+     * @return bool|ClientQuery
+     */
+    public function addFormat($format) {
+        if (!$format) {
+            $this->newLine();
+            return false;
+        }
+
+        $prepared = prepareFormat(ltrim($format));
+
+        if ($format[0] == '@') {
+            $this->addAnsi($format);
+        } else if ($format[0] == '!') {
+            $this->addUtf($prepared);
+        } else {
+            $this->addUtf("!" . $prepared);
+        }
+
+        return $this->newLine();
+    }
+
+    /**
      * Добавляем текст в кодировке UTF-8.
      *
      * @param string $value Добавляемый текст.
@@ -3437,8 +3462,7 @@ final class IrbisConnection {
 
         $query = new ClientQuery($this, 'G');
         $query->addAnsi($this->database)->newLine();
-        $prepared = prepareFormat($format);
-        $query->addAnsi($prepared)->newLine();
+        $query->addFormat($format);
         $query->add(1)->newLine();
         $query->add($mfn)->newLine();
         $response = $this->execute($query);
@@ -3468,37 +3492,9 @@ final class IrbisConnection {
         $query = new ClientQuery($this, 'G');
         $database = $record->database ?: $this->database;
         $query->addAnsi($this->database)->newLine();
-        $prepared = prepareFormat($format);
-        $query->addAnsi($prepared)->newLine();
+        $query->addFormat($format);
         $query->add(-2)->newLine();
         $query->addUtf($record->encode());
-        $response = $this->execute($query);
-        $response->checkReturnCode();
-        $result = $response->readRemainingUtfText();
-
-        return $result;
-    }
-
-    /**
-     * Форматирование записи с указанным MFN. 
-     * Текст формата может содержать любые символы Unicode.
-     *
-     * @param string $format Текст формата.
-     * @param integer $mfn MFN записи.
-     * @return bool|string
-     * @throws IrbisException
-     */
-    public function formatRecordUtf($format, $mfn) {
-        if (!$this->connected) {
-            return false;
-        }
-
-        $query = new ClientQuery($this, 'G');
-        $query->addAnsi($this->database)->newLine();
-        $prepared = prepareFormat($format);
-        $query->addUtf('!' . $prepared)->newLine();
-        $query->add(1)->newLine();
-        $query->add($mfn)->newLine();
         $response = $this->execute($query);
         $response->checkReturnCode();
         $result = $response->readRemainingUtfText();
@@ -3525,8 +3521,9 @@ final class IrbisConnection {
 
         $query = new ClientQuery($this, 'G');
         $query->addAnsi($this->database)->newLine();
-        $prepared = prepareFormat($format);
-        $query->addAnsi($prepared)->newLine();
+        if (!$query->addFormat($format)) {
+            return array();
+        }
         $query->add(count($mfnList))->newLine();
         foreach ($mfnList as $mfn) {
             $query->add($mfn)->newLine();
@@ -3962,7 +3959,7 @@ final class IrbisConnection {
     }
 
     /**
-     * Чтение MNU-файла с сервера.
+     * Чтение OPT-файла с сервера.
      *
      * @param string $specification Спецификация файла.
      * @return bool|OptFile
@@ -4016,7 +4013,7 @@ final class IrbisConnection {
         $query->addAnsi($database)->newLine();
         $query->add($parameters->numberOfPostings)->newLine();
         $query->add($parameters->firstPosting)->newLine();
-        $query->addAnsi($parameters->format)->newLine();
+        $query->addFormat($parameters->format);
         if (!$parameters->listOfTerms) {
             $query->addUtf($parameters->term)->newLine();
         } else {
@@ -4206,8 +4203,7 @@ final class IrbisConnection {
         $query->addAnsi($database)->newLine();
         $query->addUtf($parameters->startTerm)->newLine();
         $query->add($parameters->numberOfTerms)->newLine();
-        $prepared = prepareFormat($parameters->format);
-        $query->addAnsi($prepared)->newLine();
+        $query->addFormat($parameters->format);
         $response = $this->execute($query);
         $response->checkReturnCode(readTermCodes());
         $lines = $response->readRemainingUtfLines();
@@ -4276,7 +4272,7 @@ final class IrbisConnection {
     }
 
     /**
-     * Пересоздание словаря.
+     * Пересоздание словаря для указанной базы данных.
      *
      * @param string $database База данных.
      * @return bool
@@ -4294,7 +4290,7 @@ final class IrbisConnection {
     }
 
     /**
-     * Пересоздание мастер-файла.
+     * Пересоздание мастер-файла для указанной базы данных.
      *
      * @param string $database База данных.
      * @return bool
@@ -4433,8 +4429,7 @@ final class IrbisConnection {
         $query->addUtf($parameters->expression)->newLine();
         $query->add($parameters->numberOfRecords)->newLine();
         $query->add($parameters->firstRecord)->newLine();
-        $prepared = prepareFormat($parameters->format);
-        $query->addAnsi($prepared)->newLine();
+        $query->addFormat($parameters->format);
         $query->add($parameters->minMfn)->newLine();
         $query->add($parameters->maxMfn)->newLine();
         $query->addAnsi($parameters->sequential)->newLine();
@@ -4703,7 +4698,7 @@ final class IrbisConnection {
     }
 
     /**
-     * Сохранение записей на сервере.
+     * Сохранение нескольких записей на сервере (могут относиться к разным базам).
      *
      * @param array $records Записи.
      * @param int $lockFlag
@@ -4879,3 +4874,79 @@ final class IrbisUI {
     }
 
 } // class IrbisUI
+
+/**
+ * Запись в XRF-файле. Содержит информацию о смещении записи
+ * и ее статус.
+ */
+final class XrfRecord
+{
+    /**
+     * @var int Младшая часть смещения.
+     */
+    public $low;
+
+    /**
+     * @var int Старшая часть смещения.
+     */
+    public $high;
+
+    /**
+     * @var int Статус записи.
+     */
+    public $status;
+
+    /**
+     * Запись (логически или физически) удалена?
+     * @return bool
+     */
+    public function deleted() {
+        return ($this->status & 3) != 0;
+    }
+
+    /**
+     * Смещение записи.
+     * @return int
+     */
+    public function offset() {
+        return ($this->high << 32) + $this->low;
+    }
+}
+
+/**
+ * XRF-файл.
+ */
+final class XrfFile
+{
+    // Файл.
+    private $file;
+
+    public function __construct($filename) {
+        $this->file = fopen($filename, 'rb');
+        if (!$this->file) {
+            throw new Exception("Can't open " . $filename);
+        }
+    }
+
+    public function __destruct() {
+        if ($this->file) {
+            fclose($this->file);
+        }
+    }
+
+    /**
+     * Считывание записи по MFN.
+     * @param int $mfn MFN записи.
+     * @return XrfRecord
+     */
+    public function read($mfn) {
+        $offset = ($mfn - 1) * 12;
+        fseek($this->file, $offset, SEEK_SET);
+        $content = fread($this->file, 12);
+        $result = new XrfRecord();
+        $result->low = unpack("N", $content, 0);
+        $result->high = unpack("N", $content, 4);
+        $result->status = unpack("N", $content, 8);
+        return $result;
+    }
+}
