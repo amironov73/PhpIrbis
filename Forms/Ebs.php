@@ -1,83 +1,79 @@
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body, table, td {
-            font: normal 12px Arial;
-        }
+<meta charset="UTF-8">
+<style>
+    body, table, td {
+        font: normal 12px Arial;
+    }
 
-        .title1 {
-            font: bold small-caps 18px Arial;
-            text-align: center;
-        }
+    .title1 {
+        font: bold small-caps 18px Arial;
+        text-align: center;
+    }
 
-        .title2 {
-            font: bold small-caps 32px Arial;
-            color: #003edf;
-            text-align: center;
-        }
+    .title2 {
+        font: bold small-caps 32px Arial;
+        color: #003edf;
+        text-align: center;
+    }
 
-        #searchForm {
-            font: normal 12px Arial;
-            padding-top: 2mm;
-        }
+    #searchForm {
+        font: normal 12px Arial;
+        padding-top: 2mm;
+    }
 
-        .searchTable {
-            margin: 0 auto;
-            width: 750px;
-        }
+    .searchTable {
+        margin: 0 auto;
+        width: 620px;
+    }
 
-        .navTable {
-            margin: 0 auto;
-            width: 750px;
-        }
+    .navTable {
+        margin: 0 auto;
+        width: 750px;
+    }
 
-        .navTable a {
-            font: bold 16px Arial;
-            text-decoration: none;
-        }
+    .navTable a {
+        font: bold 16px Arial;
+        text-decoration: none;
+    }
 
-        .searchItem {
-            font: normal 12px Arial;
-            width: 100%;
-        }
+    .searchItem {
+        font: normal 12px Arial;
+        width: 100%;
+    }
 
-        #searchButton {
-            width: 90%;
-        }
+    #searchButton {
+        width: 90%;
+    }
 
-        .inventory {
-            font-weight: bold;
-            color: #003edf;
-            text-decoration: underline;
-        }
+    .inventory {
+        font-weight: bold;
+        color: #003edf;
+        text-decoration: underline;
+    }
 
-        .ui-tooltip {
-            background-color: #003edf;
-            color: white;
-            -webkit-box-shadow: none;
-            box-shadow: none;
-            border: none;
-        }
+    .ui-tooltip {
+        background-color: #003edf;
+        color: white;
+        -webkit-box-shadow: none;
+        box-shadow: none;
+        border: none;
+    }
 
-        .ui-autocomplete {
-            font: normal 12px Arial;
-            position: absolute;
-            top: 0;
-            left: 0;
-            cursor: default;
-        }
-    </style>
-</head>
-<body>
-<h1 class="title1">НАЦИОНАЛЬНЫЙ УНИВЕРСИТЕТ<br/>НАУЧНО-ТЕХНИЧЕСКАЯ БИБЛИОТЕКА</h1>
-<h2 class="title2">Электронный каталог</h2>
+    .ui-autocomplete {
+        font: normal 12px Arial;
+        position: absolute;
+        top: 0;
+        left: 0;
+        cursor: default;
+    }
+</style>
+
 <?php
 
 require_once '../Source/PhpIrbis.php';
 
 try {
-    $catalog = $_REQUEST['catalogBox'];
+    $databases = array("IBIS", "PERIO", "NTD");
+
     $term1   = $_REQUEST['termBox1'];
     $value1  = $_REQUEST['valueBox1'];
     $trim1   = $_REQUEST['trimBox1'];
@@ -101,20 +97,8 @@ try {
 
     $ui = new IrbisUI($connection);
 
-    echo "<form action='Opac.php' method='post' accept-charset='UTF-8' name='searchForm' id='searchForm'>" . PHP_EOL;
+    echo "<form action='Ebs.php' method='post' accept-charset='UTF-8' name='searchForm' id='searchForm'>" . PHP_EOL;
     echo "<table class='searchTable'>" . PHP_EOL;
-
-    // Выбор каталога
-    echo "<tr>" . PHP_EOL;
-    echo "<td>&nbsp;</td>" . PHP_EOL;
-    echo "<td>Каталог:</td>" . PHP_EOL;
-    echo "<td>";
-    $ui->listDatabases('searchItem', $catalog);
-    echo "</td>" . PHP_EOL;
-    echo "<td>";
-    echo "<a href='#' style='text-decoration: none;'>ИНСТРУКЦИЯ</a>" . PHP_EOL;
-    echo "</td>" . PHP_EOL;
-    echo "</tr>" . PHP_EOL;
 
     $scenarios = $ui->getSearchScenario();
 
@@ -225,28 +209,32 @@ try {
             . ($trim3 ? '$' : '') . '"';
     }
 
-//    echo "<p>";
-//    var_dump($_REQUEST);
-//    echo "</p>";
-//
-//    echo "<p>";
-//    var_dump($searchExpression);
-//    echo "</p>";
-
     if ($searchExpression) {
-        $connection->database = $catalog;
-        $parameters = new SearchParameters();
-        $parameters->expression = $searchExpression;
-        $parameters->numberOfRecords = 1000;
-        $parameters->format = $format;
-        $found = $connection->searchEx($parameters);
-        $found = FoundLine::toDescription($found);
-        sort($found);
+
+        // TODO $searchExpression += "* (HAVE951)"
+
+        $foundAll = array();
+        error_reporting(E_ALL);
+        $format = $format ?: "@";
+
+        foreach ($databases as $db)
+        {
+            $connection->database = $db;
+            $parameters = new SearchParameters();
+            $parameters->expression = $searchExpression;
+            $parameters->numberOfRecords = 1000;
+            $parameters->format = $format;
+            $found = $connection->searchEx($parameters);
+            $found = FoundLine::toDescription($found);
+            $foundAll += $found;
+        }
+
+        sort($foundAll);
 
         echo "<p style='color: blue;text-align: center;'>Найдено записей: " . count($found) . "</p>";
 
         echo "<ol>";
-        foreach ($found as $item) {
+        foreach ($foundAll as $item) {
             echo "<li>$item</li>";
         }
         echo "</ol>";
@@ -262,6 +250,3 @@ catch (Exception $exception) {
 }
 
 ?>
-
-</body>
-</html>

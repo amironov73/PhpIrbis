@@ -257,7 +257,7 @@ echo '<p>Результат форматирования: ' . $text . '</p>';
 ```php
 $mfn = 123;
 $format = "'Ἀριστοτέλης: ', v200^a";
-$text = $client->formatRecordUtf($format, $mfn);
+$text = $client->formatRecord($format, $mfn);
 echo '<p>Результат форматирования: ' . $text . '</p>';
 ```
 
