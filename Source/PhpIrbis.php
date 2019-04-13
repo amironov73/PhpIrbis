@@ -745,6 +745,21 @@ final class MarcRecord {
     }
 
     /**
+     * Сброс состояния записи, отвязка её от базы данных.
+     * Поля данных остаются при этом нетронутыми.
+     *
+     * @return $this
+     */
+    public function reset() {
+        $this->mfn = 0;
+        $this->status = 0;
+        $this->version = 0;
+        $this->database = '';
+
+        return $this;
+    }
+
+    /**
      * Верификация записи.
      *
      * @param bool $throw Бросать ли исключение при ошибке?

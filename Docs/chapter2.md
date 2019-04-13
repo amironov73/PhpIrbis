@@ -61,7 +61,7 @@ const PROVISITON    = 'K'; // Книгообеспеченность
 ```php
 $client = new IrbisConnection();
 $client->host = 'myhost.com';
-if (!$connection->connect()) {
+if (!$client->connect()) {
     echo "Не удалось подключиться!";
     die(1);
 }
@@ -95,7 +95,7 @@ $formatMenuName = $client->iniFile->getValue('Main', 'FmtMnu', 'FMT31.MNU');
 
 ```php
 if (!$client->isConnected()) {
-    // В настоящее->время мы не подключены к серверу
+    // В настоящее время мы не подключены к серверу
 }
 ```
 
@@ -117,7 +117,7 @@ $client->connect();
 
 `PhpIrbis` самостоятельно не посылает на сервер подтверждений того, что клиент все еще подключен. Этим должно заниматься приложение, например, по таймеру. 
 
-Подтверждение посылается серверу методом `nop`:
+Подтверждение посылается серверу методом `noOp`:
  
 ```php
 $client->noOp();        
