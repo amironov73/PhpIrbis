@@ -355,6 +355,10 @@ final class SubField {
         $this->value = $value;
     }
 
+    public function __clone() {
+        $this->value = str_repeat($this->value, 1);
+    }
+
     /**
      * Декодирование подполя из протокольного представления.
      *
@@ -415,6 +419,15 @@ final class RecordField {
     public function __construct($tag=0, $value='') {
         $this->tag = $tag;
         $this->value = $value;
+    }
+
+    public function __clone() {
+        $this->value = str_repeat($this->value, 1);
+        $new = array();
+        foreach ($this->subfields as $i => $subfield) {
+            $new[$i] = clone $subfield;
+        }
+        $this->subfields = $new;
     }
 
     /**
@@ -505,6 +518,46 @@ final class RecordField {
     }
 
     /**
+     * Вставляет подполе по указанному индексу.
+     *
+     * @param int $index Позиция для вставки.
+     * @param SubField $subfield Подполе.
+     */
+    public function insertAt($index, SubField $subfield) {
+        array_splice($this->subfields, $index, 0, $subfield);
+    }
+
+    /**
+     * Удаляет подполе по указанному индексу.
+     *
+     * @param int $index Индекс для удаления.
+     */
+    public function removeAt($index) {
+        unset($this->subfields[$index]);
+        $this->subfields = array_values($this->subfields);
+    }
+
+    /**
+     * Удаляет все подполя с указанным кодом.
+     *
+     * @param string $code Индекс для удаления.
+     */
+    public function removeSubfield($code) {
+        $flag = false;
+        $len = count($this->subfields);
+        for ($i=0; $i < $len; $i = $i+1) {
+            $sub = $this->subfields[$i];
+            if (sameString($sub->code, $code)) {
+                unset($this->subfields[$i]);
+                $flag = true;
+            }
+        }
+        if ($flag) {
+            $this->subfields = array_values($this->subfields);
+        }
+    }
+
+    /**
      * Верификация поля.
      *
      * @param bool $throw Бросать ли исключение при ошибке?
@@ -569,6 +622,15 @@ final class MarcRecord {
      */
     public $fields = array();
 
+    public function __clone() {
+        $this->database = str_repeat($this->database, 1);
+        $new = array();
+        foreach ($this->fields as $i => $field) {
+            $new[$i] = clone $field;
+        }
+        $this->fields = $new;
+    }
+
     /**
      * Добавление поля в запись.
      *
@@ -621,6 +683,24 @@ final class MarcRecord {
                 array_push($this->fields, $field);
             }
         }
+    }
+
+    /**
+     * Кодирование записи в протокольное представление.
+     *
+     * @param string $delimiter Разделитель строк.
+     * В зависимости от ситуации ИРБИСный или обычный.
+     * @return string
+     */
+    public function encode($delimiter = IRBIS_DELIMITER) {
+        $result = $this->mfn . '#' . $this->status . $delimiter
+            . '0#' . $this->version . $delimiter;
+
+        foreach ($this->fields as $field) {
+            $result .= ($field . $delimiter);
+        }
+
+        return $result;
     }
 
     /**
@@ -719,6 +799,8 @@ final class MarcRecord {
     }
 
     /**
+     * Определяет, удалена ли запись?
+     *
      * @return bool Запись удалена
      * (неважно - логически или физически)?
      */
@@ -727,21 +809,43 @@ final class MarcRecord {
     }
 
     /**
-     * Кодирование записи в протокольное представление.
+     * Вставляет поле по указанному индексу.
      *
-     * @param string $delimiter Разделитель строк.
-     * В зависимости от ситуации ИРБИСный или обычный.
-     * @return string
+     * @param int $index Позиция для вставки.
+     * @param RecordField $field Поле.
      */
-    public function encode($delimiter = IRBIS_DELIMITER) {
-        $result = $this->mfn . '#' . $this->status . $delimiter
-            . '0#' . $this->version . $delimiter;
+    public function insertAt($index, RecordField $field) {
+        array_splice($this->fields, $index, 0, $field);
+    }
 
-        foreach ($this->fields as $field) {
-            $result .= ($field . $delimiter);
+    /**
+     * Удаляет поле по указанному индексу.
+     *
+     * @param int $index Индекс для удаления.
+     */
+    public function removeAt($index) {
+        unset($this->fields[$index]);
+        $this->fields = array_values($this->fields);
+    }
+
+    /**
+     * Удаляет все поля с указанной меткой.
+     *
+     * @param int $tag Индекс для удаления.
+     */
+    public function removeField($tag) {
+        $flag = false;
+        $len = count($this->fields);
+        for ($i=0; $i < $len; $i = $i+1) {
+            $field = $this->fields[$i];
+            if ($field->tag == $tag) {
+                unset($this->fields[$i]);
+                $flag = true;
+            }
         }
-
-        return $result;
+        if ($flag) {
+            $this->fields = array_values($this->fields);
+        }
     }
 
     /**
