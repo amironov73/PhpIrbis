@@ -486,6 +486,46 @@ final class RecordField {
     }
 
     /**
+     * Получает массив встроенных полей из данного поля.
+     *
+     * @return array Встроенные поля.
+     */
+    public function getEmbeddedFields() {
+        $result = array();
+        $found = null;
+        foreach ($this->subfields as $subfield) {
+            if ($subfield->code == '1') {
+                if ($found) {
+                    if (count($found->subfields) || $found->value) {
+                        array_push($result, $found);
+                    }
+                }
+                $value = $subfield->value;
+                if (!$value) {
+                    continue;
+                }
+                $tag = intval(substr($value, 0, 3));
+                $found = new RecordField($tag);
+                if ($tag < 10) {
+                    $found->value = substr($value, 3);
+                }
+            } else {
+                if ($found) {
+                    array_push($found->subfields, $subfield);
+                }
+            }
+        }
+
+        if ($found) {
+            if (count($found->subfields) || $found->value) {
+                array_push($result, $found);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Возвращает первое вхождение подполя с указанным кодом.
      *
      * @param string $code Код искомого подполя.
