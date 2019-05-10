@@ -3650,7 +3650,7 @@ final class IrbisConnection {
 
         $query = new ClientQuery($this, 'G');
         $database = $record->database ?: $this->database;
-        $query->addAnsi($this->database)->newLine();
+        $query->addAnsi(database)->newLine();
         $query->addFormat($format);
         $query->add(-2)->newLine();
         $query->addUtf($record->encode());
