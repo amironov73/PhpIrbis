@@ -58,7 +58,7 @@ const ACQUSITIONS   = 'M'; // Комплектатор
 const READER        = 'R'; // Читатель
 const CIRCULATION   = 'B'; // Книговыдача
 const BOOKLAND      = 'B'; // Книговыдача
-const PROVISITON    = 'K'; // Книгообеспеченность
+const PROVISION     = 'K'; // Книгообеспеченность
 
 // Команды глобальной корректировки
 
