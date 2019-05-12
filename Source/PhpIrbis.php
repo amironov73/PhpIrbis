@@ -1503,8 +1503,7 @@ final class TreeNode {
      * @return $this
      */
     public function add($value) {
-        $child = new TreeNode();
-        $child->value = $value;
+        $child = new TreeNode($value);
         array_push($this->children, $child);
 
         return $this;
@@ -1576,8 +1575,7 @@ final class TreeFile {
      * @return TreeNode Созданный элемент.
      */
     public function addRoot($value) {
-        $result = new TreeNode();
-        $result->value = $value;
+        $result = new TreeNode($value);
         array_push($this->roots, $result);
 
         return $result;
@@ -4280,7 +4278,12 @@ final class IrbisConnection {
         }
 
         if (count($mfnList) == 1) {
-            return $this->readRecord($mfnList[0]);
+            $result = array();
+            $record = $this->readRecord($mfnList[0]);
+            if ($record) {
+                array_push($result, $record);
+            }
+            return $result;
         }
 
         $query = new ClientQuery($this, 'G');
