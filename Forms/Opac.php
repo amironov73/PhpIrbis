@@ -74,6 +74,8 @@
 <h2 class="title2">Электронный каталог</h2>
 <?php
 
+error_reporting(E_ALL);
+
 require_once '../Source/PhpIrbis.php';
 
 try {

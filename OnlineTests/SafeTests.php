@@ -1,5 +1,7 @@
 <?php
 
+error_reporting(E_ALL);
+
 header('Content-Type: text/html; charset=utf-8');
 
 require_once ('../Source/PhpIrbis.php');
@@ -30,46 +32,46 @@ echo "INTERVAL: {$connection->interval}<br/>";
 $dbnnamecat = $ini->getValue('Main', 'DBNNAMECAT');
 echo "DBNNAMECAT: {$dbnnamecat}</p>";
 
-//$connection->noOp();
-//echo '<p>NO OP</p>';
+$connection->noOp();
+echo '<p>NO OP</p>';
 
 $version = $connection->getServerVersion();
 echo "<p>Версия: {$version->version} {$version->organization}</p>";
 
-//$processes = $connection->listProcesses();
-//dumpArray($processes);
-//
-//$databases = $connection->listDatabases();
-//echo "<p>";
-//foreach ($databases as $db) {
-//    echo "{$db->name} {$db->description}<br/>";
-//}
-//echo "</p>";
+$processes = $connection->listProcesses();
+dumpArray($processes);
 
-//$database = $connection->getDatabaseInfo();
-//echo "<p>LOGICALLY DELETED: ", implode(', ', $database->logicallyDeletedRecords), "</p>";
+$databases = $connection->listDatabases();
+echo "<p>";
+foreach ($databases as $db) {
+    echo "{$db->name} {$db->description}<br/>";
+}
+echo "</p>";
 
-//$users = $connection->getUserList();
-//echo "<p>";
-//dumpArray($users);
-//echo "</p>";
+$database = $connection->getDatabaseInfo();
+echo "<p>LOGICALLY DELETED: ", implode(', ', $database->logicallyDeletedRecords), "</p>";
 
-//$stat = $connection->getServerStat();
-//echo "<p>";
-//dumpArray($stat->runningClients);
-//echo "</p>";
+$users = $connection->getUserList();
+echo "<p>";
+dumpArray($users);
+echo "</p>";
 
-//$maxMfn = $connection->getMaxMfn($connection->database);
-//echo "<p>MAX MFN: $maxMfn</p>";
+$stat = $connection->getServerStat();
+echo "<p>";
+dumpArray($stat->runningClients);
+echo "</p>";
 
-//$formatted = $connection->formatRecord("@brief", 123);
-//echo "<p>FORMATTED: $formatted</p>";
+$maxMfn = $connection->getMaxMfn($connection->database);
+echo "<p>MAX MFN: $maxMfn</p>";
 
-//$formatted = $connection->formatRecords("@brief", array(1, 2, 3));
-//dumpArray($formatted);
+$formatted = $connection->formatRecord("@brief", 123);
+echo "<p>FORMATTED: $formatted</p>";
 
-//$files = $connection->listFiles("3.IBIS.brief.*");
-//echo '<p>' . implode(', ', $files) . '</p>';
+$formatted = $connection->formatRecords("@brief", array(1, 2, 3));
+dumpArray($formatted);
+
+$files = $connection->listFiles("3.IBIS.brief.*");
+echo '<p>' . implode(', ', $files) . '</p>';
 
 $found = $connection->search("K=ALG$");
 echo '<p>ALG$</p>';
@@ -118,8 +120,8 @@ if (!$found) {
 $count = $connection->searchCount('"A=ПУШКИН$"');
 echo "<p>COUNT: $count</p>";
 
-$single = $connection->searchSingleRecord('"I=65.304.13-772296"');
-echo "<p>$single</p>";
+//$single = $connection->searchSingleRecord('"I=65.304.13-772296"');
+//echo "<p>$single</p>";
 
 $tree = $connection->readTreeFile('3.IBIS.II.TRE');
 dumpArray($tree->roots);

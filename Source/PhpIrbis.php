@@ -90,6 +90,7 @@ const IRBIS_DELIMITER = "\x1F\x1E";
  * Короткая версия разделителя строк ИРБИС.
  */
 const SHORT_DELIMITER = "\x1E";
+const ALT_DELIMITER   = "\x1F";
 
 /**
  * Пустая ли данная строка?
@@ -110,6 +111,18 @@ function isNullOrEmpty($text) {
  */
 function sameString($str1, $str2) {
     return strcasecmp($str1, $str2) == 0;
+}
+
+/**
+ * Безопасное получение элемента массива по индексу.
+ * @param array $a Массив.
+ * @param int $ofs Индекс.
+ * @return mixed|null
+ */
+function safe_get(array $a, $ofs) {
+    if (isset($a[$ofs]))
+        return $a[$ofs];
+    return null;
 }
 
 /**
@@ -709,14 +722,17 @@ final class MarcRecord {
      * с клиентским представлением записи.
      */
     public function decode(array $lines) {
+        if (empty($lines) || count($lines) < 2)
+            return;
+
         // mfn and status of the record
         $firstLine = explode('#', $lines[0]);
         $this->mfn = intval($firstLine[0]);
-        $this->status = intval($firstLine[1]);
+        $this->status = intval(safe_get($firstLine, 1));
 
         // version of the record
         $secondLine = explode('#', $lines[1]);
-        $this->version = intval($secondLine[1]);
+        $this->version = intval(safe_get($secondLine, 1));
         $lines = array_slice($lines, 2);
 
         // fields
@@ -966,14 +982,17 @@ final class RawRecord {
      * с клиентским представлением записи.
      */
     public function decode(array $lines) {
+        if (empty($lines) || count($lines) < 2)
+            return;
+
         // mfn and status of the record
         $firstLine = explode('#', $lines[0]);
         $this->mfn = intval($firstLine[0]);
-        $this->status = intval($firstLine[1]);
+        $this->status = intval(safe_get($firstLine, 1));
 
         // version of the record
         $secondLine = explode('#', $lines[1]);
-        $this->version = intval($secondLine[1]);
+        $this->version = intval(safe_get($secondLine, 1));
         $this->fields = array_slice($lines, 2);
     }
 
@@ -1048,7 +1067,7 @@ final class FoundLine {
             $parts = explode('#', $line, 2);
             $item = new FoundLine();
             $item->mfn = intval($parts[0]);
-            $item->description = str_replace("\x1F", " ", $parts[1]);
+            $item->description = str_replace(ALT_DELIMITER, " ", safe_get($parts, 1));
             array_push($result, $item);
         }
 
@@ -1279,7 +1298,7 @@ final class IniSection {
      */
     public function find($key) {
         foreach ($this->lines as $line) {
-            if (strcasecmp($line->key, $key) == 0) {
+            if (sameString($line->key, $key)) {
                 return $line;
             }
         }
@@ -1367,7 +1386,7 @@ final class IniFile {
      */
     public function findSection($name) {
         foreach ($this->sections as $section) {
-            if (strcasecmp($section->name, $name) == 0) {
+            if (sameString($section->name, $name)) {
                 return $section;
             }
         }
@@ -1431,7 +1450,7 @@ final class IniFile {
             } else if ($section) {
                 $parts = explode('=', $trimmed, 2);
                 $key = $parts[0];
-                $value = $parts[1];
+                $value = safe_get($parts, 1);
                 $item = new IniLine();
                 $item->key = $key;
                 $item->value = $value;
@@ -1708,12 +1727,14 @@ final class DatabaseInfo {
      */
     public static function parseResponse(array $lines) {
         $result = new DatabaseInfo();
-        $result->logicallyDeletedRecords = self::parseLine($lines[0]);
-        $result->physicallyDeletedRecords = self::parseLine($lines[1]);
-        $result->nonActualizedRecords = self::parseLine($lines[2]);
-        $result->lockedRecords = self::parseLine($lines[3]);
-        $result->maxMfn = intval($lines[4]);
-        $result->databaseLocked = intval($lines[5]) != 0;
+        if (!empty($lines)) {
+            $result->logicallyDeletedRecords = self::parseLine($lines[0]);
+            $result->physicallyDeletedRecords = self::parseLine(safe_get($lines, 1));
+            $result->nonActualizedRecords = self::parseLine(safe_get($lines, 2));
+            $result->lockedRecords = self::parseLine(safe_get($lines, 3));
+            $result->maxMfn = intval(safe_get($lines, 4));
+            $result->databaseLocked = intval(safe_get($lines, 5)) != 0;
+        }
 
         return $result;
     }
@@ -1811,6 +1832,9 @@ final class ProcessInfo {
 
     public static function parse(array $lines) {
         $result = array();
+        if (empty($lines) || count($lines) < 2)
+            return $result;
+
         $processCount = intval($lines[0]);
         $linesPerProcess = intval($lines[1]);
         if (!$processCount || !$linesPerProcess) {
@@ -1819,6 +1843,9 @@ final class ProcessInfo {
 
         $lines = array_slice($lines, 2);
         for($i = 0; $i < $processCount; $i++) {
+            if (count($lines) < 10)
+                break;
+
             $process = new ProcessInfo();
             $process->number        = $lines[0];
             $process->ipAddress     = $lines[1];
@@ -1879,9 +1906,9 @@ final class VersionInfo {
             $this->maxClients = intval($lines[2]);
         } else {
             $this->organization = $lines[0];
-            $this->version = $lines[1];
-            $this->connectedClients = intval($lines[2]);
-            $this->maxClients = intval($lines[3]);
+            $this->version = safe_get($lines, 1);
+            $this->connectedClients = intval(safe_get($lines, 2));
+            $this->maxClients = intval(safe_get($lines, 3));
         }
     }
 
@@ -1953,6 +1980,9 @@ final class ClientInfo {
      * @param array $lines Строки ответа.
      */
     public function parse(array $lines) {
+        if (empty($lines) || count($lines) < 10)
+            return;
+
         $this->number        = $lines[0];
         $this->ipAddress     = $lines[1];
         $this->port          = $lines[2];
@@ -2052,17 +2082,18 @@ final class UserInfo {
      */
     public static function parse(array $lines) {
         $result = array();
+        if (empty($lines) || count($lines) < 2)
+            return $result;
+
         $userCount = intval($lines[0]);
         $linesPerUser = intval($lines[1]);
-        if (!$userCount || !$linesPerUser) {
+        if (!$userCount || !$linesPerUser)
             return $result;
-        }
 
         $lines = array_slice($lines, 2);
         for($i = 0; $i < $userCount; $i++) {
-            if (!$lines) {
+            if (empty($lines) || count($lines) < 9)
                 break;
-            }
 
             $user = new UserInfo();
             $user->number        = $lines[0];
@@ -2167,6 +2198,9 @@ final class ServerStat {
      * @param array $lines Строки ответа сервера.
      */
     public function parse(array $lines) {
+        if (empty($lines) || count($lines) < 2)
+            return;
+
         $this->totalCommandCount = intval($lines[0]);
         $this->clientCount = intval($lines[1]);
         $linesPerClient = intval($lines[2]);
@@ -2179,6 +2213,8 @@ final class ServerStat {
         for($i=0; $i < $this->clientCount; $i++) {
             $client = new ClientInfo();
             $client->parse($lines);
+            if (!$client->name)
+                break;
             array_push($this->runningClients, $client);
             $lines = array_slice($lines, $linesPerClient + 1);
         }
@@ -2281,7 +2317,7 @@ final class TermInfo {
                 $parts = explode('#', $line, 2);
                 $term = new TermInfo();
                 $term->count = intval($parts[0]);
-                $term->text = $parts[1];
+                $term->text = safe_get($parts, 1);
                 array_push($result, $term);
             }
         }
@@ -2339,10 +2375,10 @@ final class TermPosting {
 
             $item = new TermPosting();
             $item->mfn        = intval($parts[0]);
-            $item->tag        = intval($parts[1]);
-            $item->occurrence = intval($parts[2]);
-            $item->count      = intval($parts[3]);
-            $item->text       = $parts[4];
+            $item->tag        = intval(safe_get($parts, 1));
+            $item->occurrence = intval(safe_get($parts, 2));
+            $item->count      = intval(safe_get($parts, 3));
+            $item->text       = safe_get($parts, 4);
             array_push($result, $item);
         }
 
@@ -2756,6 +2792,9 @@ final class OptFile {
      * @throws IrbisException
      */
     public function parse(array $lines) {
+        if (empty($lines) || count($lines) < 2)
+            throw new IrbisException();
+
         $this->worksheetTag = intval($lines[0]);
         $this->worksheetLength = intval($lines[1]);
         $lines = array_slice($lines, 2);
@@ -2801,8 +2840,10 @@ final class OptFile {
         $patternIndex = 0;
         $testableIndex = 0;
         while (true) {
-            $patternChar = $pattern[$patternIndex];
-            $testableChar = $testable[$testableIndex];
+            $patternChar = $patternIndex < strlen($pattern)
+                ? $pattern[$patternIndex] : "\0";
+            $testableChar = $testableIndex < strlen($testable)
+                ? $testable[$testableIndex] : "\0";
             $patternNext = $patternIndex++ < strlen($pattern);
             $testableNext = $testableIndex++ < strlen($testable);
 
@@ -3709,7 +3750,8 @@ final class IrbisConnection {
         $result = array();
         foreach ($lines as $line) {
             $parts = explode('#', $line, 2);
-            array_push($result, irbisToDos($parts[1]));
+            if (count($parts) == 2)
+                array_push($result, irbisToDos($parts[1]));
         }
 
         return $result;
@@ -4317,12 +4359,14 @@ final class IrbisConnection {
         $result = array();
         foreach ($lines as $line) {
             $parts = explode('#', $line, 2);
-            $parts = explode("\x1F", $parts[1]);
-            $parts = array_slice($parts, 1);
-            $record = new MarcRecord();
-            $record->decode($parts);
-            $record->database = $this->database;
-            array_push($result, $record);
+            if (count($parts) > 1) {
+                $parts = explode("\x1F", $parts[1]);
+                $parts = array_slice($parts, 1);
+                $record = new MarcRecord();
+                $record->decode($parts);
+                $record->database = $this->database;
+                array_push($result, $record);
+            }
         }
 
         return $result;
@@ -4867,10 +4911,12 @@ final class IrbisConnection {
         if (!$dontParse) {
             $record->fields = array();
             $temp = $response->readRemainingUtfLines();
-            $lines = array($temp[0]);
-            $lines = array_merge($lines, explode(SHORT_DELIMITER, $temp[1]));
-            $record->decode($lines);
-            $record->database = $database;
+            if (count($temp) > 1) {
+                $lines = array($temp[0]);
+                $lines = array_merge($lines, explode(SHORT_DELIMITER, $temp[1]));
+                $record->decode($lines);
+                $record->database = $database;
+            }
         }
 
         return $response->returnCode;
