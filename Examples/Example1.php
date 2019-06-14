@@ -28,8 +28,12 @@ try {
     // Получаем список доступных баз данных
     $databases = $connection->listDatabases('1..' . $dbnnamecat);
     echo "<p>Имеются базы данных: <b>" . implode(', ', $databases) . "</b></p>\n";
-
-    $found = $connection->search('"A=ПУШКИН$"');
+    $query = new SearchParameters();
+	$query->AddQuery("A=","Бабич");
+	$query->AddQuery("A=","Симонович");
+	$query->SetFilter("G=","2002");
+	$query->CloseQuery();
+	$found = $connection->search($query->expression);
     echo "<p>Всего найдено записей: " . count($found) . "</p>\n";
 
     if (count($found) > 10) {
