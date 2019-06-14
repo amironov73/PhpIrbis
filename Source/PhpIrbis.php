@@ -2394,6 +2394,8 @@ final class SearchParameters {
      * @var string Выражение для поиска по словарю.
      */
     public $expression = '';
+	
+	public $_query = array();
 
     /**
      * @var string Выражение для последовательного поиска.
@@ -2404,6 +2406,7 @@ final class SearchParameters {
      * @var string Выражение для локальной фильтрации.
      */
     public $filter = '';
+	public $_filter = array();
 
     /**
      * @var bool Признак кодировки UTF-8.
@@ -2414,6 +2417,53 @@ final class SearchParameters {
      * @var bool Признак вложенного вызова.
      */
     public $nested = false;
+	
+	public function enClose( $value) {       
+		return "(" . $value . ")";
+    }
+	
+	public function AddQuery( $prefix, $keyword, $truncation = true) {       
+		$truncation = ($truncation) ? "$" : "";
+		
+		$this->_query[] = $prefix . $keyword . $truncation;
+		
+
+		return true;
+    }
+	
+	public function SetFilter( $prefix, $keyword, $exclude = false) {       
+		if ( empty($this->_query) )
+		{
+			echo "no queries defined, issue AddQuery() first";
+			return false;
+		}
+		$exclude = ($exclude) ? "^" : "*";
+		$this->_filter[] = $exclude . $this->enClose($prefix . $keyword);
+		return true;
+    }
+	
+	public function CloseQuery() {
+
+		if ( empty($this->_query) )
+		{
+			echo "no queries defined, issue AddQuery() first";
+			return false;
+		}
+		
+		if ( count($this->_query) > 1 ) {
+			$req = array_map ( array($this,'enClose') , $this->_query );
+		}
+		
+		$query = ( empty($this->_filter) ) ? implode('+',$this->_query) : $this->enClose(implode('+',$this->_query));
+
+		$this->expression = $query . implode('',$this->_filter);
+		
+		$this->_query=array();
+		$this->_filter=array();
+        return $this->expression;
+		
+    }
+	
 } // class SearchParameters
 
 /**
