@@ -79,6 +79,8 @@ final class Search
         if (strpos($text, ' ') !== false
             or strpos($text, '+') !== false
             or strpos($text, '*') !== false
+            or strpos($text, '^') !== false
+            or strpos($text, '#') !== false
             or strpos($text, '(') !== false
             or strpos($text, ')') !== false
             or strpos($text, '"') !== false)
