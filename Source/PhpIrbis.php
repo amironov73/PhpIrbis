@@ -309,7 +309,9 @@ function describeError($code) {
         -5555 => 'Файл не существует',
         -6666 => 'Сервер перегружен. Достигнуто максимальное число потоков обработки',
         -7777 => 'Не удалось запустить/прервать поток администратора (ошибка процесса)',
-        -8888 => 'Общая ошибка'
+        -8888 => 'Общая ошибка',
+        -100001 => 'Ошибка создания сокета',
+        -100002 => 'Сбой сети'
     );
 
     $result = $errors[$code] ?: 'Неизвестная ошибка';
@@ -4579,7 +4581,7 @@ final class IrbisConnection {
         while (true) {
             $query = new ClientQuery($this, 'K');
             $query->addAnsi($this->database)->newLine();
-            $query->addUtf($expression)->newLine();
+            $query->addUtf((string)$expression)->newLine();
             $query->add(0)->newLine();
             $query->add($firstRecord)->newLine();
             $response = $this->execute($query);
@@ -4622,7 +4624,7 @@ final class IrbisConnection {
 
         $query = new ClientQuery($this, 'K');
         $query->addAnsi($this->database)->newLine();
-        $query->addUtf($expression)->newLine();
+        $query->addUtf((string)$expression)->newLine();
         $query->add(0)->newLine();
         $query->add(0);
         $response = $this->execute($query);
@@ -4647,7 +4649,7 @@ final class IrbisConnection {
         $database = $parameters->database ?: $this->database;
         $query = new ClientQuery($this, 'K');
         $query->addAnsi($database)->newLine();
-        $query->addUtf($parameters->expression)->newLine();
+        $query->addUtf((string)($parameters->expression))->newLine();
         $query->add($parameters->numberOfRecords)->newLine();
         $query->add($parameters->firstRecord)->newLine();
         $query->addFormat($parameters->format);

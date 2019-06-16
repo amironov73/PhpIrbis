@@ -19,7 +19,8 @@ $connectString = 'host=127.0.0.1;user=librarian;password=secret;';
 $connection->parseConnectionString($connectString);
 
 if (!$connection->connect()) {
-    echo "Can't connect!";
+    echo "Can't connect!\n";
+    echo describeError($connection->lastError);
     die(1);
 }
 

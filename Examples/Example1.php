@@ -14,7 +14,8 @@ try {
     $connection->parseConnectionString($connectString);
 
     if (!$connection->connect()) {
-        echo "Не удалось подключиться!";
+        echo "Не удалось подключиться!\n";
+        echo describeError($connection->lastError);
         die(1);
     }
 
