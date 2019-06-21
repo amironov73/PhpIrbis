@@ -123,6 +123,9 @@ echo "<p>COUNT: $count</p>";
 //$single = $connection->searchSingleRecord('"I=65.304.13-772296"');
 //echo "<p>$single</p>";
 
+$postings = $connection->getRecordPostings(2, "A=$");
+dumpArray($postings);
+
 $tree = $connection->readTreeFile('3.IBIS.II.TRE');
 dumpArray($tree->roots);
 

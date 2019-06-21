@@ -3802,6 +3802,29 @@ final class IrbisConnection {
     } // function getMaxMfn
 
     /**
+     * Массив постингов для указанных записи и префикса.
+     * @param int $mfn MFN записи.
+     * @param string $prefix Префикс в виде "A=$".
+     * @return array Массив TermPosting.
+     */
+    public function getRecordPostings($mfn, $prefix) {
+        $result = array();
+        if (!$this->connected)
+            return $result;
+
+        $query = new ClientQuery($this, 'V');
+        $query->addAnsi($this->database)->newLine();
+        $query->add($mfn)->newLine();
+        $query->addUtf($prefix)->newLine();
+        $response = $this->execute($query);
+        if (!$response || !$response->checkReturnCode())
+            return $result;
+
+        $lines = $response->readRemainingUtfLines();
+        return TermPosting::parse($lines);
+    } // function getRecordPostings
+
+    /**
      * Получение статистики с сервера.
      *
      * @return bool|ServerStat
