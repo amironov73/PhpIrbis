@@ -126,15 +126,27 @@ echo "<p>COUNT: $count</p>";
 $postings = $connection->getRecordPostings(2, "A=$");
 dumpArray($postings);
 
-$tree = $connection->readTreeFile('3.IBIS.II.TRE');
-dumpArray($tree->roots);
+try {
+    $tree = $connection->readTreeFile('3.IBIS.II.TRE');
+    dumpArray($tree->roots);
+} catch (IrbisException $e) {
+    echo $e;
+}
 
-$par = $connection->readParFile('1..IBIS.PAR');
-echo "<p><pre>$par</pre></p>";
+try {
+    $par = $connection->readParFile('1..IBIS.PAR');
+    echo "<p><pre>$par</pre></p>";
+} catch (IrbisException $e) {
+    echo $e;
+}
 
-$opt = $connection->readOptFile('3.IBIS.WS31.OPT');
-echo "<p><pre>$opt</pre></p>";
-echo "<p>{$opt->resolveWorksheet('ASP')}</p>";
+try {
+    $opt = $connection->readOptFile('3.IBIS.WS31.OPT');
+    echo "<p><pre>$opt</pre></p>";
+    echo "<p>{$opt->resolveWorksheet('ASP')}</p>";
+} catch (IrbisException $e) {
+    echo $e;
+}
 
 $record = new MarcRecord();
 $field = $record->add(200);

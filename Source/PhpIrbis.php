@@ -4557,6 +4557,111 @@ final class IrbisConnection {
     } // function reloadMasterFile
 
     /**
+     * Получение INI-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return IniFile
+     * @throws IrbisException Файл не найден.
+     */
+    public function requireIniFile($specification) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines)
+            throw new IrbisException("File not found: " . $specification);
+
+        $result = new IniFile();
+        $result->parse($lines);
+
+        return $result;
+    } // function requireIniFile
+
+    /**
+     * Получение MNU-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return MenuFile
+     * @throws IrbisException Файл не найден.
+     */
+    public function requireMenuFile($specification) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines)
+            throw new IrbisException("File not found: " . $specification);
+
+        $result = new MenuFile();
+        $result->parse($lines);
+
+        return $result;
+    } // function requireMenuFile
+
+    /**
+     * Получение OPT-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return OptFile
+     * @throws IrbisException Файл не найден.
+     */
+    public function requireOptFile($specification) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines)
+            throw new IrbisException("File not found: " . $specification);
+
+        $result = new OptFile();
+        $result->parse($lines);
+
+        return $result;
+    } // function requireOptFile
+
+    /**
+     * Получение PAR-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return ParFile
+     * @throws IrbisException Файл не найден.
+     */
+    public function requireParFile($specification) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines)
+            throw new IrbisException("File not found: " . $specification);
+
+        $result = new ParFile();
+        $result->parse($lines);
+
+        return $result;
+    } // function requireParFile
+
+    /**
+     * Получение текстового файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return string
+     * @throws IrbisException Файл не найден.
+     */
+    public function requireTextFile($specification) {
+        $result = $this->readTextFile($specification);
+        if (!$result || isNullOrEmpty($result))
+            throw new IrbisException("File not found: " . $specification);
+
+        return $result;
+    } // function requireTextFile
+
+    /**
+     * Получение TRE-файла с сервера.
+     *
+     * @param string $specification Спецификация файла.
+     * @return TreeFile
+     * @throws IrbisException Файл не найден.
+     */
+    public function requireTreeFile($specification) {
+        $lines = $this->readTextLines($specification);
+        if (!$lines)
+            throw new IrbisException("File not found: " . $specification);
+
+        $result = new TreeFile();
+        $result->parse($lines);
+
+        return $result;
+    } // function requireTreeFile
+
+    /**
      * Перезапуск сервера (без утери подключенных клиентов).
      *
      * @return bool
@@ -5201,5 +5306,6 @@ final class XrfFile
         $result->high = unpack("N", $content, 4);
         $result->status = unpack("N", $content, 8);
         return $result;
-    }
+    } // function read
+    
 } // class XrfFile
