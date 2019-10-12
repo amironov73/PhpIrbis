@@ -1,5 +1,6 @@
 <head>
     <meta charset="UTF-8"/>
+    <title>Простой пример поиска и расформатирования записей</title>
 </head>
 
 <?php
@@ -14,8 +15,8 @@ try {
     $connection->parseConnectionString($connectString);
 
     if (!$connection->connect()) {
-        echo "Не удалось подключиться!\n";
-        echo describeError($connection->lastError);
+        echo '<h3 style="color: red;">Не удалось подключиться!</h3>';
+        echo '<p>', describeError($connection->lastError), '</p>';
         die(1);
     }
 
@@ -47,7 +48,7 @@ try {
         echo "<p><b>Заглавие:</b> {$title}<br/>";
 
         // Расформатируем запись на севере
-        $description = $connection->formatRecord("@brief", $mfn);
+        $description = $connection->formatRecord('@brief', $mfn);
         echo "<b>Биб. описание:</b> {$description}</p>\n";
     }
 
@@ -55,5 +56,5 @@ try {
     $connection->disconnect();
 }
 catch (Exception $exception) {
-    echo "ОШИБКА: " . $exception;
+    echo "ОШИБКА:  $exception";
 }

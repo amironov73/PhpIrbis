@@ -5307,5 +5307,5 @@ final class XrfFile
         $result->status = unpack("N", $content, 8);
         return $result;
     } // function read
-    
+
 } // class XrfFile
