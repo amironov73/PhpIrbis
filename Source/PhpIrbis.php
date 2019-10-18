@@ -3450,7 +3450,7 @@ final class IrbisConnection {
      *
      * @param string $database Имя базы данных.
      * @param integer $mfn MFN, подлежащий актуализации.
-     * @return bool Признак успещности операции.
+     * @return bool Признак успешности операции.
      */
     public function actualizeRecord($database, $mfn) {
         if (!$this->connected)
@@ -3469,7 +3469,7 @@ final class IrbisConnection {
     /**
      * Подключение к серверу ИРБИС64.
      *
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     function connect() {
         if ($this->connected)
@@ -3512,7 +3512,7 @@ final class IrbisConnection {
      * @param string $database Имя создаваемой базы.
      * @param string $description Описание в свободной форме.
      * @param int $readerAccess Читатель будет иметь доступ?
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     function createDatabase($database, $description, $readerAccess=1) {
         if (!$this->connected)
@@ -3533,7 +3533,7 @@ final class IrbisConnection {
      * Создание словаря в указанной базе данных.
      *
      * @param string $database Имя базы данных.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function createDictionary($database) {
         if (!$this->connected)
@@ -3552,7 +3552,7 @@ final class IrbisConnection {
      * Удаление указанной базы данных.
      *
      * @param string $database Имя удаляемой базы данных.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function deleteDatabase($database) {
         if (!$this->connected)
@@ -3580,7 +3580,7 @@ final class IrbisConnection {
      * Удаление записи по её MFN.
      *
      * @param integer $mfn MFN удаляемой записи.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function deleteRecord($mfn) {
         $record = $this->readRecord($mfn);
@@ -3598,7 +3598,7 @@ final class IrbisConnection {
     /**
      * Отключение от сервера.
      *
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function disconnect() {
         if (!$this->connected)
@@ -3618,7 +3618,8 @@ final class IrbisConnection {
      * и получение ответа от него.
      *
      * @param ClientQuery $query Клиентский запрос.
-     * @return bool|ServerResponse Ответ сервера.
+     * @return bool|ServerResponse Ответ сервера
+     * либо признак сбоя операции.
      */
     public function execute(ClientQuery $query) {
         $this->lastError = 0;
@@ -3652,7 +3653,8 @@ final class IrbisConnection {
      *
      * @param string $command Код команды.
      * @param array $params Опциональные параметры в кодировке ANSI.
-     * @return bool|ServerResponse
+     * @return bool|ServerResponse Ответ сервера
+     * либо признак сбоя операции.
      */
     public function executeAnyCommand($command, array $params=[]) {
         if (!$this->connected)
@@ -3672,7 +3674,8 @@ final class IrbisConnection {
      *
      * @param string $format Текст формата.
      * @param integer $mfn MFN записи.
-     * @return bool|string
+     * @return bool|string Результат расформатирования
+     * либо признак сбоя операции.
      */
     public function formatRecord($format, $mfn) {
         if (!$this->connected)
@@ -3697,7 +3700,8 @@ final class IrbisConnection {
      *
      * @param string $format Текст формата.
      * @param MarcRecord $record Запись.
-     * @return bool|string
+     * @return bool|string Результат расформатирования
+     * либо признак сбоя операции.
      */
     public function formatVirtualRecord($format, MarcRecord $record) {
         if (!$this->connected)
@@ -3726,7 +3730,8 @@ final class IrbisConnection {
      *
      * @param string $format Формат.
      * @param array $mfnList Массив MFN.
-     * @return array|bool
+     * @return array|bool Результат расформатирования
+     * либо признак сбоя операции.
      */
     public function formatRecords($format, array $mfnList) {
         if (!$this->connected)
@@ -3763,7 +3768,8 @@ final class IrbisConnection {
      * Получение информации о базе данных.
      *
      * @param string $database Имя базы данных.
-     * @return bool|DatabaseInfo
+     * @return bool|DatabaseInfo Информация о базе данных
+     * либо признак сбоя операции.
      */
     public function getDatabaseInfo($database = '') {
         if (!$this->connected)
@@ -3786,7 +3792,8 @@ final class IrbisConnection {
      * Получение максимального MFN для указанной базы данных.
      *
      * @param string $database Имя базы данных.
-     * @return integer
+     * @return integer Максимальный MFN
+     * либо 0 в качестве признака сбоя операции.
      */
     public function getMaxMfn($database) {
         if (!$this->connected)
@@ -3805,7 +3812,8 @@ final class IrbisConnection {
      * Массив постингов для указанных записи и префикса.
      * @param int $mfn MFN записи.
      * @param string $prefix Префикс в виде "A=$".
-     * @return array Массив TermPosting.
+     * @return array Массив TermPosting
+     * (пустой в случае сбоя операции).
      */
     public function getRecordPostings($mfn, $prefix) {
         $result = array();
@@ -3827,7 +3835,8 @@ final class IrbisConnection {
     /**
      * Получение статистики с сервера.
      *
-     * @return bool|ServerStat
+     * @return bool|ServerStat Статистика
+     * либо признак сбоя операции.
      */
     public function getServerStat() {
         if (!$this->connected)
@@ -3847,7 +3856,8 @@ final class IrbisConnection {
     /**
      * Получение версии сервера.
      *
-     * @return bool|VersionInfo
+     * @return bool|VersionInfo Версия сервера
+     * либо признак сбоя операции.
      */
     public function getServerVersion() {
         if (!$this->connected)
@@ -3867,7 +3877,8 @@ final class IrbisConnection {
     /**
      * Получение списка пользователей с сервера.
      *
-     * @return array|bool
+     * @return array|bool Список пользователей
+     * либо признак сбоя операции.
      */
     public function getUserList() {
         if (!$this->connected)
@@ -3887,7 +3898,8 @@ final class IrbisConnection {
      * Глобальная корректировка.
      *
      * @param GblSettings $settings Параметры корректировки.
-     * @return array|bool
+     * @return array|bool Массив результатов корректировки
+     * либо признак сбоя операции.
      */
     public function globalCorrection(GblSettings $settings) {
         if (!$this->connected)
@@ -3951,7 +3963,8 @@ final class IrbisConnection {
      * Получение списка баз данных с сервера.
      *
      * @param string $specification Спецификация файла со списком баз.
-     * @return array|bool
+     * @return array|bool Список баз данных
+     * либо признак сбоя операции.
      */
     public function listDatabases($specification = '1..dbnam2.mnu') {
         if (!$this->connected)
@@ -3970,7 +3983,8 @@ final class IrbisConnection {
      * Получение списка файлов.
      *
      * @param string $specification Спецификация.
-     * @return array|bool
+     * @return array|bool Список файлов
+     * либо признак сбоя операции.
      */
     public function listFiles($specification) {
         if (!$this->connected)
@@ -3999,7 +4013,8 @@ final class IrbisConnection {
     /**
      * Получение списка серверных процессов.
      *
-     * @return array|bool
+     * @return array|bool Список процессов
+     * либо признак сбоя операции.
      */
     public function listProcesses() {
         if (!$this->connected)
@@ -4020,7 +4035,8 @@ final class IrbisConnection {
      * Получение списка терминов с указанным префиксом.
      *
      * @param string $prefix Префикс.
-     * @return array Термы (очищенные от префикса).
+     * @return array Термины (очищенные от префикса)
+     * (пустой массив при сбое операции).
      */
     public function listTerms($prefix) {
         $result = array();
@@ -4142,7 +4158,8 @@ final class IrbisConnection {
      * Расформатирование таблицы.
      *
      * @param TableDefinition $definition Определение таблицы.
-     * @return bool|string
+     * @return bool|string Результат расформатирования
+     * либо признак сбоя операции.
      */
     public function printTable (TableDefinition $definition) {
         if (!$this->connected)
@@ -4172,7 +4189,8 @@ final class IrbisConnection {
      * Получение INI-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return IniFile|null
+     * @return IniFile|null INI-файл
+     * либо null в качестве признака сбоя операции.
      */
     public function readIniFile($specification) {
         $lines = $this->readTextLines($specification);
@@ -4189,7 +4207,8 @@ final class IrbisConnection {
      * Чтение MNU-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return bool|MenuFile
+     * @return bool|MenuFile MNU-файл
+     * либо признак сбоя операции.
      */
     public function readMenuFile($specification) {
         $lines = $this->readTextLines($specification);
@@ -4206,7 +4225,8 @@ final class IrbisConnection {
      * Чтение OPT-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return bool|OptFile
+     * @return bool|OptFile OPT-файл
+     * либо признак сбоя операции.
      * @throws IrbisException
      */
     public function readOptFile($specification) {
@@ -4224,7 +4244,8 @@ final class IrbisConnection {
      * Чтение PAR-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return bool|ParFile
+     * @return bool|ParFile PAR-файл
+     * либо признак сбоя операции.
      * @throws IrbisException
      */
     public function readParFile($specification) {
@@ -4242,7 +4263,8 @@ final class IrbisConnection {
      * Считывание постингов из поискового индекса.
      *
      * @param PostingParameters $parameters Параметры постингов.
-     * @return array|bool Массив постингов.
+     * @return array|bool Массив постингов
+     * либо признак сбоя операции.
      */
     public function readPostings(PostingParameters $parameters) {
         if (!$this->connected)
@@ -4276,7 +4298,8 @@ final class IrbisConnection {
      * Чтение указанной записи в "сыром" виде.
      *
      * @param string $mfn MFN записи
-     * @return bool|RawRecord
+     * @return bool|RawRecord Запись
+     * либо признак сбоя операции.
      */
     public function readRawRecord($mfn) {
         if (!$this->connected)
@@ -4300,7 +4323,8 @@ final class IrbisConnection {
      * Чтение указанной записи.
      *
      * @param integer $mfn MFN записи
-     * @return bool|MarcRecord
+     * @return bool|MarcRecord Запись
+     * либо признак сбоя операции.
      */
     public function readRecord($mfn) {
         if (!$this->connected)
@@ -4325,7 +4349,8 @@ final class IrbisConnection {
      *
      * @param integer $mfn MFN записи
      * @param integer $version Версия записи
-     * @return bool|MarcRecord
+     * @return bool|MarcRecord Запись
+     * либо признак сбоя операции.
      */
     public function readRecordVersion($mfn, $version) {
         if (!$this->connected)
@@ -4350,7 +4375,8 @@ final class IrbisConnection {
      * Чтение с сервера нескольких записей.
      *
      * @param array $mfnList Массив MFN.
-     * @return array
+     * @return array Массив записей
+     * (пустой массив как признак сбоя операции).
      */
     public function readRecords(array $mfnList) {
         if (!$this->connected)
@@ -4401,7 +4427,8 @@ final class IrbisConnection {
      * Загрузка сценариев поиска с сервера.
      *
      * @param string $specification Спецификация.
-     * @return array|bool
+     * @return array|bool Массив сценариев
+     * либо признак сбоя операции.
      */
     public function readSearchScenario($specification) {
         if (!$this->connected)
@@ -4421,7 +4448,8 @@ final class IrbisConnection {
      *
      * @param string $startTerm Начальный термин.
      * @param int $numberOfTerms Необходимое количество терминов.
-     * @return array|bool
+     * @return array|bool Массив терминов
+     * либо призак сбоя операции.
      */
     public function readTerms($startTerm, $numberOfTerms=100) {
         $parameters = new TermParameters();
@@ -4435,7 +4463,8 @@ final class IrbisConnection {
      * Получение терминов поискового словаря.
      *
      * @param TermParameters $parameters Параметры терминов.
-     * @return array|bool
+     * @return array|bool Массив терминов
+     * либо признак сбоя операции.
      */
     public function readTermsEx(TermParameters $parameters) {
         if (!$this->connected)
@@ -4462,7 +4491,8 @@ final class IrbisConnection {
      * Получение текстового файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return bool|string
+     * @return bool|string Текст файла
+     * либо признак сбоя операции.
      */
     public function readTextFile($specification) {
         if (!$this->connected)
@@ -4484,7 +4514,8 @@ final class IrbisConnection {
      * Получение текстового файла в виде массива строк.
      *
      * @param string $specification Спецификация файла.
-     * @return array
+     * @return array Массив строк
+     * (пустой массив как признак сбоя операции).
      */
     public function readTextLines($specification) {
         if (!$this->connected)
@@ -4506,7 +4537,8 @@ final class IrbisConnection {
      * Чтение TRE-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return bool|TreeFile
+     * @return bool|TreeFile TRE-файл
+     * либо признак сбоя операции.
      * @throws IrbisException
      */
     public function readTreeFile($specification) {
@@ -4524,7 +4556,7 @@ final class IrbisConnection {
      * Пересоздание словаря для указанной базы данных.
      *
      * @param string $database База данных.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function reloadDictionary($database) {
         if (!$this->connected)
@@ -4542,7 +4574,7 @@ final class IrbisConnection {
      * Пересоздание мастер-файла для указанной базы данных.
      *
      * @param string $database База данных.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function reloadMasterFile($database) {
         if (!$this->connected)
@@ -4560,7 +4592,7 @@ final class IrbisConnection {
      * Получение INI-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return IniFile
+     * @return IniFile Полученный INI-файл.
      * @throws IrbisException Файл не найден.
      */
     public function requireIniFile($specification) {
@@ -4578,7 +4610,7 @@ final class IrbisConnection {
      * Получение MNU-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return MenuFile
+     * @return MenuFile Полученный MNU-файл.
      * @throws IrbisException Файл не найден.
      */
     public function requireMenuFile($specification) {
@@ -4596,7 +4628,7 @@ final class IrbisConnection {
      * Получение OPT-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return OptFile
+     * @return OptFile Полученный OPT-файл.
      * @throws IrbisException Файл не найден.
      */
     public function requireOptFile($specification) {
@@ -4614,7 +4646,7 @@ final class IrbisConnection {
      * Получение PAR-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return ParFile
+     * @return ParFile Полученный PAR-файл.
      * @throws IrbisException Файл не найден.
      */
     public function requireParFile($specification) {
@@ -4632,7 +4664,7 @@ final class IrbisConnection {
      * Получение текстового файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return string
+     * @return string Текст полученного файла.
      * @throws IrbisException Файл не найден.
      */
     public function requireTextFile($specification) {
@@ -4647,7 +4679,7 @@ final class IrbisConnection {
      * Получение TRE-файла с сервера.
      *
      * @param string $specification Спецификация файла.
-     * @return TreeFile
+     * @return TreeFile Полученный TRE-файл.
      * @throws IrbisException Файл не найден.
      */
     public function requireTreeFile($specification) {
@@ -4664,7 +4696,7 @@ final class IrbisConnection {
     /**
      * Перезапуск сервера (без утери подключенных клиентов).
      *
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function restartServer() {
         if (!$this->connected)
@@ -4681,7 +4713,8 @@ final class IrbisConnection {
      * Простой поиск записей (не более 32 тыс. записей).
      *
      * @param string $expression Выражение для поиска по словарю.
-     * @return array|bool
+     * @return array|bool Массив найденных MFN
+     * либо признак сбоя операции.
      */
     public function search($expression) {
         $parameters = new SearchParameters();
@@ -4696,7 +4729,7 @@ final class IrbisConnection {
      * Поиск всех записей (даже если их окажется больше 32 тыс.).
      *
      * @param string $expression Выражение для поиска по словарю.
-     * @return array MFN найденных записей.
+     * @return array Массив MFN найденных записей.
      */
     public function searchAll($expression) {
         $result = array();
@@ -4768,7 +4801,8 @@ final class IrbisConnection {
      * Расширенный поиск записей.
      *
      * @param SearchParameters $parameters Параметры поиска.
-     * @return array|bool
+     * @return array|bool Массив найденных записей
+     * либо признак сбоя операции.
      */
     public function searchEx(SearchParameters $parameters) {
         if (!$this->connected)
@@ -4800,7 +4834,7 @@ final class IrbisConnection {
      *
      * @param string $expression Поисковое выражение.
      * @param int $limit Максимальное количество загружаемых записей.
-     * @return array
+     * @return array Массив полученных записей.
      */
     public function searchRead($expression, $limit=0) {
         $parameters = new SearchParameters();
@@ -4830,7 +4864,7 @@ final class IrbisConnection {
      * Если таких записей нет, будет возвращен null.
      *
      * @param string $expression Поисковое выражение.
-     * @return MarcRecord|null
+     * @return MarcRecord|null Полученная запись либо null.
      */
     public function searchSingleRecord($expression) {
         $found = $this->searchRead($expression, 1);
@@ -4854,7 +4888,8 @@ final class IrbisConnection {
      * Выдача строки подключения для текущего соединения.
      * Соединение не обязательно должно быть установлено.
      *
-     * @return string
+     * @return string Строка подключения для текушего соединения
+     * (не обязательно активного).
      */
     public function toConnectionString() {
         return 'host='     . $this->host
@@ -4869,7 +4904,7 @@ final class IrbisConnection {
      * Опустошение указанной базы данных.
      *
      * @param string $database База данных.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function truncateDatabase($database) {
         if (!$this->connected) {
@@ -4953,7 +4988,7 @@ final class IrbisConnection {
      * для текущего пользователя.
      *
      * @param array $lines Изменённые строки.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function updateIniFile(array $lines) {
         if (!$this->connected)
@@ -4976,7 +5011,7 @@ final class IrbisConnection {
      * Обновление списка пользователей на сервере.
      *
      * @param array $users Список пользователей.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function updateUserList(array $users) {
         if (!$this->connected)
@@ -4995,7 +5030,8 @@ final class IrbisConnection {
      * Сохранение на сервере "сырой" записи.
      *
      * @param RawRecord $record Запись для сохранения.
-     * @return bool|int
+     * @return bool|int Новый максимальный MFN в базе данных
+     * либо признак сбоя операции.
      */
     public function writeRawRecord(RawRecord $record) {
         if (!$this->connected)
@@ -5021,7 +5057,8 @@ final class IrbisConnection {
      * @param int $lockFlag Оставить запись заблокированной?
      * @param int $actualize Актуализировать словарь?
      * @param bool $dontParse Не разбирать результат.
-     * @return bool|integer
+     * @return bool|integer Новый максимальный MFN в базе данных
+     * либо признак сбоя операции.
      */
     public function writeRecord(MarcRecord $record, $lockFlag=0, $actualize=1,
                                 $dontParse=false) {
@@ -5059,7 +5096,7 @@ final class IrbisConnection {
      * @param int $lockFlag
      * @param int $actualize
      * @param bool $dontParse
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function writeRecords(array $records, $lockFlag=0, $actualize=1,
                                  $dontParse=false) {
@@ -5113,7 +5150,7 @@ final class IrbisConnection {
      *
      * @param string $specification Спецификация файла
      * (включая текст файла).
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function writeTextFile($specification) {
         if (!$this->connected)
