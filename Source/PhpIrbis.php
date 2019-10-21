@@ -311,7 +311,8 @@ function describeError($code) {
         -7777 => 'Не удалось запустить/прервать поток администратора (ошибка процесса)',
         -8888 => 'Общая ошибка',
         -100001 => 'Ошибка создания сокета',
-        -100002 => 'Сбой сети'
+        -100002 => 'Сбой сети',
+        -100003 => 'Не подключен к серверу'
     );
 
     $result = $errors[$code] ?: 'Неизвестная ошибка';
@@ -3432,6 +3433,15 @@ final class IrbisConnection {
         $this->disconnect();
     }
 
+    function _checkConnection() {
+        if (!$this->connected) {
+            $this->lastError = -100003;
+            return false;
+        }
+
+        return true;
+    }
+
     //================================================================
 
     /**
@@ -3453,7 +3463,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function actualizeRecord($database, $mfn) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'F');
@@ -3515,7 +3525,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     function createDatabase($database, $description, $readerAccess=1) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'T');
@@ -3536,7 +3546,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function createDictionary($database) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'Z');
@@ -3555,7 +3565,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function deleteDatabase($database) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'W');
@@ -3657,7 +3667,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function executeAnyCommand($command, array $params=[]) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, $command);
@@ -3678,7 +3688,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function formatRecord($format, $mfn) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'G');
@@ -3704,7 +3714,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function formatVirtualRecord($format, MarcRecord $record) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         if (!$record)
@@ -3734,7 +3744,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function formatRecords($format, array $mfnList) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         if (!$mfnList)
@@ -3772,7 +3782,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function getDatabaseInfo($database = '') {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $database = $database ?: $this->database;
@@ -3796,7 +3806,7 @@ final class IrbisConnection {
      * либо 0 в качестве признака сбоя операции.
      */
     public function getMaxMfn($database) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return 0;
 
         $query = new ClientQuery($this, 'O');
@@ -3817,7 +3827,7 @@ final class IrbisConnection {
      */
     public function getRecordPostings($mfn, $prefix) {
         $result = array();
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return $result;
 
         $query = new ClientQuery($this, 'V');
@@ -3839,7 +3849,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function getServerStat() {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, '+1');
@@ -3860,7 +3870,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function getServerVersion() {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, '1');
@@ -3881,7 +3891,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function getUserList() {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, '+9');
@@ -3902,7 +3912,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function globalCorrection(GblSettings $settings) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, '5');
@@ -3967,7 +3977,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function listDatabases($specification = '1..dbnam2.mnu') {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $menu = $this->readMenuFile($specification);
@@ -3987,7 +3997,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function listFiles($specification) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, '!');
@@ -4017,7 +4027,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function listProcesses() {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, '+3');
@@ -4041,7 +4051,7 @@ final class IrbisConnection {
     public function listTerms($prefix) {
         $result = array();
 
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return $result;
 
         $prefixLength = strlen($prefix);
@@ -4078,7 +4088,7 @@ final class IrbisConnection {
      * Всегда false при отсутствии подключения.
      */
     public function noOp() {
-        if (!$this->connected) {
+        if (!$this->_checkConnection()) {
             return false;
         }
 
@@ -4162,7 +4172,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function printTable (TableDefinition $definition) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $database = $definition->database ?: $this->database;
@@ -4267,7 +4277,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function readPostings(PostingParameters $parameters) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $database = $parameters->database ?: $this->database;
@@ -4302,7 +4312,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function readRawRecord($mfn) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'C');
@@ -4327,7 +4337,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function readRecord($mfn) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'C');
@@ -4353,7 +4363,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function readRecordVersion($mfn, $version) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'C');
@@ -4379,7 +4389,7 @@ final class IrbisConnection {
      * (пустой массив как признак сбоя операции).
      */
     public function readRecords(array $mfnList) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return array();
 
         if (!$mfnList) {
@@ -4431,7 +4441,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function readSearchScenario($specification) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $iniFile = $this->readIniFile($specification);
@@ -4467,7 +4477,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function readTermsEx(TermParameters $parameters) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $command = $parameters->reverseOrder ? 'P' : 'H';
@@ -4495,7 +4505,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function readTextFile($specification) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'L');
@@ -4518,7 +4528,7 @@ final class IrbisConnection {
      * (пустой массив как признак сбоя операции).
      */
     public function readTextLines($specification) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return array();
 
         $query = new ClientQuery($this, 'L');
@@ -4559,7 +4569,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function reloadDictionary($database) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'Y');
@@ -4577,7 +4587,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function reloadMasterFile($database) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'X');
@@ -4699,7 +4709,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function restartServer() {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, '+8');
@@ -4733,7 +4743,7 @@ final class IrbisConnection {
      */
     public function searchAll($expression) {
         $result = array();
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return $result;
 
         $firstRecord = 1;
@@ -4780,7 +4790,7 @@ final class IrbisConnection {
      * @return int Количество соответствующих записей.
      */
     public function searchCount($expression) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return 0;
 
         $query = new ClientQuery($this, 'K');
@@ -4805,7 +4815,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function searchEx(SearchParameters $parameters) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $database = $parameters->database ?: $this->database;
@@ -4907,7 +4917,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function truncateDatabase($database) {
-        if (!$this->connected) {
+        if (!$this->_checkConnection()) {
             return false;
         }
 
@@ -4946,7 +4956,7 @@ final class IrbisConnection {
      * @return bool
      */
     public function unlockDatabase($database) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'U');
@@ -4965,7 +4975,7 @@ final class IrbisConnection {
      * @return bool
      */
     public function unlockRecords($database, array $mfnList) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         if (count($mfnList) == 0)
@@ -4991,7 +5001,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function updateIniFile(array $lines) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         if (!$lines)
@@ -5014,7 +5024,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function updateUserList(array $users) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, '+7');
@@ -5034,7 +5044,7 @@ final class IrbisConnection {
      * либо признак сбоя операции.
      */
     public function writeRawRecord(RawRecord $record) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $database = $record->database ?: $this->database;
@@ -5062,7 +5072,7 @@ final class IrbisConnection {
      */
     public function writeRecord(MarcRecord $record, $lockFlag=0, $actualize=1,
                                 $dontParse=false) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $database = $record->database ?: $this->database;
@@ -5100,7 +5110,7 @@ final class IrbisConnection {
      */
     public function writeRecords(array $records, $lockFlag=0, $actualize=1,
                                  $dontParse=false) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         if (!$records)
@@ -5153,7 +5163,7 @@ final class IrbisConnection {
      * @return bool Признак успешности операции.
      */
     public function writeTextFile($specification) {
-        if (!$this->connected)
+        if (!$this->_checkConnection())
             return false;
 
         $query = new ClientQuery($this, 'L');
