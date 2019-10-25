@@ -256,7 +256,7 @@ function prepareFormat ($text) {
 /**
  * Получение описания по коду ошибки, возвращенному сервером.
  *
- * @param integer $code Код ошибки.
+ * @param int $code Код ошибки.
  * @return string Словесное описание ошибки.
  */
 function describeError($code) {
@@ -415,7 +415,7 @@ final class SubField {
  */
 final class RecordField {
     /**
-     * @var integer Метка поля.
+     * @var int Метка поля.
      */
     public $tag;
 
@@ -663,17 +663,17 @@ final class MarcRecord {
     public $database = '';
 
     /**
-     * @var integer MFN записи.
+     * @var int MFN записи.
      */
     public $mfn = 0;
 
     /**
-     * @var integer Версия записи.
+     * @var int Версия записи.
      */
     public $version = 0;
 
     /**
-     * @var integer Статус записи.
+     * @var int Статус записи.
      */
     public $status = 0;
 
@@ -694,7 +694,7 @@ final class MarcRecord {
     /**
      * Добавление поля в запись.
      *
-     * @param integer $tag Метка поля.
+     * @param int $tag Метка поля.
      * @param string $value Значение поля до первого разделителя.
      * @return RecordField Созданное поле.
      */
@@ -770,7 +770,7 @@ final class MarcRecord {
      * Получение значения поля (или подполя)
      * с указанной меткой (и указанным кодом).
      *
-     * @param integer $tag Метка поля
+     * @param int $tag Метка поля
      * @param string $code Код подполя
      * @return string|null
      */
@@ -796,7 +796,7 @@ final class MarcRecord {
      * Получение массива значений поля (или подполя)
      * с указанной меткой (и указанным кодом).
      *
-     * @param integer $tag Искомая метка поля.
+     * @param int $tag Искомая метка поля.
      * @param string $code Код подполя.
      * @return array
      */
@@ -826,7 +826,7 @@ final class MarcRecord {
     /**
      * Получение указанного поля (с учётом повторения).
      *
-     * @param integer $tag Метка поля.
+     * @param int $tag Метка поля.
      * @param int $occurrence Номер повторения.
      * @return RecordField|null
      */
@@ -847,7 +847,7 @@ final class MarcRecord {
     /**
      * Получение массива полей с указанной меткой.
      *
-     * @param integer $tag Искомая метка поля.
+     * @param int $tag Искомая метка поля.
      * @return array
      */
     public function getFields($tag) {
@@ -3061,7 +3061,7 @@ final class ClientQuery {
      * Добавляем целое число
      * (по факту выходит кодировка ANSI).
      *
-     * @param integer $value Число.
+     * @param int $value Число.
      * @return $this
      */
     public function add($value) {
@@ -3459,7 +3459,7 @@ final class IrbisConnection {
      * Актуализация записи с указанным MFN.
      *
      * @param string $database Имя базы данных.
-     * @param integer $mfn MFN, подлежащий актуализации.
+     * @param int $mfn MFN, подлежащий актуализации.
      * @return bool Признак успешности операции.
      */
     public function actualizeRecord($database, $mfn) {
@@ -3589,7 +3589,7 @@ final class IrbisConnection {
     /**
      * Удаление записи по её MFN.
      *
-     * @param integer $mfn MFN удаляемой записи.
+     * @param int $mfn MFN удаляемой записи.
      * @return bool Признак успешности операции.
      */
     public function deleteRecord($mfn) {
@@ -3683,7 +3683,7 @@ final class IrbisConnection {
      * Форматирование записи с указанным MFN.
      *
      * @param string $format Текст формата.
-     * @param integer $mfn MFN записи.
+     * @param int $mfn MFN записи.
      * @return bool|string Результат расформатирования
      * либо признак сбоя операции.
      */
@@ -3802,7 +3802,7 @@ final class IrbisConnection {
      * Получение максимального MFN для указанной базы данных.
      *
      * @param string $database Имя базы данных.
-     * @return integer Максимальный MFN
+     * @return int Максимальный MFN
      * либо 0 в качестве признака сбоя операции.
      */
     public function getMaxMfn($database) {
@@ -4103,7 +4103,7 @@ final class IrbisConnection {
      * Разбор строки подключения.
      *
      * @param string $connectionString Строка подключения.
-     * @throws IrbisException
+     * @throws IrbisException Ошибка в структуре строки подключения.
      */
     public function parseConnectionString($connectionString) {
         $items = explode(';', $connectionString);
@@ -4237,7 +4237,7 @@ final class IrbisConnection {
      * @param string $specification Спецификация файла.
      * @return bool|OptFile OPT-файл
      * либо признак сбоя операции.
-     * @throws IrbisException
+     * @throws IrbisException Ошибка в структуре OPT-файла.
      */
     public function readOptFile($specification) {
         $lines = $this->readTextLines($specification);
@@ -4256,7 +4256,7 @@ final class IrbisConnection {
      * @param string $specification Спецификация файла.
      * @return bool|ParFile PAR-файл
      * либо признак сбоя операции.
-     * @throws IrbisException
+     * @throws IrbisException Ошибка в структуре PAR-файла.
      */
     public function readParFile($specification) {
         $lines = $this->readTextLines($specification);
@@ -4332,7 +4332,7 @@ final class IrbisConnection {
     /**
      * Чтение указанной записи.
      *
-     * @param integer $mfn MFN записи
+     * @param int $mfn MFN записи
      * @return bool|MarcRecord Запись
      * либо признак сбоя операции.
      */
@@ -4357,8 +4357,8 @@ final class IrbisConnection {
     /**
      * Чтение указанной версии записи.
      *
-     * @param integer $mfn MFN записи
-     * @param integer $version Версия записи
+     * @param int$mfn MFN записи
+     * @param int $version Версия записи
      * @return bool|MarcRecord Запись
      * либо признак сбоя операции.
      */
@@ -4549,7 +4549,7 @@ final class IrbisConnection {
      * @param string $specification Спецификация файла.
      * @return bool|TreeFile TRE-файл
      * либо признак сбоя операции.
-     * @throws IrbisException
+     * @throws IrbisException Ошибка в структуре TRE-файла.
      */
     public function readTreeFile($specification) {
         $lines = $this->readTextLines($specification);
@@ -4739,7 +4739,8 @@ final class IrbisConnection {
      * Поиск всех записей (даже если их окажется больше 32 тыс.).
      *
      * @param string $expression Выражение для поиска по словарю.
-     * @return array Массив MFN найденных записей.
+     * @return array Массив MFN найденных записей
+     * (возможно, пустой).
      */
     public function searchAll($expression) {
         $result = array();
@@ -4844,7 +4845,8 @@ final class IrbisConnection {
      *
      * @param string $expression Поисковое выражение.
      * @param int $limit Максимальное количество загружаемых записей.
-     * @return array Массив полученных записей.
+     * @return array Массив полученных записей
+     * (возможно, пустой).
      */
     public function searchRead($expression, $limit=0) {
         $parameters = new SearchParameters();
@@ -4874,7 +4876,8 @@ final class IrbisConnection {
      * Если таких записей нет, будет возвращен null.
      *
      * @param string $expression Поисковое выражение.
-     * @return MarcRecord|null Полученная запись либо null.
+     * @return MarcRecord|null Полученная запись либо null,
+     * если запись не найдена.
      */
     public function searchSingleRecord($expression) {
         $found = $this->searchRead($expression, 1);
@@ -4887,7 +4890,8 @@ final class IrbisConnection {
     /**
      * Бросает исключение, если произошла ошибка
      * при выполнении последней операции.
-     * @throws IrbisException
+     * @throws IrbisException Обнаружена ошибка,
+     * выброшено исключение.
      */
     public function throwOnError() {
         if ($this->lastError < 0)
@@ -4932,8 +4936,9 @@ final class IrbisConnection {
     /**
      * Восстановление записи по её MFN.
      *
-     * @param integer $mfn MFN восстанавливаемой записи.
-     * @return bool|MarcRecord
+     * @param int $mfn MFN восстанавливаемой записи.
+     * @return bool|MarcRecord Восстановленная запись
+     * либо признак сбоя операции.
      */
     public function undeleteRecord($mfn) {
         $record = $this->readRecord($mfn);
@@ -4953,7 +4958,7 @@ final class IrbisConnection {
      * Разблокирование указанной базы данных.
      *
      * @param string $database База данных.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function unlockDatabase($database) {
         if (!$this->_checkConnection())
@@ -4972,7 +4977,7 @@ final class IrbisConnection {
      *
      * @param string $database База данных.
      * @param array $mfnList Массив MFN.
-     * @return bool
+     * @return bool Признак успешности операции.
      */
     public function unlockRecords($database, array $mfnList) {
         if (!$this->_checkConnection())
@@ -5067,7 +5072,7 @@ final class IrbisConnection {
      * @param int $lockFlag Оставить запись заблокированной?
      * @param int $actualize Актуализировать словарь?
      * @param bool $dontParse Не разбирать результат.
-     * @return bool|integer Новый максимальный MFN в базе данных
+     * @return bool|int Новый максимальный MFN в базе данных
      * либо признак сбоя операции.
      */
     public function writeRecord(MarcRecord $record, $lockFlag=0, $actualize=1,
