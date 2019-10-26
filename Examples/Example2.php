@@ -16,7 +16,7 @@ try {
 
     if (!$connection->connect()) {
         echo '<h3 style="color: red;">Не удалось подключиться!</h3>';
-        echo '<p>', describeError($connection->lastError), '</p>';
+        echo '<p>', describe_error($connection->lastError), '</p>';
         die(1);
     }
 

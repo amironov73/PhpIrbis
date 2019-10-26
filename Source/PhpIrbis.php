@@ -2,6 +2,8 @@
 
 //
 // Простой клиент для АБИС ИРБИС64.
+// Требует PHP 5.4 или выше.
+// Работает с сервером ИРБИС64 2014 и выше.
 //
 
 // Кодировки
@@ -62,24 +64,24 @@ const PROVISION     = 'K'; // Книгообеспеченность
 
 // Команды глобальной корректировки
 
-const ADD_FIELD        = 'ADD';
-const DELETE_FIELD     = 'DEL';
-const REPLACE_FIELD    = 'REP';
-const CHANGE_FIELD     = 'CHA';
-const CHANGE_WITH_CASE = 'CHAC';
-const DELETE_RECORD    = 'DELR';
-const UNDELETE_RECORD  = 'UNDELR';
-const CORRECT_RECORD   = 'CORREC';
-const CREATE_RECORD    = 'NEWMFN';
-const EMPTY_RECORD     = 'EMPTY';
-const UNDO_RECORD      = 'UNDOR';
-const GBL_END          = 'END';
-const GBL_IF           = 'IF';
-const GBL_FI           = 'FI';
-const GBL_ALL          = 'ALL';
-const GBL_REPEAT       = 'REPEAT';
-const GBL_UNTIL        = 'UNTIL';
-const PUTLOG           = 'PUTLOG';
+const ADD_FIELD        = 'ADD'; // добавление нового повторения поля или подполя в заданное существующее поле
+const DELETE_FIELD     = 'DEL'; // удаляет поле или подполе в поле
+const REPLACE_FIELD    = 'REP'; // замена целиком поля или подполя
+const CHANGE_FIELD     = 'CHA'; // замена данных в поле или в подполе
+const CHANGE_WITH_CASE = 'CHAC'; // замена данных в поле или в подполе с учетом регистра символов
+const DELETE_RECORD    = 'DELR'; // удаляет записи, поданные на корректировку
+const UNDELETE_RECORD  = 'UNDELR'; // восстанавливает записи
+const CORRECT_RECORD   = 'CORREC'; // вызывает на корректировку другие записи, отобранные по поисковым терминам  из текущей или другой, доступной в системе, базы данных
+const CREATE_RECORD    = 'NEWMFN'; // создание новой записи в текущей или другой базе данных
+const EMPTY_RECORD     = 'EMPTY'; // очищает (опустошает) текущую запись
+const UNDO_RECORD      = 'UNDOR'; // переход к одной из предыдущих копий записи (откат)
+const GBL_END          = 'END'; // закрывающая операторная скобка
+const GBL_IF           = 'IF'; // логическое ветвление
+const GBL_FI           = 'FI'; // закрывающий оператор для ветвления
+const GBL_ALL          = 'ALL'; // дополняет записи всеми полями текущей записи
+const GBL_REPEAT       = 'REPEAT'; // цикл из группы операторов
+const GBL_UNTIL        = 'UNTIL'; // закрывающий оператор для цикла
+const PUTLOG           = 'PUTLOG'; // формирование пользовательского протокола
 
 /**
  * Разделитель строк в ИРБИС.
@@ -87,7 +89,7 @@ const PUTLOG           = 'PUTLOG';
 const IRBIS_DELIMITER = "\x1F\x1E";
 
 /**
- * Короткая версия разделителя строк ИРБИС.
+ * Короткие версии разделителя строк ИРБИС.
  */
 const SHORT_DELIMITER = "\x1E";
 const ALT_DELIMITER   = "\x1F";
@@ -98,9 +100,9 @@ const ALT_DELIMITER   = "\x1F";
  * @param string $text Строка для изучения.
  * @return bool
  */
-function isNullOrEmpty($text) {
+function is_null_or_empty($text) {
     return (!isset($text) || $text == false || trim($text) == '');
-}
+} // function is_null_or_empty
 
 /**
  * Строки совпадают с точностью до регистра символов?
@@ -109,12 +111,13 @@ function isNullOrEmpty($text) {
  * @param string $str2 Вторая строка.
  * @return bool
  */
-function sameString($str1, $str2) {
+function same_string($str1, $str2) {
     return strcasecmp($str1, $str2) == 0;
-}
+} // function same_string
 
 /**
  * Безопасное получение элемента массива по индексу.
+ *
  * @param array $a Массив.
  * @param int $ofs Индекс.
  * @return mixed|null
@@ -123,36 +126,36 @@ function safe_get(array $a, $ofs) {
     if (isset($a[$ofs]))
         return $a[$ofs];
     return null;
-}
+} // function safe_get
 
 /**
  * Замена переводов строки с ИРБИСных на обычные.
  *
  * @param string $text Текст для замены.
- * @return mixed
+ * @return mixed Текст с замененными переводами строки.
  */
-function irbisToDos($text) {
+function irbis_to_dos($text) {
     return str_replace(IRBIS_DELIMITER, "\n", $text);
-}
+} // function irbis_to_dos
 
 /**
  * Разбивка текста на строки по ИРБИСным разделителям.
  *
  * @param string $text Текст для разбиения.
- * @return array
+ * @return array Массив строк.
  */
-function irbisToLines($text) {
+function irbis_to_lines($text) {
     return explode(IRBIS_DELIMITER, $text);
-}
+} // function irbis_to_lines
 
 /**
  * Удаление комментариев из строки.
  *
  * @param string $text Текст для удаления комментариев.
- * @return string
+ * @return string Очищенный текст.
  */
-function removeComments($text) {
-    if (isNullOrEmpty($text)) {
+function remove_comments($text) {
+    if (is_null_or_empty($text)) {
         return $text;
     }
 
@@ -210,7 +213,7 @@ function removeComments($text) {
     }
 
     return $result;
-} // function removeComments
+} // function remove_comments
 
 /**
  * Подготовка динамического формата
@@ -221,10 +224,10 @@ function removeComments($text) {
  * строки или табуляция).
  *
  * @param string $text Текст для обработки.
- * @return string
+ * @return string Обработанный текст.
  */
-function prepareFormat ($text) {
-    $text = removeComments($text);
+function prepare_format ($text) {
+    $text = remove_comments($text);
     $length = strlen($text);
     if (!$length) {
         return $text;
@@ -251,7 +254,7 @@ function prepareFormat ($text) {
     }
 
     return $result;
-} // function prepareFormat
+} // function prepare_format
 
 /**
  * Получение описания по коду ошибки, возвращенному сервером.
@@ -259,7 +262,7 @@ function prepareFormat ($text) {
  * @param int $code Код ошибки.
  * @return string Словесное описание ошибки.
  */
-function describeError($code) {
+function describe_error($code) {
     if ($code >= 0) {
         return 'Нет ошибки';
     }
@@ -318,21 +321,25 @@ function describeError($code) {
     $result = $errors[$code] ?: 'Неизвестная ошибка';
 
     return $result;
-} // function describeError
+} // function describe_error
 
 /**
+ * "Хорошие" коды для readRecord.
+ *
  * @return array "Хорошие" коды для readRecord.
  */
-function readRecordCodes() {
+function codes_for_read_record() {
     return array(-201, -600, -602, -603);
-}
+} // function codes_for_read_record
 
 /**
+ * "Хорошие" коды для readTerms.
+ *
  * @return array "Хорошие" коды для readTerms.
  */
-function readTermCodes() {
+function codes_for_read_terms() {
     return array(-202, -203, -204);
-}
+} // function codes_for_read_terms
 
 /**
  * Специфичное для ИРБИС исключение.
@@ -342,11 +349,11 @@ final class IrbisException extends Exception {
                                 $code = 0,
                                 Throwable $previous = null) {
         parent::__construct($message, $code, $previous);
-    }
+    } // function __construct
 
     public function __toString() {
         return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
-    }
+    } // function __toString
 } // class IrbisException
 
 /**
@@ -372,11 +379,11 @@ final class SubField {
     public function __construct($code='', $value='') {
         $this->code = $code;
         $this->value = $value;
-    }
+    } // function __construct
 
     public function __clone() {
         $this->value = str_repeat($this->value, 1);
-    }
+    } // function __clone
 
     /**
      * Декодирование подполя из протокольного представления.
@@ -386,7 +393,7 @@ final class SubField {
     public function decode($line) {
         $this->code = $line[0];
         $this->value = substr($line, 1);
-    }
+    } // function decode
 
     /**
      * Верификация подполя.
@@ -402,11 +409,11 @@ final class SubField {
         }
 
         return $result;
-    }
+    } // function verify
 
     public function __toString() {
         return '^' . $this->code . $this->value;
-    }
+    } // function __toString
 } // class SubField
 
 /**
@@ -509,7 +516,7 @@ final class RecordField {
      *
      * @return array Встроенные поля.
      */
-    public function getEmbeddedFields() {
+    public function get_embedded_fields() {
         $result = array();
         $found = null;
         foreach ($this->subfields as $subfield) {
@@ -543,7 +550,7 @@ final class RecordField {
         }
 
         return $result;
-    }
+    } // function get_embedded_fields
 
     /**
      * Возвращает первое вхождение подполя с указанным кодом.
@@ -551,31 +558,31 @@ final class RecordField {
      * @param string $code Код искомого подполя.
      * @return SubField|null Найденное подполе.
      */
-    public function getFirstSubField($code) {
+    public function get_first_subfield($code) {
         foreach ($this->subfields as $subfield) {
-            if (sameString($subfield->code, $code)) {
+            if (same_string($subfield->code, $code)) {
                 return $subfield;
             }
         }
 
         return null;
-    }
+    } // function get_first_subfield
 
     /**
      * Возвращает значение первого вхождения подполя с указанным кодом.
      *
      * @param string $code Код искомого подполя.
-     * @return string
+     * @return string Значение найденного подполя либо пустая строка.
      */
-    public function getFirstSubFieldValue($code) {
+    public function get_first_subfield_value($code) {
         foreach ($this->subfields as $subfield) {
-            if (sameString($subfield->code, $code)) {
+            if (same_string($subfield->code, $code)) {
                 return $subfield->value;
             }
         }
 
         return '';
-    }
+    } // function get_first_subfield_value
 
     /**
      * Вставляет подполе по указанному индексу.
@@ -583,31 +590,31 @@ final class RecordField {
      * @param int $index Позиция для вставки.
      * @param SubField $subfield Подполе.
      */
-    public function insertAt($index, SubField $subfield) {
+    public function insert_at($index, SubField $subfield) {
         array_splice($this->subfields, $index, 0, $subfield);
-    }
+    } // function insert_at
 
     /**
      * Удаляет подполе по указанному индексу.
      *
      * @param int $index Индекс для удаления.
      */
-    public function removeAt($index) {
+    public function remove_at($index) {
         unset($this->subfields[$index]);
         $this->subfields = array_values($this->subfields);
-    }
+    } // function remove_at
 
     /**
      * Удаляет все подполя с указанным кодом.
      *
-     * @param string $code Индекс для удаления.
+     * @param string $code Искомый код подполя.
      */
-    public function removeSubfield($code) {
+    public function remove_subfield($code) {
         $flag = false;
         $len = count($this->subfields);
         for ($i=0; $i < $len; $i = $i+1) {
             $sub = $this->subfields[$i];
-            if (sameString($sub->code, $code)) {
+            if (same_string($sub->code, $code)) {
                 unset($this->subfields[$i]);
                 $flag = true;
             }
@@ -615,14 +622,14 @@ final class RecordField {
         if ($flag) {
             $this->subfields = array_values($this->subfields);
         }
-    }
+    } // function remove_subfield
 
     /**
      * Верификация поля.
      *
      * @param bool $throw Бросать ли исключение при ошибке?
      * @return bool Результат верификации.
-     * @throws IrbisException
+     * @throws IrbisException Ошибка в структуре поля.
      */
     public function verify($throw = true) {
         $result = $this->tag && ($this->value || count($this->subfields));
@@ -640,7 +647,7 @@ final class RecordField {
         }
 
         return $result;
-    }
+    } // function verify
 
     public function __toString() {
         $result = $this->tag . '#' . $this->value;
@@ -650,7 +657,7 @@ final class RecordField {
         }
 
         return $result;
-    }
+    } // function __toString
 } // class RecordField
 
 /**
@@ -689,7 +696,7 @@ final class MarcRecord {
             $new[$i] = clone $field;
         }
         $this->fields = $new;
-    }
+    } // function __clone
 
     /**
      * Добавление поля в запись.
@@ -705,7 +712,7 @@ final class MarcRecord {
         array_push($this->fields, $field);
 
         return $field;
-    }
+    } // function add
 
     /**
      * Очистка записи (удаление всех полей).
@@ -716,7 +723,7 @@ final class MarcRecord {
         $this->fields = array();
 
         return $this;
-    }
+    } // function clear
 
     /**
      * Декодирование ответа сервера.
@@ -746,7 +753,7 @@ final class MarcRecord {
                 array_push($this->fields, $field);
             }
         }
-    }
+    } // function decode
 
     /**
      * Кодирование записи в протокольное представление.
@@ -764,7 +771,7 @@ final class MarcRecord {
         }
 
         return $result;
-    }
+    } // function encode
 
     /**
      * Получение значения поля (или подполя)
@@ -790,7 +797,7 @@ final class MarcRecord {
         }
 
         return null;
-    }
+    } // function fm
 
     /**
      * Получение массива значений поля (или подполя)
@@ -821,7 +828,7 @@ final class MarcRecord {
         }
 
         return $result;
-    }
+    } // function fma
 
     /**
      * Получение указанного поля (с учётом повторения).
@@ -830,7 +837,7 @@ final class MarcRecord {
      * @param int $occurrence Номер повторения.
      * @return RecordField|null
      */
-    public function getField($tag, $occurrence = 0) {
+    public function get_field($tag, $occurrence = 0) {
         foreach ($this->fields as $field) {
             if ($field->tag == $tag) {
                 if (!$occurrence) {
@@ -842,7 +849,7 @@ final class MarcRecord {
         }
 
         return null;
-    }
+    } // function get_field
 
     /**
      * Получение массива полей с указанной меткой.
@@ -850,7 +857,7 @@ final class MarcRecord {
      * @param int $tag Искомая метка поля.
      * @return array
      */
-    public function getFields($tag) {
+    public function get_fields($tag) {
         $result = array();
         foreach ($this->fields as $field) {
             if ($field->tag == $tag) {
@@ -859,7 +866,7 @@ final class MarcRecord {
         }
 
         return $result;
-    }
+    } // function get_fields
 
     /**
      * Определяет, удалена ли запись?
@@ -867,9 +874,9 @@ final class MarcRecord {
      * @return bool Запись удалена
      * (неважно - логически или физически)?
      */
-    public function isDeleted() {
+    public function is_deleted() {
         return boolval($this->status & 3);
-    }
+    } // function is_deleted
 
     /**
      * Вставляет поле по указанному индексу.
@@ -877,26 +884,26 @@ final class MarcRecord {
      * @param int $index Позиция для вставки.
      * @param RecordField $field Поле.
      */
-    public function insertAt($index, RecordField $field) {
+    public function insert_at($index, RecordField $field) {
         array_splice($this->fields, $index, 0, $field);
-    }
+    } // function insert_at
 
     /**
      * Удаляет поле по указанному индексу.
      *
      * @param int $index Индекс для удаления.
      */
-    public function removeAt($index) {
+    public function remove_at($index) {
         unset($this->fields[$index]);
         $this->fields = array_values($this->fields);
-    }
+    } // function remove_at
 
     /**
      * Удаляет все поля с указанной меткой.
      *
      * @param int $tag Индекс для удаления.
      */
-    public function removeField($tag) {
+    public function remove_field($tag) {
         $flag = false;
         $len = count($this->fields);
         for ($i=0; $i < $len; $i = $i+1) {
@@ -909,7 +916,7 @@ final class MarcRecord {
         if ($flag) {
             $this->fields = array_values($this->fields);
         }
-    }
+    } // function remove_field
 
     /**
      * Сброс состояния записи, отвязка её от базы данных.
@@ -924,7 +931,7 @@ final class MarcRecord {
         $this->database = '';
 
         return $this;
-    }
+    } // function reset
 
     /**
      * Верификация записи.
@@ -942,11 +949,11 @@ final class MarcRecord {
         }
 
         return $result;
-    }
+    } // function verify
 
     public function __toString() {
         return $this->encode();
-    }
+    } // function __toStirng
 } // class MarcRecord
 
 /**
@@ -997,7 +1004,7 @@ final class RawRecord {
         $secondLine = explode('#', $lines[1]);
         $this->version = intval(safe_get($secondLine, 1));
         $this->fields = array_slice($lines, 2);
-    }
+    } // function decode
 
     /**
      * Кодирование записи в протокольное представление.
@@ -1015,7 +1022,7 @@ final class RawRecord {
         }
 
         return $result;
-    }
+    } // function encode
 } // class RawRecord
 
 /**
@@ -1301,7 +1308,7 @@ final class IniSection {
      */
     public function find($key) {
         foreach ($this->lines as $line) {
-            if (sameString($line->key, $key)) {
+            if (same_string($line->key, $key)) {
                 return $line;
             }
         }
@@ -1330,7 +1337,7 @@ final class IniSection {
      */
     public function remove($key) {
         for ($i=0; $i < count($this->lines); $i++) {
-            if (sameString($this->lines[$i]->key, $key)) {
+            if (same_string($this->lines[$i]->key, $key)) {
                 unset($this->lines[$i]);
                 break;
             }
@@ -1389,7 +1396,7 @@ final class IniFile {
      */
     public function findSection($name) {
         foreach ($this->sections as $section) {
-            if (sameString($section->name, $name)) {
+            if (same_string($section->name, $name)) {
                 return $section;
             }
         }
@@ -1443,7 +1450,7 @@ final class IniFile {
 
         foreach ($lines as $line) {
             $trimmed = trim($line);
-            if (isNullOrEmpty($trimmed)) {
+            if (is_null_or_empty($trimmed)) {
                 continue;
             }
 
@@ -1628,7 +1635,7 @@ final class TreeFile {
         array_push($list, new TreeNode($line));
         $lines = array_slice($lines, 1);
         foreach ($lines as $line) {
-            if (isNullOrEmpty($line)) {
+            if (is_null_or_empty($line)) {
                 continue;
             }
 
@@ -2054,7 +2061,7 @@ final class UserInfo {
     public $administrator = '';
 
     public static function formatPair($prefix, $value, $default) {
-        if (sameString($value, $default)) {
+        if (same_string($value, $default)) {
             return '';
         }
 
@@ -2316,7 +2323,7 @@ final class TermInfo {
     public static function parse(array $lines) {
         $result = array();
         foreach ($lines as $line) {
-            if (!isNullOrEmpty($line)) {
+            if (!is_null_or_empty($line)) {
                 $parts = explode('#', $line, 2);
                 $term = new TermInfo();
                 $term->count = intval($parts[0]);
@@ -2662,7 +2669,7 @@ final class ParFile {
     public function parse(array $lines) {
         $map = array();
         foreach ($lines as $line) {
-            if (isNullOrEmpty($line)) {
+            if (is_null_or_empty($line)) {
                 continue;
             }
 
@@ -2802,7 +2809,7 @@ final class OptFile {
         $this->worksheetLength = intval($lines[1]);
         $lines = array_slice($lines, 2);
         foreach ($lines as $line) {
-            if (isNullOrEmpty($line)) {
+            if (is_null_or_empty($line)) {
                 continue;
             }
 
@@ -3095,7 +3102,7 @@ final class ClientQuery {
             return false;
         }
 
-        $prepared = prepareFormat(ltrim($format));
+        $prepared = prepare_format(ltrim($format));
 
         if ($format[0] == '@') {
             $this->addAnsi($format);
@@ -3597,7 +3604,7 @@ final class IrbisConnection {
         if (!$record)
             return false;
 
-        if (!$record->isDeleted()) {
+        if (!$record->is_deleted()) {
             $record->status |= LOGICALLY_DELETED;
             $this->writeRecord($record);
         }
@@ -3768,7 +3775,7 @@ final class IrbisConnection {
         foreach ($lines as $line) {
             $parts = explode('#', $line, 2);
             if (count($parts) == 2)
-                array_push($result, irbisToDos($parts[1]));
+                array_push($result, irbis_to_dos($parts[1]));
         }
 
         return $result;
@@ -3919,7 +3926,7 @@ final class IrbisConnection {
         $database = $settings->database ?: $this->database;
         $query->addAnsi($database)->newLine();
         $query->add(intval($settings->actualize))->newLine();
-        if  (!isNullOrEmpty($settings->filename)) {
+        if  (!is_null_or_empty($settings->filename)) {
             $query->addAnsi('@' . $settings->filename)->newLine();
         } else {
             $encoded = '!0' . IRBIS_DELIMITER;
@@ -4009,9 +4016,9 @@ final class IrbisConnection {
         $lines = $response->readRemainingAnsiLines();
         $result = array();
         foreach ($lines as $line) {
-            $files = irbisToLines($line);
+            $files = irbis_to_lines($line);
             foreach ($files as $file) {
-                if (!isNullOrEmpty($file)) {
+                if (!is_null_or_empty($file)) {
                     array_push($result, $file);
                 }
             }
@@ -4108,7 +4115,7 @@ final class IrbisConnection {
     public function parseConnectionString($connectionString) {
         $items = explode(';', $connectionString);
         foreach ($items as $item) {
-            if (isNullOrEmpty($item)){
+            if (is_null_or_empty($item)){
                 continue;
             }
 
@@ -4295,7 +4302,7 @@ final class IrbisConnection {
         }
 
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode(readTermCodes()))
+        if (!$response || !$response->checkReturnCode(codes_for_read_terms()))
             return false;
 
         $lines = $response->readRemainingUtfLines();
@@ -4319,7 +4326,7 @@ final class IrbisConnection {
         $query->addAnsi($this->database)->newLine();
         $query->add($mfn)->newLine();
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode(readRecordCodes()))
+        if (!$response || !$response->checkReturnCode(codes_for_read_record()))
             return false;
 
         $result = new RawRecord();
@@ -4344,7 +4351,7 @@ final class IrbisConnection {
         $query->addAnsi($this->database)->newLine();
         $query->add($mfn)->newLine();
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode(readRecordCodes()))
+        if (!$response || !$response->checkReturnCode(codes_for_read_record()))
             return false;
 
         $result = new MarcRecord();
@@ -4371,7 +4378,7 @@ final class IrbisConnection {
         $query->add($mfn)->newLine();
         $query->add($version);
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode(readRecordCodes()))
+        if (!$response || !$response->checkReturnCode(codes_for_read_record()))
             return false;
 
         $result = new MarcRecord();
@@ -4488,7 +4495,7 @@ final class IrbisConnection {
         $query->add($parameters->numberOfTerms)->newLine();
         $query->addFormat($parameters->format);
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode(readTermCodes()))
+        if (!$response || !$response->checkReturnCode(codes_for_read_terms()))
             return false;
 
         $lines = $response->readRemainingUtfLines();
@@ -4515,7 +4522,7 @@ final class IrbisConnection {
             return false;
 
         $result = $response->readAnsi();
-        $result = irbisToDos($result);
+        $result = irbis_to_dos($result);
 
         return $result;
     } // function readTextFile
@@ -4538,7 +4545,7 @@ final class IrbisConnection {
             return array();
 
         $result = $response->readAnsi();
-        $result = irbisToLines($result);
+        $result = irbis_to_lines($result);
 
         return $result;
     } // function readTextLines
@@ -4679,7 +4686,7 @@ final class IrbisConnection {
      */
     public function requireTextFile($specification) {
         $result = $this->readTextFile($specification);
-        if (!$result || isNullOrEmpty($result))
+        if (!$result || is_null_or_empty($result))
             throw new IrbisException("File not found: " . $specification);
 
         return $result;
@@ -4945,7 +4952,7 @@ final class IrbisConnection {
         if (!$record)
             return $record;
 
-        if ($record->isDeleted()) {
+        if ($record->is_deleted()) {
             $record->status &= ~LOGICALLY_DELETED;
             if (!$this->writeRecord($record))
                 return false;
@@ -5145,14 +5152,14 @@ final class IrbisConnection {
             $lines = $response->readRemainingUtfLines();
             for ($i = 0; $i < count($records); $i++) {
                 $text = $lines[$i];
-                if (isNullOrEmpty($text)) {
+                if (is_null_or_empty($text)) {
                     continue;
                 }
 
                 $record = $records[$i];
                 $record->clear();
                 $record->database = $record->database ?: $this->database;
-                $recordLines = irbisToLines($text);
+                $recordLines = irbis_to_lines($text);
                 $record->parse($recordLines);
             }
         }
@@ -5221,7 +5228,7 @@ final class IrbisUI {
         echo "<select name='catalogBox' $classText>" . PHP_EOL;
         foreach ($databases as $database) {
             $selectedText = '';
-            if (sameString($database->name, $selected)) {
+            if (same_string($database->name, $selected)) {
                 $selectedText = 'selected';
             }
             echo "<option value='{$database->name}' $selectedText>{$database->description}</option>" . PHP_EOL;
@@ -5267,7 +5274,7 @@ final class IrbisUI {
         foreach ($scenarios as $scenario) {
             $selectedText = '';
             if ($selectedValue) {
-                if (sameString($scenario->prefix, $selectedValue)) {
+                if (same_string($scenario->prefix, $selectedValue)) {
                     $selectedText = 'selected';
                 }
             } else if ($index == $selectedIndex) {

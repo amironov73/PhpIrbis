@@ -20,7 +20,7 @@ $connection->parseConnectionString($connectString);
 
 if (!$connection->connect()) {
     echo "Can't connect!\n";
-    echo describeError($connection->lastError);
+    echo describe_error($connection->lastError);
     die(1);
 }
 

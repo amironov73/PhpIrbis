@@ -59,13 +59,13 @@ class RecordFieldTest extends PHPUnit_Framework_TestCase {
 
     public function testGetEmbeddedFields_1() {
         $field = new RecordField(200);
-        $embedded = $field->getEmbeddedFields();
+        $embedded = $field->get_embedded_fields();
         $this->assertEquals(0, count($embedded));
     }
 
     public function testGetEmbeddedFields_2() {
         $field = $this->getField_1();
-        $embedded = $field->getEmbeddedFields();
+        $embedded = $field->get_embedded_fields();
         $this->assertEquals(1, count($embedded));
         $this->assertEquals(200, $embedded[0]->tag);
         $this->assertEquals(4, count($embedded[0]->subfields));
@@ -75,7 +75,7 @@ class RecordFieldTest extends PHPUnit_Framework_TestCase {
 
     public function testGetEmbeddedFields_3() {
         $field = $this->getField_2();
-        $embedded = $field->getEmbeddedFields();
+        $embedded = $field->get_embedded_fields();
         $this->assertEquals(2, count($embedded));
         $this->assertEquals(200, $embedded[0]->tag);
         $this->assertEquals(200, $embedded[1]->tag);

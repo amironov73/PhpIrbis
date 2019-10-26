@@ -17,12 +17,13 @@ function dumpArray($arr) {
 }
 
 $connection = new IrbisConnection();
-$connection->username = '1';
-$connection->password = '1';
+$connection->username = 'librarian';
+$connection->password = 'secret';
 $connection->workstation = 'A';
 
 if (!$connection->connect()) {
     echo "Не удалось подключиться!";
+    echo describe_error($connection->lastError);
     die(1);
 }
 

@@ -65,13 +65,13 @@ class MarcRecordTest extends PHPUnit_Framework_TestCase
             ->add('e', "Подзаголовочные сведения");
         $this->assertEquals(2, count($record->fields));
 
-        $found = $record->getField(100);
+        $found = $record->get_field(100);
         $this->assertEquals("Field100", $found->value);
 
-        $found = $record->getField(200);
+        $found = $record->get_field(200);
         $this->assertEquals("Заглавие", $found->subfields[0]->value);
 
-        $found = $record->getField(300);
+        $found = $record->get_field(300);
         $this->assertNull($found);
     }
 
@@ -82,13 +82,13 @@ class MarcRecordTest extends PHPUnit_Framework_TestCase
         $record->add(100, "Field100/2");
         $this->assertEquals(2, count($record->fields));
 
-        $found = $record->getField(100);
+        $found = $record->get_field(100);
         $this->assertEquals("Field100/1", $found->value);
 
-        $found = $record->getField(100, 1);
+        $found = $record->get_field(100, 1);
         $this->assertEquals("Field100/2", $found->value);
 
-        $found = $record->getField(100, 2);
+        $found = $record->get_field(100, 2);
         $this->assertNull($found);
     }
 
@@ -99,20 +99,20 @@ class MarcRecordTest extends PHPUnit_Framework_TestCase
         $record->add(100, "Field100/2");
         $this->assertEquals(2, count($record->fields));
 
-        $found = $record->getFields(100);
+        $found = $record->get_fields(100);
         $this->assertEquals(2, count($found));
 
-        $found = $record->getFields(200);
+        $found = $record->get_fields(200);
         $this->assertEquals(0, count($found));
     }
 
     public function testIsDeleted_1()
     {
         $record = new MarcRecord();
-        $this->assertFalse($record->isDeleted());
+        $this->assertFalse($record->is_deleted());
 
         $record->status |= LOGICALLY_DELETED;
-        $this->assertTrue($record->isDeleted());
+        $this->assertTrue($record->is_deleted());
     }
 
     public function testToString_1()

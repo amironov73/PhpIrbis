@@ -42,11 +42,11 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     public function testSameString_1() {
         $first = 'Hello';
         $second = 'World';
-        $this->assertFalse(sameString($first, $second));
+        $this->assertFalse(same_string($first, $second));
 
         $first = 'Hello';
         $second = 'HELLO';
-        $this->assertTrue(sameString($first, $second));
+        $this->assertTrue(same_string($first, $second));
 
 //        $first = 'привет';
 //        $second = 'ПРИВЕТ';
