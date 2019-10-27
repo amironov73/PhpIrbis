@@ -10,13 +10,13 @@ require_once '../Source/PhpIrbis.php';
 try {
 
     // Подключаемся к серверу
-    $connection = new IrbisConnection();
+    $connection = new Irbis\Connection();
     $connectString = 'host=127.0.0.1;user=librarian;password=secret;';
     $connection->parseConnectionString($connectString);
 
     if (!$connection->connect()) {
         echo '<h3 style="color: red;">Не удалось подключиться!</h3>';
-        echo '<p>', describe_error($connection->lastError), '</p>';
+        echo '<p>', Irbis\describe_error($connection->lastError), '</p>';
         die(1);
     }
 
@@ -25,7 +25,7 @@ try {
 
     for ($i = 0; $i < 10; $i++) {
         // Создаем запись
-        $record = new MarcRecord();
+        $record = new Irbis\MarcRecord();
 
         // Наполняем ее полями: первый автор (поле с подолями),
         $record->add(700)

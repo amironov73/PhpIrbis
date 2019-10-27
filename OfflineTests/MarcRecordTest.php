@@ -6,7 +6,7 @@ class MarcRecordTest extends PHPUnit_Framework_TestCase
 {
     public function testFm_1()
     {
-        $record = new MarcRecord();
+        $record = new Irbis\MarcRecord();
         $record->add(100, "Field100");
         $record->add(200)
             ->add('a', "Заглавие")
@@ -31,7 +31,7 @@ class MarcRecordTest extends PHPUnit_Framework_TestCase
 
     public function testFma_1()
     {
-        $record = new MarcRecord();
+        $record = new Irbis\MarcRecord();
         $record->add(100, "Field100");
         $record->add(200)
             ->add('a', "Заглавие")
@@ -44,7 +44,7 @@ class MarcRecordTest extends PHPUnit_Framework_TestCase
 
     public function testFma_2()
     {
-        $record = new MarcRecord();
+        $record = new Irbis\MarcRecord();
         $record->add(100, "Field100/1");
         $record->add(100, "Field100/2");
         $this->assertEquals(2, count($record->fields));
@@ -58,66 +58,66 @@ class MarcRecordTest extends PHPUnit_Framework_TestCase
 
     public function testGetField_1()
     {
-        $record = new MarcRecord();
+        $record = new Irbis\MarcRecord();
         $record->add(100, "Field100");
         $record->add(200)
             ->add('a', "Заглавие")
             ->add('e', "Подзаголовочные сведения");
         $this->assertEquals(2, count($record->fields));
 
-        $found = $record->get_field(100);
+        $found = $record->getField(100);
         $this->assertEquals("Field100", $found->value);
 
-        $found = $record->get_field(200);
+        $found = $record->getField(200);
         $this->assertEquals("Заглавие", $found->subfields[0]->value);
 
-        $found = $record->get_field(300);
+        $found = $record->getField(300);
         $this->assertNull($found);
     }
 
     public function testGetField_2()
     {
-        $record = new MarcRecord();
+        $record = new Irbis\MarcRecord();
         $record->add(100, "Field100/1");
         $record->add(100, "Field100/2");
         $this->assertEquals(2, count($record->fields));
 
-        $found = $record->get_field(100);
+        $found = $record->getField(100);
         $this->assertEquals("Field100/1", $found->value);
 
-        $found = $record->get_field(100, 1);
+        $found = $record->getField(100, 1);
         $this->assertEquals("Field100/2", $found->value);
 
-        $found = $record->get_field(100, 2);
+        $found = $record->getField(100, 2);
         $this->assertNull($found);
     }
 
     public function testGetFields_1()
     {
-        $record = new MarcRecord();
+        $record = new Irbis\MarcRecord();
         $record->add(100, "Field100/1");
         $record->add(100, "Field100/2");
         $this->assertEquals(2, count($record->fields));
 
-        $found = $record->get_fields(100);
+        $found = $record->getFields(100);
         $this->assertEquals(2, count($found));
 
-        $found = $record->get_fields(200);
+        $found = $record->getFields(200);
         $this->assertEquals(0, count($found));
     }
 
     public function testIsDeleted_1()
     {
-        $record = new MarcRecord();
-        $this->assertFalse($record->is_deleted());
+        $record = new Irbis\MarcRecord();
+        $this->assertFalse($record->isDeleted());
 
-        $record->status |= LOGICALLY_DELETED;
-        $this->assertTrue($record->is_deleted());
+        $record->status |= Irbis\LOGICALLY_DELETED;
+        $this->assertTrue($record->isDeleted());
     }
 
     public function testToString_1()
     {
-        $record = new MarcRecord();
+        $record = new Irbis\MarcRecord();
         $record->mfn = 123;
         $record->version = 234;
         $record->status = 345;

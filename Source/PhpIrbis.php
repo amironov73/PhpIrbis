@@ -1,5 +1,7 @@
 <?php
 
+namespace Irbis;
+
 //
 // Простой клиент для АБИС ИРБИС64.
 // Требует PHP 5.4 или выше.
@@ -344,10 +346,10 @@ function codes_for_read_terms() {
 /**
  * Специфичное для ИРБИС исключение.
  */
-final class IrbisException extends Exception {
+final class IrbisException extends \Exception {
     public function __construct($message = "",
                                 $code = 0,
-                                Throwable $previous = null) {
+                                \Throwable $previous = null) {
         parent::__construct($message, $code, $previous);
     } // function __construct
 
@@ -516,7 +518,7 @@ final class RecordField {
      *
      * @return array Встроенные поля.
      */
-    public function get_embedded_fields() {
+    public function getEmbeddedFields() {
         $result = array();
         $found = null;
         foreach ($this->subfields as $subfield) {
@@ -550,7 +552,7 @@ final class RecordField {
         }
 
         return $result;
-    } // function get_embedded_fields
+    } // function getEmbeddedFields
 
     /**
      * Возвращает первое вхождение подполя с указанным кодом.
@@ -558,7 +560,7 @@ final class RecordField {
      * @param string $code Код искомого подполя.
      * @return SubField|null Найденное подполе.
      */
-    public function get_first_subfield($code) {
+    public function getFirstSubfield($code) {
         foreach ($this->subfields as $subfield) {
             if (same_string($subfield->code, $code)) {
                 return $subfield;
@@ -566,7 +568,7 @@ final class RecordField {
         }
 
         return null;
-    } // function get_first_subfield
+    } // function getFirstSubfield
 
     /**
      * Возвращает значение первого вхождения подполя с указанным кодом.
@@ -574,7 +576,7 @@ final class RecordField {
      * @param string $code Код искомого подполя.
      * @return string Значение найденного подполя либо пустая строка.
      */
-    public function get_first_subfield_value($code) {
+    public function getFirstSubfieldValue($code) {
         foreach ($this->subfields as $subfield) {
             if (same_string($subfield->code, $code)) {
                 return $subfield->value;
@@ -582,7 +584,7 @@ final class RecordField {
         }
 
         return '';
-    } // function get_first_subfield_value
+    } // function getFirstSubfieldValue
 
     /**
      * Вставляет подполе по указанному индексу.
@@ -590,26 +592,26 @@ final class RecordField {
      * @param int $index Позиция для вставки.
      * @param SubField $subfield Подполе.
      */
-    public function insert_at($index, SubField $subfield) {
+    public function insertAt($index, SubField $subfield) {
         array_splice($this->subfields, $index, 0, $subfield);
-    } // function insert_at
+    } // function insertAt
 
     /**
      * Удаляет подполе по указанному индексу.
      *
      * @param int $index Индекс для удаления.
      */
-    public function remove_at($index) {
+    public function removeAt($index) {
         unset($this->subfields[$index]);
         $this->subfields = array_values($this->subfields);
-    } // function remove_at
+    } // function removeAt
 
     /**
      * Удаляет все подполя с указанным кодом.
      *
      * @param string $code Искомый код подполя.
      */
-    public function remove_subfield($code) {
+    public function removeSubfield($code) {
         $flag = false;
         $len = count($this->subfields);
         for ($i=0; $i < $len; $i = $i+1) {
@@ -622,7 +624,7 @@ final class RecordField {
         if ($flag) {
             $this->subfields = array_values($this->subfields);
         }
-    } // function remove_subfield
+    } // function removeSubfield
 
     /**
      * Верификация поля.
@@ -837,7 +839,7 @@ final class MarcRecord {
      * @param int $occurrence Номер повторения.
      * @return RecordField|null
      */
-    public function get_field($tag, $occurrence = 0) {
+    public function getField($tag, $occurrence = 0) {
         foreach ($this->fields as $field) {
             if ($field->tag == $tag) {
                 if (!$occurrence) {
@@ -849,7 +851,7 @@ final class MarcRecord {
         }
 
         return null;
-    } // function get_field
+    } // function getField
 
     /**
      * Получение массива полей с указанной меткой.
@@ -857,7 +859,7 @@ final class MarcRecord {
      * @param int $tag Искомая метка поля.
      * @return array
      */
-    public function get_fields($tag) {
+    public function getFields($tag) {
         $result = array();
         foreach ($this->fields as $field) {
             if ($field->tag == $tag) {
@@ -866,7 +868,7 @@ final class MarcRecord {
         }
 
         return $result;
-    } // function get_fields
+    } // function getFields
 
     /**
      * Определяет, удалена ли запись?
@@ -874,7 +876,7 @@ final class MarcRecord {
      * @return bool Запись удалена
      * (неважно - логически или физически)?
      */
-    public function is_deleted() {
+    public function isDeleted() {
         return boolval($this->status & 3);
     } // function is_deleted
 
@@ -884,26 +886,26 @@ final class MarcRecord {
      * @param int $index Позиция для вставки.
      * @param RecordField $field Поле.
      */
-    public function insert_at($index, RecordField $field) {
+    public function insertAt($index, RecordField $field) {
         array_splice($this->fields, $index, 0, $field);
-    } // function insert_at
+    } // function insertAt
 
     /**
      * Удаляет поле по указанному индексу.
      *
      * @param int $index Индекс для удаления.
      */
-    public function remove_at($index) {
+    public function removeAt($index) {
         unset($this->fields[$index]);
         $this->fields = array_values($this->fields);
-    } // function remove_at
+    } // function removeAt
 
     /**
      * Удаляет все поля с указанной меткой.
      *
      * @param int $tag Индекс для удаления.
      */
-    public function remove_field($tag) {
+    public function removeField($tag) {
         $flag = false;
         $len = count($this->fields);
         for ($i=0; $i < $len; $i = $i+1) {
@@ -916,7 +918,7 @@ final class MarcRecord {
         if ($flag) {
             $this->fields = array_values($this->fields);
         }
-    } // function remove_field
+    } // function removeField
 
     /**
      * Сброс состояния записи, отвязка её от базы данных.
@@ -3051,7 +3053,7 @@ final class GblSettings {
 final class ClientQuery {
     private $accumulator = '';
 
-    public function __construct(IrbisConnection $connection, $command) {
+    public function __construct(Connection $connection, $command) {
         $this->addAnsi($command)->newLine();
         $this->addAnsi($connection->workstation)->newLine();
         $this->addAnsi($command)->newLine();
@@ -3184,7 +3186,7 @@ final class ServerResponse {
     private $offset;
     private $answerLength;
 
-    public function __construct(IrbisConnection $connection, $socket) {
+    public function __construct(Connection $connection, $socket) {
         $this->connection = $connection;
         $this->answer = '';
 
@@ -3362,7 +3364,7 @@ final class ServerResponse {
 /**
  * Подключение к ИРБИС-серверу.
  */
-final class IrbisConnection {
+final class Connection {
     /**
      * @var string Адрес сервера (можно как my.domain.com,
      * так и 192.168.1.1).
@@ -3604,7 +3606,7 @@ final class IrbisConnection {
         if (!$record)
             return false;
 
-        if (!$record->is_deleted()) {
+        if (!$record->isDeleted()) {
             $record->status |= LOGICALLY_DELETED;
             $this->writeRecord($record);
         }
@@ -4952,7 +4954,7 @@ final class IrbisConnection {
         if (!$record)
             return $record;
 
-        if ($record->is_deleted()) {
+        if ($record->isDeleted()) {
             $record->status &= ~LOGICALLY_DELETED;
             if (!$this->writeRecord($record))
                 return false;
@@ -5186,22 +5188,22 @@ final class IrbisConnection {
         return true;
     } // function writeTextFile
 
-} // class IrbisConnection
+} // class Connection
 
-final class IrbisUI {
+final class UI {
 
     /**
-     * @var IrbisConnection Активное подключение к серверу.
+     * @var Connection Активное подключение к серверу.
      */
     public $connection;
 
     /**
      * Конструктор.
      *
-     * @param IrbisConnection $connection Активное (!) подключение к серверу.
+     * @param Connection $connection Активное (!) подключение к серверу.
      * @throws IrbisException
      */
-    public function __construct(IrbisConnection $connection) {
+    public function __construct(Connection $connection) {
         if (!$connection->isConnected())
             throw new IrbisException();
 

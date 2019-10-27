@@ -14,13 +14,13 @@ Now supported PHP 5.4+ on Windows (Open Server) and Ubuntu Linux.
 ```php
 require __DIR__ . '/../vendor/autoload.php';
 
-$connection = new IrbisConnection();
+$connection = new Irbis\Connection();
 $connectString = 'host=127.0.0.1;user=librarian;password=secret;';
 $connection->parseConnectionString($connectString);
 
 if (!$connection->connect()) {
     echo "Can't connect!\n";
-    echo describe_error($connection->lastError);
+    echo Irbis\describe_error($connection->lastError);
     die(1);
 }
 
@@ -43,7 +43,7 @@ $connection->disconnect();
 #### Documentation (in russian)
 
 * [**Общее описание**](Docs/chapter1.md)
-* [**Класс IrbisConnection**](Docs/chapter2.md)
+* [**Класс Connection**](Docs/chapter2.md)
 * [**Классы MarcRecord, RecordField и SubField**](Docs/chapter3.md)
 * [**Прочие (вспомогательные) классы и функции**](Docs/chapter4.md)
 

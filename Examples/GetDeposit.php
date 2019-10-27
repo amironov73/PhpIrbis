@@ -15,7 +15,7 @@ require_once '../Source/PhpIrbis.php';
 //
 
 try {
-    $connection = new IrbisConnection();
+    $connection = new Irbis\Connection();
     $connection->host = '127.0.0.1';
     $connection->username = 'librarian';
     $connection->password = 'secret';
@@ -23,7 +23,7 @@ try {
 
     if (!$connection->connect()) {
         echo '<h3 style="color: red;">Не удалось подключиться!</h3>';
-        echo '<p>', describe_error($connection->lastError), '</p>';
+        echo '<p>', Irbis\describe_error($connection->lastError), '</p>';
         die(1);
     }
 

@@ -74,7 +74,7 @@
 <h2 class="title2">Электронный каталог</h2>
 <?php
 
-error_reporting(E_ALL);
+# error_reporting(E_ALL);
 
 require_once '../Source/PhpIrbis.php';
 
@@ -92,16 +92,17 @@ try {
     $format  = $_REQUEST['formatBox'];
 
     // Подключаемся к серверу
-    $connection = new IrbisConnection();
+    $connection = new Irbis\Connection();
     $connectString = 'host=127.0.0.1;user=librarian;password=secret;';
     $connection->parseConnectionString($connectString);
 
     if (!$connection->connect()) {
         echo "Не удалось подключиться!";
+        echo Irbis\describe_error($connection->lastError) . PHP_EOL;
         die(1);
     }
 
-    $ui = new IrbisUI($connection);
+    $ui = new Irbis\UI($connection);
 
     echo "<form action='Opac.php' method='post' accept-charset='UTF-8' name='searchForm' id='searchForm'>" . PHP_EOL;
     echo "<table class='searchTable'>" . PHP_EOL;
@@ -237,12 +238,12 @@ try {
 
     if ($searchExpression) {
         $connection->database = $catalog;
-        $parameters = new SearchParameters();
+        $parameters = new Irbis\SearchParameters();
         $parameters->expression = $searchExpression;
         $parameters->numberOfRecords = 1000;
         $parameters->format = $format;
         $found = $connection->searchEx($parameters);
-        $found = FoundLine::toDescription($found);
+        $found = Irbis\FoundLine::toDescription($found);
         sort($found);
 
         echo "<p style='color: blue;text-align: center;'>Найдено записей: " . count($found) . "</p>";

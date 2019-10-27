@@ -21,9 +21,9 @@ final class TermExtractor
 
     /**
      * TermExtractor constructor.
-     * @param IrbisConnection $_connection
+     * @param Irbis\Connection $_connection
      */
-    public function __construct(IrbisConnection $_connection)
+    public function __construct(Irbis\Connection $_connection)
     {
         $this->_connection = $_connection;
 
@@ -32,10 +32,10 @@ final class TermExtractor
 
     /**
      * Extract terms from the record.
-     * @param MarcRecord $record
+     * @param Irbis\MarcRecord $record
      * @return array
      */
-    public function ExtractTerms(MarcRecord $record)
+    public function ExtractTerms(Irbis\MarcRecord $record)
     {
         $result = array();
         return $result;

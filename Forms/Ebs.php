@@ -86,7 +86,7 @@ try {
     $format  = $_REQUEST['formatBox'];
 
     // Подключаемся к серверу
-    $connection = new IrbisConnection();
+    $connection = new Irbis\Connection();
     $connectString = 'host=127.0.0.1;user=librarian;password=secret;';
     $connection->parseConnectionString($connectString);
 
@@ -95,7 +95,7 @@ try {
         die(1);
     }
 
-    $ui = new IrbisUI($connection);
+    $ui = new Irbis\UI($connection);
 
     echo "<form action='Ebs.php' method='post' accept-charset='UTF-8' name='searchForm' id='searchForm'>" . PHP_EOL;
     echo "<table class='searchTable'>" . PHP_EOL;
@@ -220,12 +220,12 @@ try {
         foreach ($databases as $db)
         {
             $connection->database = $db;
-            $parameters = new SearchParameters();
+            $parameters = new Irbis\SearchParameters();
             $parameters->expression = $searchExpression;
             $parameters->numberOfRecords = 1000;
             $parameters->format = $format;
             $found = $connection->searchEx($parameters);
-            $found = FoundLine::toDescription($found);
+            $found = Irbis\FoundLine::toDescription($found);
             $foundAll += $found;
         }
 

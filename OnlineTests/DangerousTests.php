@@ -14,13 +14,14 @@ function dumpArray($arr) {
     echo "</ol>";
 }
 
-$connection = new IrbisConnection();
+$connection = new Irbis\Connection();
 $connection->username = 'librarian';
 $connection->password = 'secret';
 $connection->workstation = 'A';
 
 if (!$connection->connect()) {
-    echo "Не удалось подключиться!";
+    echo "Не удалось подключиться!" . PHP_EOL;
+    echo Irbis\describe_error($connection->lastError) . PHP_EOL;
     die(1);
 }
 
@@ -33,10 +34,10 @@ if (!$connection->connect()) {
 //echo "<p>$record</p>";
 
 $statements = array (
-    new GblStatement(ADD_FIELD, '3000', 'XXXXXXX', "'Hello'")
+    new Irbis\GblStatement(Irbis\ADD_FIELD, '3000', 'XXXXXXX', "'Hello'")
 );
 
-$settings = new GblSettings();
+$settings = new Irbis\GblSettings();
 $settings->database = "IBIS";
 $settings->mfnList = array(1, 2, 3);
 $settings->statements = $statements;
