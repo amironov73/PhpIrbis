@@ -102,7 +102,8 @@ const ALT_DELIMITER   = "\x1F";
  * @param string $text Строка для изучения.
  * @return bool
  */
-function is_null_or_empty($text) {
+function is_null_or_empty($text)
+{
     return (!isset($text) || $text == false || trim($text) == '');
 } // function is_null_or_empty
 
@@ -113,7 +114,8 @@ function is_null_or_empty($text) {
  * @param string $str2 Вторая строка.
  * @return bool
  */
-function same_string($str1, $str2) {
+function same_string($str1, $str2)
+{
     return strcasecmp($str1, $str2) == 0;
 } // function same_string
 
@@ -124,9 +126,11 @@ function same_string($str1, $str2) {
  * @param int $ofs Индекс.
  * @return mixed|null
  */
-function safe_get(array $a, $ofs) {
-    if (isset($a[$ofs]))
+function safe_get(array $a, $ofs)
+{
+    if (isset($a[$ofs])) {
         return $a[$ofs];
+    }
     return null;
 } // function safe_get
 
@@ -136,7 +140,8 @@ function safe_get(array $a, $ofs) {
  * @param string $text Текст для замены.
  * @return mixed Текст с замененными переводами строки.
  */
-function irbis_to_dos($text) {
+function irbis_to_dos($text)
+{
     return str_replace(IRBIS_DELIMITER, "\n", $text);
 } // function irbis_to_dos
 
@@ -146,7 +151,8 @@ function irbis_to_dos($text) {
  * @param string $text Текст для разбиения.
  * @return array Массив строк.
  */
-function irbis_to_lines($text) {
+function irbis_to_lines($text)
+{
     return explode(IRBIS_DELIMITER, $text);
 } // function irbis_to_lines
 
@@ -156,7 +162,8 @@ function irbis_to_lines($text) {
  * @param string $text Текст для удаления комментариев.
  * @return string Очищенный текст.
  */
-function remove_comments($text) {
+function remove_comments($text)
+{
     if (is_null_or_empty($text)) {
         return $text;
     }
@@ -196,16 +203,13 @@ function remove_comments($text) {
 
                             $index++;
                         }
-                    }
-                    else {
+                    } else {
                         $result .= $c;
                     }
-                }
-                else if ($c == "'" || $c == '"' || $c == '|') {
+                } else if ($c == "'" || $c == '"' || $c == '|') {
                     $state = $c;
                     $result .= $c;
-                }
-                else {
+                } else {
                     $result .= $c;
                 }
                 break;
@@ -228,7 +232,8 @@ function remove_comments($text) {
  * @param string $text Текст для обработки.
  * @return string Обработанный текст.
  */
-function prepare_format ($text) {
+function prepare_format($text)
+{
     $text = remove_comments($text);
     $length = strlen($text);
     if (!$length) {
@@ -264,12 +269,13 @@ function prepare_format ($text) {
  * @param int $code Код ошибки.
  * @return string Словесное описание ошибки.
  */
-function describe_error($code) {
+function describe_error($code)
+{
     if ($code >= 0) {
         return 'Нет ошибки';
     }
 
-    $errors = array (
+    $errors = array(
         -100 => 'Заданный MFN вне пределов БД',
         -101 => 'Ошибочный размер полки',
         -102 => 'Ошибочный номер полки',
@@ -330,7 +336,8 @@ function describe_error($code) {
  *
  * @return array "Хорошие" коды для readRecord.
  */
-function codes_for_read_record() {
+function codes_for_read_record()
+{
     return array(-201, -600, -602, -603);
 } // function codes_for_read_record
 
@@ -339,21 +346,25 @@ function codes_for_read_record() {
  *
  * @return array "Хорошие" коды для readTerms.
  */
-function codes_for_read_terms() {
+function codes_for_read_terms()
+{
     return array(-202, -203, -204);
 } // function codes_for_read_terms
 
 /**
  * Специфичное для ИРБИС исключение.
  */
-final class IrbisException extends \Exception {
+final class IrbisException extends \Exception
+{
     public function __construct($message = "",
                                 $code = 0,
-                                \Throwable $previous = null) {
+                                \Throwable $previous = null)
+    {
         parent::__construct($message, $code, $previous);
     } // function __construct
 
-    public function __toString() {
+    public function __toString()
+    {
         return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
     } // function __toString
 } // class IrbisException
@@ -361,7 +372,8 @@ final class IrbisException extends \Exception {
 /**
  * Подполе записи. Состоит из кода и значения.
  */
-final class SubField {
+final class SubField
+{
     /**
      * @var string Код подполя.
      */
@@ -378,12 +390,14 @@ final class SubField {
      * @param string $code Код подполя.
      * @param string $value Значение подполя.
      */
-    public function __construct($code='', $value='') {
+    public function __construct($code = '', $value = '')
+    {
         $this->code = $code;
         $this->value = $value;
     } // function __construct
 
-    public function __clone() {
+    public function __clone()
+    {
         $this->value = str_repeat($this->value, 1);
     } // function __clone
 
@@ -392,7 +406,8 @@ final class SubField {
      *
      * @param string $line
      */
-    public function decode($line) {
+    public function decode($line)
+    {
         $this->code = $line[0];
         $this->value = substr($line, 1);
     } // function decode
@@ -404,7 +419,8 @@ final class SubField {
      * @return bool Результат верификации.
      * @throws IrbisException
      */
-    public function verify($throw = true) {
+    public function verify($throw = true)
+    {
         $result = $this->code && $this->value;
         if (!$result && $throw) {
             throw new IrbisException();
@@ -413,7 +429,8 @@ final class SubField {
         return $result;
     } // function verify
 
-    public function __toString() {
+    public function __toString()
+    {
         return '^' . $this->code . $this->value;
     } // function __toString
 } // class SubField
@@ -422,7 +439,8 @@ final class SubField {
  * Поле записи. Состоит из метки и (опционального) значения.
  * Может содержать произвольное количество подполей.
  */
-final class RecordField {
+final class RecordField
+{
     /**
      * @var int Метка поля.
      */
@@ -444,12 +462,14 @@ final class RecordField {
      * @param int $tag Метка поля.
      * @param string $value Значение поля.
      */
-    public function __construct($tag=0, $value='') {
+    public function __construct($tag = 0, $value = '')
+    {
         $this->tag = $tag;
         $this->value = $value;
     } // function __construct
 
-    public function __clone() {
+    public function __clone()
+    {
         $this->value = str_repeat($this->value, 1);
         $new = array();
         foreach ($this->subfields as $i => $subfield) {
@@ -465,7 +485,8 @@ final class RecordField {
      * @param string $value Значение подполя.
      * @return $this
      */
-    public function add($code, $value) {
+    public function add($code, $value)
+    {
         $subfield = new SubField();
         $subfield->code = $code;
         $subfield->value = $value;
@@ -479,7 +500,8 @@ final class RecordField {
      *
      * @return $this
      */
-    public function clear() {
+    public function clear()
+    {
         $this->value = '';
         $this->subfields = array();
 
@@ -491,15 +513,15 @@ final class RecordField {
      *
      * @param string $line
      */
-    public function decode($line) {
+    public function decode($line)
+    {
         $this->tag = intval(strtok($line, "#"));
         $body = strtok('');
 
         if ($body[0] == '^') {
             $this->value = '';
             $all = explode('^', $body);
-        }
-        else {
+        } else {
             $this->value = strtok($body, '^');
             $all = explode('^', strtok(''));
         }
@@ -518,7 +540,8 @@ final class RecordField {
      *
      * @return array Встроенные поля.
      */
-    public function getEmbeddedFields() {
+    public function getEmbeddedFields()
+    {
         $result = array();
         $found = null;
         foreach ($this->subfields as $subfield) {
@@ -560,7 +583,8 @@ final class RecordField {
      * @param string $code Код искомого подполя.
      * @return SubField|null Найденное подполе.
      */
-    public function getFirstSubfield($code) {
+    public function getFirstSubfield($code)
+    {
         foreach ($this->subfields as $subfield) {
             if (same_string($subfield->code, $code)) {
                 return $subfield;
@@ -576,7 +600,8 @@ final class RecordField {
      * @param string $code Код искомого подполя.
      * @return string Значение найденного подполя либо пустая строка.
      */
-    public function getFirstSubfieldValue($code) {
+    public function getFirstSubfieldValue($code)
+    {
         foreach ($this->subfields as $subfield) {
             if (same_string($subfield->code, $code)) {
                 return $subfield->value;
@@ -592,7 +617,8 @@ final class RecordField {
      * @param int $index Позиция для вставки.
      * @param SubField $subfield Подполе.
      */
-    public function insertAt($index, SubField $subfield) {
+    public function insertAt($index, SubField $subfield)
+    {
         array_splice($this->subfields, $index, 0, $subfield);
     } // function insertAt
 
@@ -601,7 +627,8 @@ final class RecordField {
      *
      * @param int $index Индекс для удаления.
      */
-    public function removeAt($index) {
+    public function removeAt($index)
+    {
         unset($this->subfields[$index]);
         $this->subfields = array_values($this->subfields);
     } // function removeAt
@@ -611,10 +638,11 @@ final class RecordField {
      *
      * @param string $code Искомый код подполя.
      */
-    public function removeSubfield($code) {
+    public function removeSubfield($code)
+    {
         $flag = false;
         $len = count($this->subfields);
-        for ($i=0; $i < $len; $i = $i+1) {
+        for ($i = 0; $i < $len; $i = $i + 1) {
             $sub = $this->subfields[$i];
             if (same_string($sub->code, $code)) {
                 unset($this->subfields[$i]);
@@ -633,7 +661,8 @@ final class RecordField {
      * @return bool Результат верификации.
      * @throws IrbisException Ошибка в структуре поля.
      */
-    public function verify($throw = true) {
+    public function verify($throw = true)
+    {
         $result = $this->tag && ($this->value || count($this->subfields));
         if ($result && $this->subfields) {
             foreach ($this->subfields as $subfield) {
@@ -651,7 +680,8 @@ final class RecordField {
         return $result;
     } // function verify
 
-    public function __toString() {
+    public function __toString()
+    {
         $result = $this->tag . '#' . $this->value;
 
         foreach ($this->subfields as $sf) {
@@ -665,7 +695,8 @@ final class RecordField {
 /**
  * Запись. Состоит из произвольного количества полей.
  */
-final class MarcRecord {
+final class MarcRecord
+{
     /**
      * @var string Имя базы данных, в которой хранится запись.
      */
@@ -691,7 +722,8 @@ final class MarcRecord {
      */
     public $fields = array();
 
-    public function __clone() {
+    public function __clone()
+    {
         $this->database = str_repeat($this->database, 1);
         $new = array();
         foreach ($this->fields as $i => $field) {
@@ -707,7 +739,8 @@ final class MarcRecord {
      * @param string $value Значение поля до первого разделителя.
      * @return RecordField Созданное поле.
      */
-    public function add($tag, $value='') {
+    public function add($tag, $value = '')
+    {
         $field = new RecordField();
         $field->tag = $tag;
         $field->value = $value;
@@ -721,7 +754,8 @@ final class MarcRecord {
      *
      * @return $this
      */
-    public function clear() {
+    public function clear()
+    {
         $this->fields = array();
 
         return $this;
@@ -733,9 +767,11 @@ final class MarcRecord {
      * @param array $lines Массив строк
      * с клиентским представлением записи.
      */
-    public function decode(array $lines) {
-        if (empty($lines) || count($lines) < 2)
+    public function decode(array $lines)
+    {
+        if (empty($lines) || count($lines) < 2) {
             return;
+        }
 
         // mfn and status of the record
         $firstLine = explode('#', $lines[0]);
@@ -764,7 +800,8 @@ final class MarcRecord {
      * В зависимости от ситуации ИРБИСный или обычный.
      * @return string
      */
-    public function encode($delimiter = IRBIS_DELIMITER) {
+    public function encode($delimiter = IRBIS_DELIMITER)
+    {
         $result = $this->mfn . '#' . $this->status . $delimiter
             . '0#' . $this->version . $delimiter;
 
@@ -783,7 +820,8 @@ final class MarcRecord {
      * @param string $code Код подполя
      * @return string|null
      */
-    public function fm($tag, $code='') {
+    public function fm($tag, $code = '')
+    {
         foreach ($this->fields as $field) {
             if ($field->tag == $tag) {
                 if ($code) {
@@ -809,7 +847,8 @@ final class MarcRecord {
      * @param string $code Код подполя.
      * @return array
      */
-    public function fma($tag, $code='') {
+    public function fma($tag, $code = '')
+    {
         $result = array();
         foreach ($this->fields as $field) {
             if ($field->tag == $tag) {
@@ -839,7 +878,8 @@ final class MarcRecord {
      * @param int $occurrence Номер повторения.
      * @return RecordField|null
      */
-    public function getField($tag, $occurrence = 0) {
+    public function getField($tag, $occurrence = 0)
+    {
         foreach ($this->fields as $field) {
             if ($field->tag == $tag) {
                 if (!$occurrence) {
@@ -859,7 +899,8 @@ final class MarcRecord {
      * @param int $tag Искомая метка поля.
      * @return array
      */
-    public function getFields($tag) {
+    public function getFields($tag)
+    {
         $result = array();
         foreach ($this->fields as $field) {
             if ($field->tag == $tag) {
@@ -876,7 +917,8 @@ final class MarcRecord {
      * @return bool Запись удалена
      * (неважно - логически или физически)?
      */
-    public function isDeleted() {
+    public function isDeleted()
+    {
         return boolval($this->status & 3);
     } // function is_deleted
 
@@ -886,7 +928,8 @@ final class MarcRecord {
      * @param int $index Позиция для вставки.
      * @param RecordField $field Поле.
      */
-    public function insertAt($index, RecordField $field) {
+    public function insertAt($index, RecordField $field)
+    {
         array_splice($this->fields, $index, 0, $field);
     } // function insertAt
 
@@ -895,7 +938,8 @@ final class MarcRecord {
      *
      * @param int $index Индекс для удаления.
      */
-    public function removeAt($index) {
+    public function removeAt($index)
+    {
         unset($this->fields[$index]);
         $this->fields = array_values($this->fields);
     } // function removeAt
@@ -905,10 +949,11 @@ final class MarcRecord {
      *
      * @param int $tag Индекс для удаления.
      */
-    public function removeField($tag) {
+    public function removeField($tag)
+    {
         $flag = false;
         $len = count($this->fields);
-        for ($i=0; $i < $len; $i = $i+1) {
+        for ($i = 0; $i < $len; $i = $i + 1) {
             $field = $this->fields[$i];
             if ($field->tag == $tag) {
                 unset($this->fields[$i]);
@@ -926,7 +971,8 @@ final class MarcRecord {
      *
      * @return $this
      */
-    public function reset() {
+    public function reset()
+    {
         $this->mfn = 0;
         $this->status = 0;
         $this->version = 0;
@@ -941,7 +987,8 @@ final class MarcRecord {
      * @param bool $throw Бросать ли исключение при ошибке?
      * @return bool Результат верификации.
      */
-    public function verify($throw = true) {
+    public function verify($throw = true)
+    {
         $result = false;
         foreach ($this->fields as $field) {
             $result = $field->verify($throw);
@@ -953,7 +1000,8 @@ final class MarcRecord {
         return $result;
     } // function verify
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->encode();
     } // function __toStirng
 } // class MarcRecord
@@ -961,7 +1009,8 @@ final class MarcRecord {
 /**
  * Запись в "сыром" ("неразобранном") виде.
  */
-final class RawRecord {
+final class RawRecord
+{
     /**
      * @var string Имя базы данных.
      */
@@ -993,9 +1042,11 @@ final class RawRecord {
      * @param array $lines Массив строк
      * с клиентским представлением записи.
      */
-    public function decode(array $lines) {
-        if (empty($lines) || count($lines) < 2)
+    public function decode(array $lines)
+    {
+        if (empty($lines) || count($lines) < 2) {
             return;
+        }
 
         // mfn and status of the record
         $firstLine = explode('#', $lines[0]);
@@ -1015,7 +1066,8 @@ final class RawRecord {
      * В зависимости от ситуации ИРБИСный или обычный.
      * @return string
      */
-    public function encode($delimiter=IRBIS_DELIMITER) {
+    public function encode($delimiter = IRBIS_DELIMITER)
+    {
         $result = $this->mfn . '#' . $this->status . $delimiter
             . '0#' . $this->version . $delimiter;
 
@@ -1030,7 +1082,8 @@ final class RawRecord {
 /**
  * Строка найденной записи в ответе сервера.
  */
-final class FoundLine {
+final class FoundLine
+{
     /**
      * @var bool Материализована?
      */
@@ -1073,7 +1126,8 @@ final class FoundLine {
      * @return array Массив найденных записей с MFN
      * и биб. описанием (опционально).
      */
-    public static function parse(array $lines) {
+    public static function parse(array $lines)
+    {
         $result = array();
         foreach ($lines as $line) {
             $parts = explode('#', $line, 2);
@@ -1092,7 +1146,8 @@ final class FoundLine {
      * @param array $lines Строки ответа сервера.
      * @return array Массив MFN найденных записей.
      */
-    public static function parseMfn(array $lines) {
+    public static function parseMfn(array $lines)
+    {
         $result = array();
         foreach ($lines as $line) {
             $parts = explode('#', $line, 2);
@@ -1109,7 +1164,8 @@ final class FoundLine {
      * @param array $found Найденные записи.
      * @return array Массив описаний.
      */
-    public static function toDescription(array $found) {
+    public static function toDescription(array $found)
+    {
         $result = array();
         foreach ($found as $item) {
             array_push($result, $item->description);
@@ -1124,7 +1180,8 @@ final class FoundLine {
      * @param array $found Найденные записи.
      * @return array Массив MFN.
      */
-    public static function toMfn(array $found) {
+    public static function toMfn(array $found)
+    {
         $result = array();
         foreach ($found as $item) {
             array_push($result, $item->mfn);
@@ -1133,7 +1190,8 @@ final class FoundLine {
         return $result;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->description
             ? $this->mfn . '#' . $this->description
             : strval($this->mfn);
@@ -1143,10 +1201,12 @@ final class FoundLine {
 /**
  * Пара строк в меню.
  */
-final class MenuEntry {
+final class MenuEntry
+{
     public $code, $comment;
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->code . ' - ' . $this->comment;
     }
 } // class MenuEntry
@@ -1154,7 +1214,8 @@ final class MenuEntry {
 /**
  * Файл меню. Состоит из пар строк (см. MenuEntry).
  */
-final class MenuFile {
+final class MenuFile
+{
     /**
      * @var array Массив пар строк.
      */
@@ -1167,7 +1228,8 @@ final class MenuFile {
      * @param string $comment Комментарий.
      * @return $this
      */
-    public function add($code, $comment) {
+    public function add($code, $comment)
+    {
         $entry = new MenuEntry();
         $entry->code = $code;
         $entry->comment = $comment;
@@ -1182,7 +1244,8 @@ final class MenuFile {
      * @param string $code
      * @return mixed|null
      */
-    public function getEntry($code) {
+    public function getEntry($code)
+    {
         foreach ($this->entries as $entry) {
             if (strcasecmp($entry->code, $code) == 0) {
                 return $entry;
@@ -1213,7 +1276,8 @@ final class MenuFile {
      * @param string $defaultValue
      * @return string
      */
-    public function getValue($code, $defaultValue='') {
+    public function getValue($code, $defaultValue = '')
+    {
         $entry = $this->getEntry($code);
         if (!$entry) {
             return $defaultValue;
@@ -1227,9 +1291,10 @@ final class MenuFile {
      *
      * @param array $lines Массив строк.
      */
-    public function parse(array $lines) {
+    public function parse(array $lines)
+    {
         $length = count($lines);
-        for ($i=0; $i < $length; $i += 2) {
+        for ($i = 0; $i < $length; $i += 2) {
             $code = $lines[$i];
             if (!$code || substr($code, 5) == '*****') {
                 break;
@@ -1249,13 +1314,15 @@ final class MenuFile {
      * @param string $code Код.
      * @return string Очищенный код.
      */
-    public static function trimCode($code) {
+    public static function trimCode($code)
+    {
         $result = trim($code, '-=:');
 
         return $result;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         $result = '';
 
         foreach ($this->entries as $entry) {
@@ -1271,7 +1338,8 @@ final class MenuFile {
  * Строка INI-файла. Состоит из ключа
  * и (опционального) значения.
  */
-final class IniLine {
+final class IniLine
+{
     /**
      * @var string Ключ.
      */
@@ -1282,7 +1350,8 @@ final class IniLine {
      */
     public $value;
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->key . ' = ' . $this->value;
     }
 } // class IniLine
@@ -1291,7 +1360,8 @@ final class IniLine {
  * Секция INI-файла. Состоит из строк
  * (см. IniLine).
  */
-final class IniSection {
+final class IniSection
+{
     /**
      * @var string Имя секции.
      */
@@ -1308,7 +1378,8 @@ final class IniSection {
      * @param string $key Имя ключа.
      * @return IniLine|null
      */
-    public function find($key) {
+    public function find($key)
+    {
         foreach ($this->lines as $line) {
             if (same_string($line->key, $key)) {
                 return $line;
@@ -1326,7 +1397,8 @@ final class IniSection {
      * @return string Найденное значение или значение
      * по умолчанию.
      */
-    public function getValue($key, $defaultValue = '') {
+    public function getValue($key, $defaultValue = '')
+    {
         $found = $this->find($key);
         return $found ? $found->value : $defaultValue;
     }
@@ -1337,8 +1409,9 @@ final class IniSection {
      * @param string $key Имя ключа.
      * @return IniSection
      */
-    public function remove($key) {
-        for ($i=0; $i < count($this->lines); $i++) {
+    public function remove($key)
+    {
+        for ($i = 0; $i < count($this->lines); $i++) {
             if (same_string($this->lines[$i]->key, $key)) {
                 unset($this->lines[$i]);
                 break;
@@ -1354,7 +1427,8 @@ final class IniSection {
      * @param string $key
      * @param string $value
      */
-    public function setValue($key, $value) {
+    public function setValue($key, $value)
+    {
         if (!$value) {
             $this->remove($key);
         } else {
@@ -1370,7 +1444,8 @@ final class IniSection {
         }
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         $result = '[' . $this->name . ']' . PHP_EOL;
 
         foreach ($this->lines as $line) {
@@ -1384,7 +1459,8 @@ final class IniSection {
 /**
  * INI-файл. Состоит из секций (см. IniSection).
  */
-final class IniFile {
+final class IniFile
+{
     /**
      * @var array Секции INI-файла.
      */
@@ -1396,7 +1472,8 @@ final class IniFile {
      * @param string $name Имя секции.
      * @return mixed|null
      */
-    public function findSection($name) {
+    public function findSection($name)
+    {
         foreach ($this->sections as $section) {
             if (same_string($section->name, $name)) {
                 return $section;
@@ -1413,7 +1490,8 @@ final class IniFile {
      * @param string $name Имя секции.
      * @return IniSection
      */
-    public function getOrCreateSection($name) {
+    public function getOrCreateSection($name)
+    {
         $result = $this->findSection($name);
         if (!$result) {
             $result = new IniSection();
@@ -1433,7 +1511,8 @@ final class IniFile {
      * @return string Значение найденного элемента
      * или значение по умолчанию.
      */
-    public function getValue($sectionName, $key, $defaultValue = '') {
+    public function getValue($sectionName, $key, $defaultValue = '')
+    {
         $section = $this->findSection($sectionName);
         if ($section) {
             return $section->getValue($key, $defaultValue);
@@ -1447,7 +1526,8 @@ final class IniFile {
      *
      * @param array $lines Строки INI-файла.
      */
-    public function parse(array $lines) {
+    public function parse(array $lines)
+    {
         $section = null;
 
         foreach ($lines as $line) {
@@ -1479,14 +1559,16 @@ final class IniFile {
      * @param string $value Значение элемента.
      * @return $this
      */
-    public function setValue($sectionName, $key, $value) {
+    public function setValue($sectionName, $key, $value)
+    {
         $section = $this->getOrCreateSection($sectionName);
         $section->setValue($key, $value);
 
         return $this;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         $result = '';
         $first = true;
 
@@ -1507,7 +1589,8 @@ final class IniFile {
 /**
  * Узел дерева TRE-файла.
  */
-final class TreeNode {
+final class TreeNode
+{
     /**
      * @var array Дочерние узлы.
      */
@@ -1527,7 +1610,8 @@ final class TreeNode {
      * TreeNode constructor.
      * @param string $value
      */
-    public function __construct($value = '') {
+    public function __construct($value = '')
+    {
         $this->value = $value;
     }
 
@@ -1537,14 +1621,16 @@ final class TreeNode {
      * @param $value
      * @return $this
      */
-    public function add($value) {
+    public function add($value)
+    {
         $child = new TreeNode($value);
         array_push($this->children, $child);
 
         return $this;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->value;
     }
 } // class TreeNode
@@ -1552,13 +1638,15 @@ final class TreeNode {
 /**
  * Дерево, хранящееся в TRE-файле.
  */
-final class TreeFile {
+final class TreeFile
+{
     /**
      * @var array Корни дерева.
      */
     public $roots = array();
 
-    private static function arrange1(array $list, $level) {
+    private static function arrange1(array $list, $level)
+    {
         $count = count($list);
         $index = 0;
 
@@ -1568,7 +1656,8 @@ final class TreeFile {
         }
     }
 
-    private static function arrange2(array $list, $level, $index, $count) {
+    private static function arrange2(array $list, $level, $index, $count)
+    {
         $next = $index + 1;
         $level2 = $level + 1;
 
@@ -1589,15 +1678,16 @@ final class TreeFile {
         return $next;
     }
 
-    private static function countIndent($text) {
+    private static function countIndent($text)
+    {
         $result = 0;
         $length = strlen($text);
-        for($i = 0; $i < $length; $i++) {
-           if ($text[$i] == "\t") {
-               $result++;
-           } else {
-               break;
-           }
+        for ($i = 0; $i < $length; $i++) {
+            if ($text[$i] == "\t") {
+                $result++;
+            } else {
+                break;
+            }
         }
 
         return $result;
@@ -1609,7 +1699,8 @@ final class TreeFile {
      * @param string $value Значение элемента.
      * @return TreeNode Созданный элемент.
      */
-    public function addRoot($value) {
+    public function addRoot($value)
+    {
         $result = new TreeNode($value);
         array_push($this->roots, $result);
 
@@ -1622,7 +1713,8 @@ final class TreeFile {
      * @param array $lines Строки с ответом сервера.
      * @throws IrbisException
      */
-    public function parse(array $lines) {
+    public function parse(array $lines)
+    {
         if (!count($lines)) {
             return;
         }
@@ -1675,7 +1767,8 @@ final class TreeFile {
 /**
  * Информация о базе данных ИРБИС.
  */
-final class DatabaseInfo {
+final class DatabaseInfo
+{
     /**
      * @var string Имя базы данных.
      */
@@ -1721,7 +1814,8 @@ final class DatabaseInfo {
      */
     public $readOnly = false;
 
-    static function parseLine($line) {
+    static function parseLine($line)
+    {
         $result = array();
         $items = explode(SHORT_DELIMITER, $line);
         foreach ($items as $item) {
@@ -1737,7 +1831,8 @@ final class DatabaseInfo {
      * @param array $lines Ответ сервера.
      * @return DatabaseInfo
      */
-    public static function parseResponse(array $lines) {
+    public static function parseResponse(array $lines)
+    {
         $result = new DatabaseInfo();
         if (!empty($lines)) {
             $result->logicallyDeletedRecords = self::parseLine($lines[0]);
@@ -1757,7 +1852,8 @@ final class DatabaseInfo {
      * @param MenuFile $menu Меню.
      * @return array
      */
-    public static function parseMenu(MenuFile $menu) {
+    public static function parseMenu(MenuFile $menu)
+    {
         $result = array();
         foreach ($menu->entries as $entry) {
             $name = $entry->code;
@@ -1782,7 +1878,8 @@ final class DatabaseInfo {
         return $result;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->name;
     }
 } // class DatabaseInfo
@@ -1790,7 +1887,8 @@ final class DatabaseInfo {
 /**
  * Информация о запущенном на ИРБИС-сервере процессе.
  */
-final class ProcessInfo {
+final class ProcessInfo
+{
     /**
      * @var string Просто порядковый номер в списке.
      */
@@ -1842,7 +1940,8 @@ final class ProcessInfo {
      */
     public $state = '';
 
-    public static function parse(array $lines) {
+    public static function parse(array $lines)
+    {
         $result = array();
         if (empty($lines) || count($lines) < 2)
             return $result;
@@ -1854,21 +1953,21 @@ final class ProcessInfo {
         }
 
         $lines = array_slice($lines, 2);
-        for($i = 0; $i < $processCount; $i++) {
+        for ($i = 0; $i < $processCount; $i++) {
             if (count($lines) < 10)
                 break;
 
             $process = new ProcessInfo();
-            $process->number        = $lines[0];
-            $process->ipAddress     = $lines[1];
-            $process->name          = $lines[2];
-            $process->clientId      = $lines[3];
-            $process->workstation   = $lines[4];
-            $process->started       = $lines[5];
-            $process->lastCommand   = $lines[6];
+            $process->number = $lines[0];
+            $process->ipAddress = $lines[1];
+            $process->name = $lines[2];
+            $process->clientId = $lines[3];
+            $process->workstation = $lines[4];
+            $process->started = $lines[5];
+            $process->lastCommand = $lines[6];
             $process->commandNumber = $lines[7];
-            $process->processId     = $lines[8];
-            $process->state         = $lines[9];
+            $process->processId = $lines[8];
+            $process->state = $lines[9];
 
             array_push($result, $process);
             $lines = array_slice($lines, $linesPerProcess);
@@ -1877,7 +1976,8 @@ final class ProcessInfo {
         return $result;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return "{$this->number} {$this->ipAddress} {$this->name}";
     }
 } // class ProcessInfo
@@ -1885,7 +1985,8 @@ final class ProcessInfo {
 /**
  * Информация о версии ИРБИС-сервера.
  */
-final class VersionInfo {
+final class VersionInfo
+{
     /**
      * @var string На какое юридическое лицо приобретен сервер.
      */
@@ -1911,7 +2012,8 @@ final class VersionInfo {
      *
      * @param array $lines Строки с ответом сервера.
      */
-    public function parse(array $lines) {
+    public function parse(array $lines)
+    {
         if (count($lines) == 3) {
             $this->version = $lines[0];
             $this->connectedClients = intval($lines[1]);
@@ -1924,7 +2026,8 @@ final class VersionInfo {
         }
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->version;
     }
 } // class VersionInfo
@@ -1933,7 +2036,8 @@ final class VersionInfo {
  * Информация о клиенте, подключенном к серверу ИРБИС
  * (не обязательно о текущем).
  */
-final class ClientInfo {
+final class ClientInfo
+{
     /**
      * @var string Порядковый номер.
      */
@@ -1991,23 +2095,25 @@ final class ClientInfo {
      *
      * @param array $lines Строки ответа.
      */
-    public function parse(array $lines) {
+    public function parse(array $lines)
+    {
         if (empty($lines) || count($lines) < 10)
             return;
 
-        $this->number        = $lines[0];
-        $this->ipAddress     = $lines[1];
-        $this->port          = $lines[2];
-        $this->name          = $lines[3];
-        $this->id            = $lines[4];
-        $this->workstation   = $lines[5];
-        $this->registered    = $lines[6];
-        $this->acknowledged  = $lines[7];
-        $this->lastCommand   = $lines[8];
+        $this->number = $lines[0];
+        $this->ipAddress = $lines[1];
+        $this->port = $lines[2];
+        $this->name = $lines[3];
+        $this->id = $lines[4];
+        $this->workstation = $lines[5];
+        $this->registered = $lines[6];
+        $this->acknowledged = $lines[7];
+        $this->lastCommand = $lines[8];
         $this->commandNumber = $lines[9];
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->ipAddress;
     }
 } // class ClientInfo
@@ -2016,7 +2122,8 @@ final class ClientInfo {
  * Информация о зарегистрированном пользователе системы
  * (по данным client_m.mnu).
  */
-final class UserInfo {
+final class UserInfo
+{
     /**
      * @var string Номер по порядку в списке.
      */
@@ -2062,7 +2169,8 @@ final class UserInfo {
      */
     public $administrator = '';
 
-    public static function formatPair($prefix, $value, $default) {
+    public static function formatPair($prefix, $value, $default)
+    {
         if (same_string($value, $default)) {
             return '';
         }
@@ -2075,14 +2183,15 @@ final class UserInfo {
      *
      * @return string
      */
-    public function encode() {
+    public function encode()
+    {
         return $this->name . "\r\n"
             . $this->password . "\r\n"
-            . self::formatPair('C', $this->cataloger,     'irbisc.ini')
-            . self::formatPair('R', $this->reader,        'irbisr.ini')
-            . self::formatPair('B', $this->circulation,   'irbisb.ini')
-            . self::formatPair('M', $this->acquisitions,  'irbism.ini')
-            . self::formatPair('K', $this->provision,     'irbisk.ini')
+            . self::formatPair('C', $this->cataloger, 'irbisc.ini')
+            . self::formatPair('R', $this->reader, 'irbisr.ini')
+            . self::formatPair('B', $this->circulation, 'irbisb.ini')
+            . self::formatPair('M', $this->acquisitions, 'irbism.ini')
+            . self::formatPair('K', $this->provision, 'irbisk.ini')
             . self::formatPair('A', $this->administrator, 'irbisa.ini');
     }
 
@@ -2092,7 +2201,8 @@ final class UserInfo {
      * @param array $lines Строки ответа сервера.
      * @return array
      */
-    public static function parse(array $lines) {
+    public static function parse(array $lines)
+    {
         $result = array();
         if (empty($lines) || count($lines) < 2)
             return $result;
@@ -2103,19 +2213,19 @@ final class UserInfo {
             return $result;
 
         $lines = array_slice($lines, 2);
-        for($i = 0; $i < $userCount; $i++) {
+        for ($i = 0; $i < $userCount; $i++) {
             if (empty($lines) || count($lines) < 9)
                 break;
 
             $user = new UserInfo();
-            $user->number        = $lines[0];
-            $user->name          = $lines[1];
-            $user->password      = $lines[2];
-            $user->cataloger     = $lines[3];
-            $user->reader        = $lines[4];
-            $user->circulation   = $lines[5];
-            $user->acquisitions  = $lines[6];
-            $user->provision     = $lines[7];
+            $user->number = $lines[0];
+            $user->name = $lines[1];
+            $user->password = $lines[2];
+            $user->cataloger = $lines[3];
+            $user->reader = $lines[4];
+            $user->circulation = $lines[5];
+            $user->acquisitions = $lines[6];
+            $user->provision = $lines[7];
             $user->administrator = $lines[8];
             array_push($result, $user);
 
@@ -2125,7 +2235,8 @@ final class UserInfo {
         return $result;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->name;
     }
 } // class UserInfo
@@ -2133,7 +2244,8 @@ final class UserInfo {
 /**
  * Данные для метода printTable.
  */
-final class TableDefinition {
+final class TableDefinition
+{
     /**
      * @var string Имя базы данных.
      */
@@ -2179,7 +2291,8 @@ final class TableDefinition {
      */
     public $mfnList = array();
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->table;
     }
 } // class TableDefinition
@@ -2187,7 +2300,8 @@ final class TableDefinition {
 /**
  * Статистика работы ИРБИС-сервера.
  */
-final class ServerStat {
+final class ServerStat
+{
     /**
      * @var array Подключенные клиенты.
      */
@@ -2209,7 +2323,8 @@ final class ServerStat {
      *
      * @param array $lines Строки ответа сервера.
      */
-    public function parse(array $lines) {
+    public function parse(array $lines)
+    {
         if (empty($lines) || count($lines) < 2)
             return;
 
@@ -2222,7 +2337,7 @@ final class ServerStat {
 
         $lines = array_slice($lines, 3);
 
-        for($i=0; $i < $this->clientCount; $i++) {
+        for ($i = 0; $i < $this->clientCount; $i++) {
             $client = new ClientInfo();
             $client->parse($lines);
             if (!$client->name)
@@ -2232,7 +2347,8 @@ final class ServerStat {
         }
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         $result = strval($this->totalCommandCount) . "\n"
             . strval($this->clientCount) . "\n" . '8' . "\n";
         foreach ($this->runningClients as $client) {
@@ -2246,7 +2362,8 @@ final class ServerStat {
 /**
  * Параметры для запроса постингов с сервера.
  */
-final class PostingParameters {
+final class PostingParameters
+{
     /**
      * @var string База данных.
      */
@@ -2281,7 +2398,8 @@ final class PostingParameters {
 /**
  * Параметры для запроса терминов с сервера.
  */
-final class TermParameters {
+final class TermParameters
+{
     /**
      * @var string Имя базы данных.
      */
@@ -2311,7 +2429,8 @@ final class TermParameters {
 /**
  * Информация о термине поискового словаря.
  */
-final class TermInfo {
+final class TermInfo
+{
     /**
      * @var int Количество ссылок.
      */
@@ -2322,7 +2441,8 @@ final class TermInfo {
      */
     public $text = '';
 
-    public static function parse(array $lines) {
+    public static function parse(array $lines)
+    {
         $result = array();
         foreach ($lines as $line) {
             if (!is_null_or_empty($line)) {
@@ -2337,7 +2457,8 @@ final class TermInfo {
         return $result;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->count . '#' . $this->text;
     }
 } // class TermInfo
@@ -2345,7 +2466,8 @@ final class TermInfo {
 /**
  * Постинг термина в поисковом индексе.
  */
-final class TermPosting {
+final class TermPosting
+{
     /**
      * @var int MFN записи с искомым термином.
      */
@@ -2377,7 +2499,8 @@ final class TermPosting {
      * @param array $lines Строки ответа.
      * @return array Массив постингов.
      */
-    public static function parse(array $lines) {
+    public static function parse(array $lines)
+    {
         $result = array();
         foreach ($lines as $line) {
             $parts = explode('#', $line, 5);
@@ -2386,18 +2509,19 @@ final class TermPosting {
             }
 
             $item = new TermPosting();
-            $item->mfn        = intval($parts[0]);
-            $item->tag        = intval(safe_get($parts, 1));
+            $item->mfn = intval($parts[0]);
+            $item->tag = intval(safe_get($parts, 1));
             $item->occurrence = intval(safe_get($parts, 2));
-            $item->count      = intval(safe_get($parts, 3));
-            $item->text       = safe_get($parts, 4);
+            $item->count = intval(safe_get($parts, 3));
+            $item->text = safe_get($parts, 4);
             array_push($result, $item);
         }
 
         return $result;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->mfn . '#' . $this->tag . '#'
             . $this->occurrence . '#' . $this->count
             . '#' . $this->text;
@@ -2407,7 +2531,8 @@ final class TermPosting {
 /**
  * Параметры для поиска записей (метод searchEx).
  */
-final class SearchParameters {
+final class SearchParameters
+{
     /**
      * @var string Имя базы данных.
      */
@@ -2467,7 +2592,8 @@ final class SearchParameters {
 /**
  * Сценарий поиска.
  */
-final class SearchScenario {
+final class SearchScenario
+{
     /**
      * @var string Название поискового атрибута
      * (автор, инвентарный номер и т. д.).
@@ -2531,7 +2657,8 @@ final class SearchScenario {
      */
     public $format = '';
 
-    static function get(IniSection $section, $name, $index) {
+    static function get(IniSection $section, $name, $index)
+    {
         $fullName = 'Item' . $name . $index;
         return $section->getValue($fullName);
     }
@@ -2542,12 +2669,13 @@ final class SearchScenario {
      * @param IniFile $iniFile
      * @return array
      */
-    public static function parse(IniFile $iniFile) {
+    public static function parse(IniFile $iniFile)
+    {
         $result = array();
         $section = $iniFile->findSection('SEARCH');
         if ($section) {
             $count = intval($section->getValue('ItemNumb'));
-            for($i=0; $i < $count; $i++) {
+            for ($i = 0; $i < $count; $i++) {
                 $scenario = new SearchScenario();
                 $scenario->name = self::get($section, "Name", $i);
                 $scenario->prefix = self::get($section, "Pref", $i);
@@ -2572,7 +2700,8 @@ final class SearchScenario {
 /**
  * PAR-файл -- содержит пути к файлам базы данных ИРБИС.
  */
-final class ParFile {
+final class ParFile
+{
 
     // Пример файла IBIS.PAR:
     //
@@ -2648,7 +2777,8 @@ final class ParFile {
      * ParFile constructor.
      * @param string $mst Путь к MST-файлу.
      */
-    public function __construct($mst = '') {
+    public function __construct($mst = '')
+    {
         $this->mst = $mst;
         $this->xrf = $mst;
         $this->cnt = $mst;
@@ -2668,7 +2798,8 @@ final class ParFile {
      * @param array $lines Ответ сервера.
      * @throws IrbisException
      */
-    public function parse(array $lines) {
+    public function parse(array $lines)
+    {
         $map = array();
         foreach ($lines as $line) {
             if (is_null_or_empty($line)) {
@@ -2698,18 +2829,19 @@ final class ParFile {
         $this->ext = $map['11'];
     } // function parse
 
-    public function __toString() {
-        return '1='  . $this->xrf . PHP_EOL
-            .  '2='  . $this->mst . PHP_EOL
-            .  '3='  . $this->cnt . PHP_EOL
-            .  '4='  . $this->n01 . PHP_EOL
-            .  '5='  . $this->n02 . PHP_EOL
-            .  '6='  . $this->l01 . PHP_EOL
-            .  '7='  . $this->l02 . PHP_EOL
-            .  '8='  . $this->ifp . PHP_EOL
-            .  '9='  . $this->any . PHP_EOL
-            .  '10=' . $this->pft . PHP_EOL
-            .  '11=' . $this->ext . PHP_EOL;
+    public function __toString()
+    {
+        return '1=' . $this->xrf . PHP_EOL
+            . '2=' . $this->mst . PHP_EOL
+            . '3=' . $this->cnt . PHP_EOL
+            . '4=' . $this->n01 . PHP_EOL
+            . '5=' . $this->n02 . PHP_EOL
+            . '6=' . $this->l01 . PHP_EOL
+            . '7=' . $this->l02 . PHP_EOL
+            . '8=' . $this->ifp . PHP_EOL
+            . '9=' . $this->any . PHP_EOL
+            . '10=' . $this->pft . PHP_EOL
+            . '11=' . $this->ext . PHP_EOL;
     } // function __toString()
 
 } // class ParFile
@@ -2717,7 +2849,8 @@ final class ParFile {
 /**
  * Строка OPT-файла.
  */
-final class OptLine {
+final class OptLine
+{
     /**
      * @var string Паттерн.
      */
@@ -2732,7 +2865,8 @@ final class OptLine {
      * @param $text
      * @throws IrbisException
      */
-    public function parse($text) {
+    public function parse($text)
+    {
         $parts = preg_split("/\s+/", trim($text), 2, PREG_SPLIT_NO_EMPTY);
         if (count($parts) != 2) {
             throw new IrbisException();
@@ -2742,7 +2876,8 @@ final class OptLine {
         $this->worksheet = $parts[1];
     } // function parse
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->pattern . ' ' . $this->worksheet;
     } // function __toString
 
@@ -2751,7 +2886,8 @@ final class OptLine {
 /**
  * OPT-файл -- файл оптимизации рабочих листов и форматов показа.
  */
-final class OptFile {
+final class OptFile
+{
     // Пример OPT-файла
     //
     // 920
@@ -2793,7 +2929,8 @@ final class OptFile {
      * @param MarcRecord $record Запись
      * @return string Рабочий лист.
      */
-    public function getWorksheet(MarcRecord $record) {
+    public function getWorksheet(MarcRecord $record)
+    {
         return $record->fm($this->worksheetTag);
     }
 
@@ -2803,7 +2940,8 @@ final class OptFile {
      * @param array $lines Строки OPT-файла.
      * @throws IrbisException
      */
-    public function parse(array $lines) {
+    public function parse(array $lines)
+    {
         if (empty($lines) || count($lines) < 2)
             throw new IrbisException();
 
@@ -2825,7 +2963,8 @@ final class OptFile {
         }
     }
 
-    public static function sameChar($pattern, $testable) {
+    public static function sameChar($pattern, $testable)
+    {
         if ($pattern == '+') {
             return true;
         }
@@ -2840,7 +2979,8 @@ final class OptFile {
      * @param string $testable Проверяемая строка.
      * @return bool Совпало?
      */
-    public static function sameText($pattern, $testable) {
+    public static function sameText($pattern, $testable)
+    {
         if (!$pattern) {
             return false;
         }
@@ -2895,7 +3035,8 @@ final class OptFile {
      * @param string $text Проверяемый текст.
      * @return string|null Найденное значение либо null.
      */
-    public function resolveWorksheet($text) {
+    public function resolveWorksheet($text)
+    {
         foreach ($this->lines as $line) {
             if (self::sameText($line->pattern, $text)) {
                 return $line->worksheet;
@@ -2905,7 +3046,8 @@ final class OptFile {
         return null;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         $result = strval($this->worksheetTag) . PHP_EOL
             . strval($this->worksheetLength) . PHP_EOL;
 
@@ -2923,7 +3065,8 @@ final class OptFile {
 /**
  * Оператор глобальной корректировки с параметрами.
  */
-final class GblStatement {
+final class GblStatement
+{
     /**
      * @var string Команда, например, ADD или DEL.
      */
@@ -2961,8 +3104,8 @@ final class GblStatement {
     public function __construct($command,
                                 $parameter1 = 'XXXXXXXXX',
                                 $parameter2 = 'XXXXXXXXX',
-                                $format1    = 'XXXXXXXXX',
-                                $format2    = 'XXXXXXXXX')
+                                $format1 = 'XXXXXXXXX',
+                                $format2 = 'XXXXXXXXX')
     {
         $this->command = $command;
         $this->parameter1 = $parameter1;
@@ -2971,7 +3114,8 @@ final class GblStatement {
         $this->format2 = $format2;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return $this->command . IRBIS_DELIMITER
             . $this->parameter1 . IRBIS_DELIMITER
             . $this->parameter2 . IRBIS_DELIMITER
@@ -2984,7 +3128,8 @@ final class GblStatement {
 /**
  * Установки для глобальной корректировки.
  */
-final class GblSettings {
+final class GblSettings
+{
     /**
      * @var bool Актуализировать записи?
      */
@@ -3050,10 +3195,12 @@ final class GblSettings {
 /**
  * Клиентский запрос.
  */
-final class ClientQuery {
+final class ClientQuery
+{
     private $accumulator = '';
 
-    public function __construct(Connection $connection, $command) {
+    public function __construct(Connection $connection, $command)
+    {
         $this->addAnsi($command)->newLine();
         $this->addAnsi($connection->workstation)->newLine();
         $this->addAnsi($command)->newLine();
@@ -3073,7 +3220,8 @@ final class ClientQuery {
      * @param int $value Число.
      * @return $this
      */
-    public function add($value) {
+    public function add($value)
+    {
         $this->addAnsi(strval($value));
 
         return $this;
@@ -3085,7 +3233,8 @@ final class ClientQuery {
      * @param string $value Добавляемый текст.
      * @return $this
      */
-    public function addAnsi($value) {
+    public function addAnsi($value)
+    {
         $converted = mb_convert_encoding($value, ANSI_ENCODING, UTF_ENCODING);
         $this->accumulator .= $converted;
 
@@ -3098,7 +3247,8 @@ final class ClientQuery {
      * @param string $format Формат.
      * @return bool|ClientQuery
      */
-    public function addFormat($format) {
+    public function addFormat($format)
+    {
         if (!$format) {
             $this->newLine();
             return false;
@@ -3123,7 +3273,8 @@ final class ClientQuery {
      * @param string $value Добавляемый текст.
      * @return $this
      */
-    public function addUtf($value) {
+    public function addUtf($value)
+    {
         $this->accumulator .= $value;
 
         return $this;
@@ -3134,13 +3285,15 @@ final class ClientQuery {
      *
      * @return $this
      */
-    public function newLine() {
+    public function newLine()
+    {
         $this->accumulator .= chr(10);
 
         return $this;
     }
 
-    public function __toString() {
+    public function __toString()
+    {
         return strlen($this->accumulator) . chr(10) . $this->accumulator;
     }
 } // class ClientQuery
@@ -3148,7 +3301,8 @@ final class ClientQuery {
 /**
  * Ответ сервера.
  */
-final class ServerResponse {
+final class ServerResponse
+{
     /**
      * @var string Код команды (дублирует запрос).
      */
@@ -3186,7 +3340,8 @@ final class ServerResponse {
     private $offset;
     private $answerLength;
 
-    public function __construct(Connection $connection, $socket) {
+    public function __construct(Connection $connection, $socket)
+    {
         $this->connection = $connection;
         $this->answer = '';
 
@@ -3206,7 +3361,7 @@ final class ServerResponse {
         $this->queryId = $this->readInteger();
         $this->answerSize = $this->readInteger();
         $this->serverVersion = $this->readAnsi();
-        for ($i=0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             $this->readAnsi();
         }
     }
@@ -3217,7 +3372,8 @@ final class ServerResponse {
      * @param array $goodCodes Разрешенные коды возврата.
      * @return bool Результат проверки.
      */
-    public function checkReturnCode(array $goodCodes=array()) {
+    public function checkReturnCode(array $goodCodes = array())
+    {
         if ($this->getReturnCode() < 0) {
             if (!in_array($this->returnCode, $goodCodes)) {
                 $this->connection->lastError = $this->returnCode;
@@ -3230,7 +3386,8 @@ final class ServerResponse {
     /**
      * Отладочная печать.
      */
-    public function debug() {
+    public function debug()
+    {
         file_put_contents('php://stderr', print_r($this->answer, TRUE));
     }
 
@@ -3239,7 +3396,8 @@ final class ServerResponse {
      *
      * @return string Прочитанная строка.
      */
-    public function getLine() {
+    public function getLine()
+    {
         $result = '';
 
         while ($this->offset < $this->answerLength) {
@@ -3266,7 +3424,8 @@ final class ServerResponse {
      *
      * @return int Код возврата.
      */
-    public function getReturnCode() {
+    public function getReturnCode()
+    {
         $this->returnCode = $this->readInteger();
         return $this->returnCode;
     }
@@ -3276,7 +3435,8 @@ final class ServerResponse {
      *
      * @return string Прочитанная строка.
      */
-    public function readAnsi() {
+    public function readAnsi()
+    {
         $result = $this->getLine();
         $result = mb_convert_encoding($result, UTF_ENCODING, ANSI_ENCODING);
 
@@ -3288,7 +3448,8 @@ final class ServerResponse {
      *
      * @return int Прочитанное число.
      */
-    public function readInteger() {
+    public function readInteger()
+    {
         $line = $this->getLine();
 
         return intval($line);
@@ -3299,10 +3460,11 @@ final class ServerResponse {
      *
      * @return array
      */
-    public function readRemainingAnsiLines() {
+    public function readRemainingAnsiLines()
+    {
         $result = array();
 
-        while($this->offset < $this->answerLength) {
+        while ($this->offset < $this->answerLength) {
             $line = $this->readAnsi();
             array_push($result, $line);
         }
@@ -3315,7 +3477,8 @@ final class ServerResponse {
      *
      * @return bool|string
      */
-    public function readRemainingAnsiText() {
+    public function readRemainingAnsiText()
+    {
         $result = substr($this->answer, $this->offset);
         $this->offset = $this->answerLength;
         $result = mb_convert_encoding($result, mb_internal_encoding(), ANSI_ENCODING);
@@ -3328,10 +3491,11 @@ final class ServerResponse {
      *
      * @return array
      */
-    public function readRemainingUtfLines() {
+    public function readRemainingUtfLines()
+    {
         $result = array();
 
-        while($this->offset < $this->answerLength) {
+        while ($this->offset < $this->answerLength) {
             $line = $this->readUtf();
             array_push($result, $line);
         }
@@ -3344,7 +3508,8 @@ final class ServerResponse {
      *
      * @return bool|string
      */
-    public function readRemainingUtfText() {
+    public function readRemainingUtfText()
+    {
         $result = substr($this->answer, $this->offset);
         $this->offset = $this->answerLength;
 
@@ -3356,7 +3521,8 @@ final class ServerResponse {
      *
      * @return string
      */
-    public function readUtf() {
+    public function readUtf()
+    {
         return $this->getLine();
     }
 } // class ServerResponse
@@ -3364,7 +3530,8 @@ final class ServerResponse {
 /**
  * Подключение к ИРБИС-серверу.
  */
-final class Connection {
+final class Connection
+{
     /**
      * @var string Адрес сервера (можно как my.domain.com,
      * так и 192.168.1.1).
@@ -3438,11 +3605,13 @@ final class Connection {
 
     //================================================================
 
-    function __destruct() {
+    function __destruct()
+    {
         $this->disconnect();
     }
 
-    function _checkConnection() {
+    function _checkConnection()
+    {
         if (!$this->connected) {
             $this->lastError = -100003;
             return false;
@@ -3460,7 +3629,8 @@ final class Connection {
      * @param string $database Имя базы данных.
      * @return bool Признак успешности операции.
      */
-    public function actualizeDatabase($database) {
+    public function actualizeDatabase($database)
+    {
         return $this->actualizeRecord($database, 0);
     } // function actualizeDatabase
 
@@ -3471,7 +3641,8 @@ final class Connection {
      * @param int $mfn MFN, подлежащий актуализации.
      * @return bool Признак успешности операции.
      */
-    public function actualizeRecord($database, $mfn) {
+    public function actualizeRecord($database, $mfn)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3490,11 +3661,12 @@ final class Connection {
      *
      * @return bool Признак успешности операции.
      */
-    function connect() {
+    function connect()
+    {
         if ($this->connected)
             return true;
 
-    AGAIN:
+        AGAIN:
         $this->clientId = rand(100000, 900000);
         $this->queryId = 1;
         $query = new ClientQuery($this, 'A');
@@ -3533,7 +3705,8 @@ final class Connection {
      * @param int $readerAccess Читатель будет иметь доступ?
      * @return bool Признак успешности операции.
      */
-    function createDatabase($database, $description, $readerAccess=1) {
+    function createDatabase($database, $description, $readerAccess = 1)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3554,7 +3727,8 @@ final class Connection {
      * @param string $database Имя базы данных.
      * @return bool Признак успешности операции.
      */
-    public function createDictionary($database) {
+    public function createDictionary($database)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3573,7 +3747,8 @@ final class Connection {
      * @param string $database Имя удаляемой базы данных.
      * @return bool Признак успешности операции.
      */
-    public function deleteDatabase($database) {
+    public function deleteDatabase($database)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3591,7 +3766,8 @@ final class Connection {
      *
      * @param string $fileName Спецификация файла.
      */
-    public function deleteFile($fileName) {
+    public function deleteFile($fileName)
+    {
         $this->formatRecord("&uf('+9K$fileName')", 1);
     } // function deleteFile
 
@@ -3601,7 +3777,8 @@ final class Connection {
      * @param int $mfn MFN удаляемой записи.
      * @return bool Признак успешности операции.
      */
-    public function deleteRecord($mfn) {
+    public function deleteRecord($mfn)
+    {
         $record = $this->readRecord($mfn);
         if (!$record)
             return false;
@@ -3619,7 +3796,8 @@ final class Connection {
      *
      * @return bool Признак успешности операции.
      */
-    public function disconnect() {
+    public function disconnect()
+    {
         if (!$this->connected)
             return true;
 
@@ -3640,7 +3818,8 @@ final class Connection {
      * @return bool|ServerResponse Ответ сервера
      * либо признак сбоя операции.
      */
-    public function execute(ClientQuery $query) {
+    public function execute(ClientQuery $query)
+    {
         $this->lastError = 0;
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if ($socket === false) {
@@ -3675,7 +3854,8 @@ final class Connection {
      * @return bool|ServerResponse Ответ сервера
      * либо признак сбоя операции.
      */
-    public function executeAnyCommand($command, array $params=[]) {
+    public function executeAnyCommand($command, array $params = [])
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3696,7 +3876,8 @@ final class Connection {
      * @return bool|string Результат расформатирования
      * либо признак сбоя операции.
      */
-    public function formatRecord($format, $mfn) {
+    public function formatRecord($format, $mfn)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3722,7 +3903,8 @@ final class Connection {
      * @return bool|string Результат расформатирования
      * либо признак сбоя операции.
      */
-    public function formatVirtualRecord($format, MarcRecord $record) {
+    public function formatVirtualRecord($format, MarcRecord $record)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3752,7 +3934,8 @@ final class Connection {
      * @return array|bool Результат расформатирования
      * либо признак сбоя операции.
      */
-    public function formatRecords($format, array $mfnList) {
+    public function formatRecords($format, array $mfnList)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3790,7 +3973,8 @@ final class Connection {
      * @return bool|DatabaseInfo Информация о базе данных
      * либо признак сбоя операции.
      */
-    public function getDatabaseInfo($database = '') {
+    public function getDatabaseInfo($database = '')
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3814,7 +3998,8 @@ final class Connection {
      * @return int Максимальный MFN
      * либо 0 в качестве признака сбоя операции.
      */
-    public function getMaxMfn($database) {
+    public function getMaxMfn($database)
+    {
         if (!$this->_checkConnection())
             return 0;
 
@@ -3834,7 +4019,8 @@ final class Connection {
      * @return array Массив TermPosting
      * (пустой в случае сбоя операции).
      */
-    public function getRecordPostings($mfn, $prefix) {
+    public function getRecordPostings($mfn, $prefix)
+    {
         $result = array();
         if (!$this->_checkConnection())
             return $result;
@@ -3857,7 +4043,8 @@ final class Connection {
      * @return bool|ServerStat Статистика
      * либо признак сбоя операции.
      */
-    public function getServerStat() {
+    public function getServerStat()
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3878,7 +4065,8 @@ final class Connection {
      * @return bool|VersionInfo Версия сервера
      * либо признак сбоя операции.
      */
-    public function getServerVersion() {
+    public function getServerVersion()
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3899,7 +4087,8 @@ final class Connection {
      * @return array|bool Список пользователей
      * либо признак сбоя операции.
      */
-    public function getUserList() {
+    public function getUserList()
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3920,7 +4109,8 @@ final class Connection {
      * @return array|bool Массив результатов корректировки
      * либо признак сбоя операции.
      */
-    public function globalCorrection(GblSettings $settings) {
+    public function globalCorrection(GblSettings $settings)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -3928,7 +4118,7 @@ final class Connection {
         $database = $settings->database ?: $this->database;
         $query->addAnsi($database)->newLine();
         $query->add(intval($settings->actualize))->newLine();
-        if  (!is_null_or_empty($settings->filename)) {
+        if (!is_null_or_empty($settings->filename)) {
             $query->addAnsi('@' . $settings->filename)->newLine();
         } else {
             $encoded = '!0' . IRBIS_DELIMITER;
@@ -3974,7 +4164,8 @@ final class Connection {
      * @return bool Получение статуса,
      * подключен ли клиент в настоящее время.
      */
-    public function isConnected() {
+    public function isConnected()
+    {
         return $this->connected;
     } // function isConnected
 
@@ -3985,7 +4176,8 @@ final class Connection {
      * @return array|bool Список баз данных
      * либо признак сбоя операции.
      */
-    public function listDatabases($specification = '1..dbnam2.mnu') {
+    public function listDatabases($specification = '1..dbnam2.mnu')
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4005,7 +4197,8 @@ final class Connection {
      * @return array|bool Список файлов
      * либо признак сбоя операции.
      */
-    public function listFiles($specification) {
+    public function listFiles($specification)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4035,7 +4228,8 @@ final class Connection {
      * @return array|bool Список процессов
      * либо признак сбоя операции.
      */
-    public function listProcesses() {
+    public function listProcesses()
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4057,7 +4251,8 @@ final class Connection {
      * @return array Термины (очищенные от префикса)
      * (пустой массив при сбое операции).
      */
-    public function listTerms($prefix) {
+    public function listTerms($prefix)
+    {
         $result = array();
 
         if (!$this->_checkConnection())
@@ -4096,7 +4291,8 @@ final class Connection {
      * т. к. код возврата не анализируется.
      * Всегда false при отсутствии подключения.
      */
-    public function noOp() {
+    public function noOp()
+    {
         if (!$this->_checkConnection()) {
             return false;
         }
@@ -4114,10 +4310,11 @@ final class Connection {
      * @param string $connectionString Строка подключения.
      * @throws IrbisException Ошибка в структуре строки подключения.
      */
-    public function parseConnectionString($connectionString) {
+    public function parseConnectionString($connectionString)
+    {
         $items = explode(';', $connectionString);
         foreach ($items as $item) {
-            if (is_null_or_empty($item)){
+            if (is_null_or_empty($item)) {
                 continue;
             }
 
@@ -4180,7 +4377,8 @@ final class Connection {
      * @return bool|string Результат расформатирования
      * либо признак сбоя операции.
      */
-    public function printTable (TableDefinition $definition) {
+    public function printTable(TableDefinition $definition)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4211,7 +4409,8 @@ final class Connection {
      * @return IniFile|null INI-файл
      * либо null в качестве признака сбоя операции.
      */
-    public function readIniFile($specification) {
+    public function readIniFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             return null;
@@ -4229,7 +4428,8 @@ final class Connection {
      * @return bool|MenuFile MNU-файл
      * либо признак сбоя операции.
      */
-    public function readMenuFile($specification) {
+    public function readMenuFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             return false;
@@ -4248,7 +4448,8 @@ final class Connection {
      * либо признак сбоя операции.
      * @throws IrbisException Ошибка в структуре OPT-файла.
      */
-    public function readOptFile($specification) {
+    public function readOptFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             return false;
@@ -4267,7 +4468,8 @@ final class Connection {
      * либо признак сбоя операции.
      * @throws IrbisException Ошибка в структуре PAR-файла.
      */
-    public function readParFile($specification) {
+    public function readParFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             return false;
@@ -4285,7 +4487,8 @@ final class Connection {
      * @return array|bool Массив постингов
      * либо признак сбоя операции.
      */
-    public function readPostings(PostingParameters $parameters) {
+    public function readPostings(PostingParameters $parameters)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4320,7 +4523,8 @@ final class Connection {
      * @return bool|RawRecord Запись
      * либо признак сбоя операции.
      */
-    public function readRawRecord($mfn) {
+    public function readRawRecord($mfn)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4345,7 +4549,8 @@ final class Connection {
      * @return bool|MarcRecord Запись
      * либо признак сбоя операции.
      */
-    public function readRecord($mfn) {
+    public function readRecord($mfn)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4366,12 +4571,13 @@ final class Connection {
     /**
      * Чтение указанной версии записи.
      *
-     * @param int$mfn MFN записи
+     * @param int $mfn MFN записи
      * @param int $version Версия записи
      * @return bool|MarcRecord Запись
      * либо признак сбоя операции.
      */
-    public function readRecordVersion($mfn, $version) {
+    public function readRecordVersion($mfn, $version)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4397,7 +4603,8 @@ final class Connection {
      * @return array Массив записей
      * (пустой массив как признак сбоя операции).
      */
-    public function readRecords(array $mfnList) {
+    public function readRecords(array $mfnList)
+    {
         if (!$this->_checkConnection())
             return array();
 
@@ -4449,7 +4656,8 @@ final class Connection {
      * @return array|bool Массив сценариев
      * либо признак сбоя операции.
      */
-    public function readSearchScenario($specification) {
+    public function readSearchScenario($specification)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4470,7 +4678,8 @@ final class Connection {
      * @return array|bool Массив терминов
      * либо призак сбоя операции.
      */
-    public function readTerms($startTerm, $numberOfTerms=100) {
+    public function readTerms($startTerm, $numberOfTerms = 100)
+    {
         $parameters = new TermParameters();
         $parameters->startTerm = $startTerm;
         $parameters->numberOfTerms = $numberOfTerms;
@@ -4485,7 +4694,8 @@ final class Connection {
      * @return array|bool Массив терминов
      * либо признак сбоя операции.
      */
-    public function readTermsEx(TermParameters $parameters) {
+    public function readTermsEx(TermParameters $parameters)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4513,7 +4723,8 @@ final class Connection {
      * @return bool|string Текст файла
      * либо признак сбоя операции.
      */
-    public function readTextFile($specification) {
+    public function readTextFile($specification)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4536,7 +4747,8 @@ final class Connection {
      * @return array Массив строк
      * (пустой массив как признак сбоя операции).
      */
-    public function readTextLines($specification) {
+    public function readTextLines($specification)
+    {
         if (!$this->_checkConnection())
             return array();
 
@@ -4560,7 +4772,8 @@ final class Connection {
      * либо признак сбоя операции.
      * @throws IrbisException Ошибка в структуре TRE-файла.
      */
-    public function readTreeFile($specification) {
+    public function readTreeFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             return false;
@@ -4577,7 +4790,8 @@ final class Connection {
      * @param string $database База данных.
      * @return bool Признак успешности операции.
      */
-    public function reloadDictionary($database) {
+    public function reloadDictionary($database)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4595,7 +4809,8 @@ final class Connection {
      * @param string $database База данных.
      * @return bool Признак успешности операции.
      */
-    public function reloadMasterFile($database) {
+    public function reloadMasterFile($database)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4614,7 +4829,8 @@ final class Connection {
      * @return IniFile Полученный INI-файл.
      * @throws IrbisException Файл не найден.
      */
-    public function requireIniFile($specification) {
+    public function requireIniFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             throw new IrbisException("File not found: " . $specification);
@@ -4632,7 +4848,8 @@ final class Connection {
      * @return MenuFile Полученный MNU-файл.
      * @throws IrbisException Файл не найден.
      */
-    public function requireMenuFile($specification) {
+    public function requireMenuFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             throw new IrbisException("File not found: " . $specification);
@@ -4650,7 +4867,8 @@ final class Connection {
      * @return OptFile Полученный OPT-файл.
      * @throws IrbisException Файл не найден.
      */
-    public function requireOptFile($specification) {
+    public function requireOptFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             throw new IrbisException("File not found: " . $specification);
@@ -4668,7 +4886,8 @@ final class Connection {
      * @return ParFile Полученный PAR-файл.
      * @throws IrbisException Файл не найден.
      */
-    public function requireParFile($specification) {
+    public function requireParFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             throw new IrbisException("File not found: " . $specification);
@@ -4686,7 +4905,8 @@ final class Connection {
      * @return string Текст полученного файла.
      * @throws IrbisException Файл не найден.
      */
-    public function requireTextFile($specification) {
+    public function requireTextFile($specification)
+    {
         $result = $this->readTextFile($specification);
         if (!$result || is_null_or_empty($result))
             throw new IrbisException("File not found: " . $specification);
@@ -4701,7 +4921,8 @@ final class Connection {
      * @return TreeFile Полученный TRE-файл.
      * @throws IrbisException Файл не найден.
      */
-    public function requireTreeFile($specification) {
+    public function requireTreeFile($specification)
+    {
         $lines = $this->readTextLines($specification);
         if (!$lines)
             throw new IrbisException("File not found: " . $specification);
@@ -4717,7 +4938,8 @@ final class Connection {
      *
      * @return bool Признак успешности операции.
      */
-    public function restartServer() {
+    public function restartServer()
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4735,7 +4957,8 @@ final class Connection {
      * @return array|bool Массив найденных MFN
      * либо признак сбоя операции.
      */
-    public function search($expression) {
+    public function search($expression)
+    {
         $parameters = new SearchParameters();
         $parameters->expression = $expression;
         $found = $this->searchEx($parameters);
@@ -4751,7 +4974,8 @@ final class Connection {
      * @return array Массив MFN найденных записей
      * (возможно, пустой).
      */
-    public function searchAll($expression) {
+    public function searchAll($expression)
+    {
         $result = array();
         if (!$this->_checkConnection())
             return $result;
@@ -4799,7 +5023,8 @@ final class Connection {
      * @param string $expression Поисковое выражение.
      * @return int Количество соответствующих записей.
      */
-    public function searchCount($expression) {
+    public function searchCount($expression)
+    {
         if (!$this->_checkConnection())
             return 0;
 
@@ -4824,7 +5049,8 @@ final class Connection {
      * @return array|bool Массив найденных записей
      * либо признак сбоя операции.
      */
-    public function searchEx(SearchParameters $parameters) {
+    public function searchEx(SearchParameters $parameters)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4857,7 +5083,8 @@ final class Connection {
      * @return array Массив полученных записей
      * (возможно, пустой).
      */
-    public function searchRead($expression, $limit=0) {
+    public function searchRead($expression, $limit = 0)
+    {
         $parameters = new SearchParameters();
         $parameters->expression = $expression;
         $parameters->format = ALL_FORMAT;
@@ -4888,7 +5115,8 @@ final class Connection {
      * @return MarcRecord|null Полученная запись либо null,
      * если запись не найдена.
      */
-    public function searchSingleRecord($expression) {
+    public function searchSingleRecord($expression)
+    {
         $found = $this->searchRead($expression, 1);
         if (count($found))
             return $found[0];
@@ -4902,7 +5130,8 @@ final class Connection {
      * @throws IrbisException Обнаружена ошибка,
      * выброшено исключение.
      */
-    public function throwOnError() {
+    public function throwOnError()
+    {
         if ($this->lastError < 0)
             throw new IrbisException($this->lastError);
     } // function throwOnError
@@ -4914,13 +5143,14 @@ final class Connection {
      * @return string Строка подключения для текушего соединения
      * (не обязательно активного).
      */
-    public function toConnectionString() {
-        return 'host='     . $this->host
-            . ';port='     . $this->port
+    public function toConnectionString()
+    {
+        return 'host=' . $this->host
+            . ';port=' . $this->port
             . ';username=' . $this->username
             . ';password=' . $this->password
             . ';database=' . $this->database
-            . ';arm='      . $this->workstation . ';';
+            . ';arm=' . $this->workstation . ';';
     } // function toConnectionString
 
     /**
@@ -4929,7 +5159,8 @@ final class Connection {
      * @param string $database База данных.
      * @return bool Признак успешности операции.
      */
-    public function truncateDatabase($database) {
+    public function truncateDatabase($database)
+    {
         if (!$this->_checkConnection()) {
             return false;
         }
@@ -4949,7 +5180,8 @@ final class Connection {
      * @return bool|MarcRecord Восстановленная запись
      * либо признак сбоя операции.
      */
-    public function undeleteRecord($mfn) {
+    public function undeleteRecord($mfn)
+    {
         $record = $this->readRecord($mfn);
         if (!$record)
             return $record;
@@ -4969,7 +5201,8 @@ final class Connection {
      * @param string $database База данных.
      * @return bool Признак успешности операции.
      */
-    public function unlockDatabase($database) {
+    public function unlockDatabase($database)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -4988,7 +5221,8 @@ final class Connection {
      * @param array $mfnList Массив MFN.
      * @return bool Признак успешности операции.
      */
-    public function unlockRecords($database, array $mfnList) {
+    public function unlockRecords($database, array $mfnList)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -5014,7 +5248,8 @@ final class Connection {
      * @param array $lines Изменённые строки.
      * @return bool Признак успешности операции.
      */
-    public function updateIniFile(array $lines) {
+    public function updateIniFile(array $lines)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -5037,7 +5272,8 @@ final class Connection {
      * @param array $users Список пользователей.
      * @return bool Признак успешности операции.
      */
-    public function updateUserList(array $users) {
+    public function updateUserList(array $users)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -5057,7 +5293,8 @@ final class Connection {
      * @return bool|int Новый максимальный MFN в базе данных
      * либо признак сбоя операции.
      */
-    public function writeRawRecord(RawRecord $record) {
+    public function writeRawRecord(RawRecord $record)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -5084,8 +5321,9 @@ final class Connection {
      * @return bool|int Новый максимальный MFN в базе данных
      * либо признак сбоя операции.
      */
-    public function writeRecord(MarcRecord $record, $lockFlag=0, $actualize=1,
-                                $dontParse=false) {
+    public function writeRecord(MarcRecord $record, $lockFlag = 0, $actualize = 1,
+                                $dontParse = false)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -5122,8 +5360,9 @@ final class Connection {
      * @param bool $dontParse
      * @return bool Признак успешности операции.
      */
-    public function writeRecords(array $records, $lockFlag=0, $actualize=1,
-                                 $dontParse=false) {
+    public function writeRecords(array $records, $lockFlag = 0, $actualize = 1,
+                                 $dontParse = false)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -5176,7 +5415,8 @@ final class Connection {
      * (включая текст файла).
      * @return bool Признак успешности операции.
      */
-    public function writeTextFile($specification) {
+    public function writeTextFile($specification)
+    {
         if (!$this->_checkConnection())
             return false;
 
@@ -5190,7 +5430,8 @@ final class Connection {
 
 } // class Connection
 
-final class UI {
+final class UI
+{
 
     /**
      * @var Connection Активное подключение к серверу.
@@ -5203,7 +5444,8 @@ final class UI {
      * @param Connection $connection Активное (!) подключение к серверу.
      * @throws IrbisException
      */
-    public function __construct(Connection $connection) {
+    public function __construct(Connection $connection)
+    {
         if (!$connection->isConnected())
             throw new IrbisException();
 
@@ -5217,7 +5459,8 @@ final class UI {
      * @param string $selected
      * @throws IrbisException
      */
-    public function listDatabases($class='', $selected='') {
+    public function listDatabases($class = '', $selected = '')
+    {
         $dbnnamecat = $this->connection->iniFile->getValue('Main', 'DBNNAMECAT', 'dbnam3.mnu');
         $databases = $this->connection->listDatabases('1..' . $dbnnamecat);
         if (!$databases)
@@ -5244,7 +5487,8 @@ final class UI {
      * @return array
      * @throws IrbisException
      */
-    public function getSearchScenario() {
+    public function getSearchScenario()
+    {
         $ini = $this->connection->iniFile;
         $fileName = $ini->getValue("MAIN", 'SearchIni'); // ???
         $section = $ini->findSection("SEARCH");
@@ -5265,8 +5509,9 @@ final class UI {
      * @param int $selectedIndex
      * @param string $selectedValue
      */
-    public function listSearchScenario($name, $scenarios, $class='', $selectedIndex=-1,
-            $selectedValue='') {
+    public function listSearchScenario($name, $scenarios, $class = '', $selectedIndex = -1,
+                                       $selectedValue = '')
+    {
         echo "<select name='$name'>" . PHP_EOL;
         $classText = '';
         if ($class) {
@@ -5315,7 +5560,8 @@ final class XrfRecord
      * Запись (логически или физически) удалена?
      * @return bool
      */
-    public function deleted() {
+    public function isDeleted()
+    {
         return ($this->status & 3) != 0;
     }
 
@@ -5323,7 +5569,8 @@ final class XrfRecord
      * Смещение записи.
      * @return int
      */
-    public function offset() {
+    public function offset()
+    {
         return ($this->high << 32) + $this->low;
     }
 } // class XrfRecord
@@ -5339,16 +5586,18 @@ final class XrfFile
     /**
      * XrfFile constructor.
      * @param $filename
-     * @throws Exception
+     * @throws IrbisException
      */
-    public function __construct($filename) {
+    public function __construct($filename)
+    {
         $this->file = fopen($filename, 'rb');
         if (!$this->file) {
-            throw new Exception("Can't open " . $filename);
+            throw new IrbisException("Can't open " . $filename);
         }
     } // function __construct
 
-    public function __destruct() {
+    public function __destruct()
+    {
         if ($this->file)
             fclose($this->file);
     } // function __destruct
@@ -5358,7 +5607,8 @@ final class XrfFile
      * @param int $mfn MFN записи.
      * @return XrfRecord
      */
-    public function read($mfn) {
+    public function read($mfn)
+    {
         $offset = ($mfn - 1) * 12;
         fseek($this->file, $offset, SEEK_SET);
         $content = fread($this->file, 12);
