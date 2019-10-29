@@ -5,7 +5,7 @@
 
 <?php
 
-require_once '../Source/PhpIrbis.php';
+require_once __DIR__ . '/../Source/PhpIrbis.php';
 
 //
 // С помощью небольшого хака можно напрямую

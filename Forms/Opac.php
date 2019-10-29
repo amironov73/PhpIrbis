@@ -1,6 +1,7 @@
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <title>Электронный каталог</title>
     <style>
         body, table, td {
             font: normal 12px Arial;
@@ -80,16 +81,16 @@ require_once '../Source/PhpIrbis.php';
 
 try {
     $catalog = $_REQUEST['catalogBox'];
-    $term1   = $_REQUEST['termBox1'];
-    $value1  = $_REQUEST['valueBox1'];
-    $trim1   = $_REQUEST['trimBox1'];
-    $term2   = $_REQUEST['termBox2'];
-    $value2  = $_REQUEST['valueBox2'];
-    $trim2   = $_REQUEST['trimBox2'];
-    $term3   = $_REQUEST['termBox3'];
-    $value3  = $_REQUEST['valueBox3'];
-    $trim3   = $_REQUEST['trimBox3'];
-    $format  = $_REQUEST['formatBox'];
+    $term1 = $_REQUEST['termBox1'];
+    $value1 = $_REQUEST['valueBox1'];
+    $trim1 = $_REQUEST['trimBox1'];
+    $term2 = $_REQUEST['termBox2'];
+    $value2 = $_REQUEST['valueBox2'];
+    $trim2 = $_REQUEST['trimBox2'];
+    $term3 = $_REQUEST['termBox3'];
+    $value3 = $_REQUEST['valueBox3'];
+    $trim3 = $_REQUEST['trimBox3'];
+    $format = $_REQUEST['formatBox'];
 
     // Подключаемся к серверу
     $connection = new Irbis\Connection();
@@ -246,7 +247,7 @@ try {
         $found = Irbis\FoundLine::toDescription($found);
         sort($found);
 
-        echo "<p style='color: blue;text-align: center;'>Найдено записей: " . count($found) . "</p>";
+        echo "<p style='color: blue;text-align: center;'>Найдено записей: ", count($found), "</p>";
 
         echo "<ol>";
         foreach ($found as $item) {
@@ -259,9 +260,8 @@ try {
     echo "</div>" . PHP_EOL;
 
     $connection->disconnect();
-}
-catch (Exception $exception) {
-    echo "ОШИБКА: " . $exception;
+} catch (Exception $exception) {
+    echo "ОШИБКА: ", $exception;
 }
 
 ?>

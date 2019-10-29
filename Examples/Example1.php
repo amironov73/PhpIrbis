@@ -5,7 +5,7 @@
 
 <?php
 
-require_once '../Source/PhpIrbis.php';
+require_once __DIR__ . '/../Source/PhpIrbis.php';
 
 try {
 
@@ -54,7 +54,6 @@ try {
 
     // Отключаемся от сервера
     $connection->disconnect();
-}
-catch (Exception $exception) {
+} catch (Exception $exception) {
     echo "ОШИБКА:  $exception";
 }
