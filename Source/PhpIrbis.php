@@ -3151,9 +3151,9 @@ final class GblSettings
     public $filename = '';
 
     /**
-     * @var int MFN первой записи.
+     * @var int Нижняя граница MFN для поиска обрабатываемых записей.
      */
-    public $firstRecord = 0;
+    public $lowerBound = 0;
 
     /**
      * @var bool Применять формальный контроль?
@@ -3176,14 +3176,19 @@ final class GblSettings
     public $minMfn = 0;
 
     /**
-     * @var int Число обрабатываемых записей.
+     * @var int Верхняя граница MFN для поиска обрабатываемых записей.
      */
-    public $numberOfRecords = 0;
+    public $upperBound = 0;
 
     /**
-     * @var string Поисковое выражение.
+     * @var string Поисковое выражение поиска по словарю.
      */
     public $searchExpression = '';
+
+    /**
+     * @var string Поисковое выражение последовательного поиска.
+     */
+    public $sequentialExpression = '';
 
     /**
      * @var array Массив операторов.
@@ -4121,17 +4126,22 @@ final class Connection
         if (!is_null_or_empty($settings->filename)) {
             $query->addAnsi('@' . $settings->filename)->newLine();
         } else {
-            $encoded = '!0' . IRBIS_DELIMITER;
+            // TODO поддержка параметров GBL
+            $encoded = '!0' . IRBIS_DELIMITER; // 0 здесь означает количество параметров
             foreach ($settings->statements as $statement) {
                 $encoded .= strval($statement);
             }
             $encoded .= IRBIS_DELIMITER;
             $query->addUtf($encoded)->newLine();
         }
-        $query->addAnsi($settings->searchExpression)->newLine();
-        $query->add($settings->firstRecord)->newLine();
-        $query->add($settings->numberOfRecords)->newLine();
-        $query->newLine();
+
+        // отбор записей на основе поиска
+        $query->addUtf($settings->searchExpression)->newLine(); // поиск по словарю
+        $query->add($settings->lowerBound)->newLine(); // нижняя граница MFN
+        $query->add($settings->upperBound)->newLine(); // верхняя граница MFN
+        $query->addUtf($settings->sequentialExpression)->newLine(); // последовательный
+
+        // TODO поддержка режима "кроме отмеченных"
         if (!$settings->mfnList) {
             $count = $settings->maxMfn - $settings->minMfn + 1;
             $query->add($count)->newLine();
