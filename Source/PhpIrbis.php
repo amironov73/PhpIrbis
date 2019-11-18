@@ -3062,6 +3062,26 @@ final class OptFile
 
 } // class OptFile
 
+final class GblParameter
+{
+    /**
+     * @var string Наименование параметра, которое появится
+     * в названии столбца, задающего параметр.
+     */
+    public $title = '';
+
+    /**
+     * @var string Значение параметра или пусто, если пользователю
+     * предлагается задать его значение перед выполнением
+     * корректировки. В этой строке можно задать имя файла
+     * меню (с расширением MNU) или имя рабочего листа подполей
+     * (с расширением Wss), которые будут поданы для выбора
+     * значения параметра.
+     */
+    public $value = '';
+
+} // class GblParameter
+
 /**
  * Оператор глобальной корректировки с параметрами.
  */
@@ -3151,14 +3171,14 @@ final class GblSettings
     public $filename = '';
 
     /**
-     * @var int Нижняя граница MFN для поиска обрабатываемых записей.
-     */
-    public $lowerBound = 0;
-
-    /**
      * @var bool Применять формальный контроль?
      */
     public $formalControl = false;
+
+    /**
+     * @var int Нижняя граница MFN для поиска обрабатываемых записей.
+     */
+    public $lowerBound = 0;
 
     /**
      * @var int Максимальный MFN.
@@ -3176,9 +3196,10 @@ final class GblSettings
     public $minMfn = 0;
 
     /**
-     * @var int Верхняя граница MFN для поиска обрабатываемых записей.
+     * @var array Параметры глобальной корректировки.
+     * Как правило, параметров нет.
      */
-    public $upperBound = 0;
+    public $parameters = array();
 
     /**
      * @var string Поисковое выражение поиска по словарю.
@@ -3194,6 +3215,27 @@ final class GblSettings
      * @var array Массив операторов.
      */
     public $statements = array();
+
+    /**
+     * @var int Верхняя граница MFN для поиска обрабатываемых записей.
+     */
+    public $upperBound = 0;
+
+    /**
+     * Произвести подстановку параметров (если таковые наличествуют).
+     *
+     * @param $text string Текст, в котором должна быть произведена подстановка.
+     * @return string Текст после подстановок.
+     */
+    public function substituteParameters($text)
+    {
+       for ($i = 0; $i < count($this->parameters); $i += 1) {
+           $mark = '%' . strval($i + 1);
+           $text = str_replace($mark, $this->parameters[$i]->value, $text);
+       }
+
+       return $text;
+    }
 
 } // class GblSettings
 
@@ -4126,10 +4168,11 @@ final class Connection
         if (!is_null_or_empty($settings->filename)) {
             $query->addAnsi('@' . $settings->filename)->newLine();
         } else {
-            // TODO поддержка параметров GBL
-            $encoded = '!0' . IRBIS_DELIMITER; // 0 здесь означает количество параметров
+            // "!" здесь означает, что передавать будем в UTF-8
+            // не знаю, что тут означает "0"
+            $encoded = '!0' . IRBIS_DELIMITER;
             foreach ($settings->statements as $statement) {
-                $encoded .= strval($statement);
+                $encoded .=  $settings->substituteParameters(strval($statement));
             }
             $encoded .= IRBIS_DELIMITER;
             $query->addUtf($encoded)->newLine();
@@ -5499,6 +5542,7 @@ final class UI
      */
     public function getSearchScenario()
     {
+        // TODO доделать
         $ini = $this->connection->iniFile;
         $fileName = $ini->getValue("MAIN", 'SearchIni'); // ???
         $section = $ini->findSection("SEARCH");
