@@ -181,6 +181,30 @@ function search_count()
     return $result;
 } // function search
 
+function search_format()
+{
+    $connection = get_connection();
+    $database = $_GET['db'] ?: $connection->database;
+    $expression = $_GET['expr'];
+    $format = $_GET['format'];
+    $parameters = new \Irbis\SearchParameters();
+    $parameters->database = $database;
+    $parameters->expression = $expression;
+    $parameters->format = $format;
+    $result = $connection->searchEx($parameters);
+    $connection->disconnect();
+    $result = \Irbis\FoundLine::toDescription($result);
+    sort($result);
+    return $result;
+} // function search
+
+function search_scenarios()
+{
+    $connection = get_connection();
+    $result = \Irbis\SearchScenario::parse($connection->iniFile);
+    return $result;
+} // function search_scenarios
+
 function server_stat()
 {
     $connection = get_connection();
@@ -258,12 +282,20 @@ switch ($operation) {
         restart_server();
         break;
 
+    case 'scenarios':
+        $result = search_scenarios();
+        break;
+
     case 'search':
         $result = search();
         break;
 
     case 'search_count':
         $result = search_count();
+        break;
+
+    case 'search_format':
+        $result = search_format();
         break;
 
     case 'server_stat':

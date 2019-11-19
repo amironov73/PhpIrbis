@@ -1,20 +1,98 @@
 <!DOCTYPE html>
+
+<!--
+
+Одностраничный электронный каталог
+на основе Vue.js + Bootstrap + Jsoner.php
+
+Это пока прототип. Но это абсолютно наш продукт. (с)
+
+-->
+
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Электронный каталог</title>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <link rel="stylesheet" href="css/bootstrap-reboot.min.css">
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/fontawesome.min.css">
     <link rel="stylesheet" href="css/solid.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+
+    <title>Электронный каталог</title>
 </head>
 <body>
-<div class="m-2">
-    <p><span class="fa fa-square text-primary" style="cursor: pointer;"></span> Первый параграф</p>
-    <p><span class="fa fa-check-square text-primary" style="cursor: pointer;"></span> Второй параграф</p>
-    <p><span class="fa fa-square text-primary"  style="cursor: pointer;"></span> Третий параграф</p>
-    <p><span class="fa fa-check-square text-primary"  style="cursor: pointer;"></span> Четвёртый параграф</p>
+
+<div id="app">
+    <div class="container-fluid m-2">
+        <div class="row">
+            <form class="col-6 offset-3"
+                  onsubmit="return searchBooks();">
+                <div class="row">
+                    <select class="col form-control mx-1"
+                            v-model="selectedDb">
+                        <option v-for="db in databases" :value="db.name">
+                            {{db.description}}
+                        </option>
+                    </select>
+                </div>
+                <div class="row mt-2">
+                    <select class="col-3 form-control mx-1"
+                            v-model="selectedScenario">
+                        <option v-for="scenario in scenarios" :value="scenario.prefix">
+                            {{scenario.name}}
+                        </option>
+                    </select>
+                    <input type="text" class="col-4 form-control mx-1" v-model="searchValue"/>
+                    <div class="col-4">
+                        <span class="text-primary" style="cursor: pointer;"
+                              @click="trimValue = !trimValue">
+                            <span class="fa fa-check-square" v-if="trimValue"></span>
+                            <span class="fa fa-square" v-else></span>
+                        </span>
+                        Усечение
+                        </span>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col">
+                        <button type="submit" class="form-control btn-primary">Поиск</button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 offset-3 align-content-center text-center"
+                         v-show="foxVisible"
+                         style="display: none">
+                        <img
+                                style="width: 100%; max-width: 30rem;"
+                                alt="Бегущий зверёк"
+                                src="img/arctic-fox.gif">
+                    </div>
+                </div>
+            </form>
+
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <ol class="mt-2">
+                    <li v-for="book in foundBooks">{{book}}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<script src="js/axios.min.js"></script>
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="js/opac.js"></script>
+
 </body>
 </html>
