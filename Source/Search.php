@@ -1,7 +1,10 @@
 <?php
 
+namespace Irbis;
+
 /**
- * Search expression builder.
+ * Class Search Search expression builder.
+ * @package Irbis
  */
 final class Search
 {
