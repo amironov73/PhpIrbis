@@ -60,4 +60,4 @@ echo "Найдено: ", $found;
 $client->disconnect();
 ```
 
-[Предыдущая глава](chapter4.md)
+[Предыдущая глава](chapter4.md) | [Следующая глава](chapter6.md)

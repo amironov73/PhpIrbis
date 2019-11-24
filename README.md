@@ -47,3 +47,4 @@ $connection->disconnect();
 * [**Классы MarcRecord, RecordField и SubField**](Docs/chapter3.md)
 * [**Вспомогательные классы и функции**](Docs/chapter4.md)
 * [**Построитель запросов**](Docs/chapter5.md)
+* [**Глобальная корректировка**](Docs/chapter6.md)

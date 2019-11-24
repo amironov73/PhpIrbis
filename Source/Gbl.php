@@ -5,7 +5,7 @@ namespace Irbis;
 require_once __DIR__ . '/PhpIrbis.php';
 
 /**
- * Class Gbl Построитель глобальной корректировки.
+ * Class Gbl Построитель глобальной корректировки (ГК).
  * @package Irbis
  */
 final class Gbl
@@ -14,7 +14,7 @@ final class Gbl
     private $_statements = array();
 
     /**
-     * Генерация результата по заданным значениям.
+     * Выдача настроек ГК по заданным значениям.
      * @return GblSettings
      */
     public function build() {
@@ -278,6 +278,12 @@ final class Gbl
         return $this->statement('UNTIL', $untilCondition);
     } // function repeat
 
+    /**
+     * Замена целиком поля или подполя на новое значение.
+     * @param $field
+     * @param $to
+     * @return Gbl
+     */
     public function replace($field, $to)
     {
         return $this->statement('REP', $field, '*', $to);

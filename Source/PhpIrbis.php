@@ -3146,7 +3146,7 @@ final class GblStatement
 } // class GblStatement
 
 /**
- * Установки для глобальной корректировки.
+ * Настройки для глобальной корректировки.
  */
 final class GblSettings
 {
@@ -3202,7 +3202,7 @@ final class GblSettings
     public $parameters = array();
 
     /**
-     * @var string Поисковое выражение поиска по словарю.
+     * @var string Поисковое выражение отбора записей по словарю.
      */
     public $searchExpression = '';
 
