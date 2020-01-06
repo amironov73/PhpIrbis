@@ -1,13 +1,13 @@
 # PhpIrbis
 
-ManagedIrbis ported to PHP 5. Available on [Packagist](https://packagist.org/packages/amironov73/phpirbis).
+Universal client software for IRBIS64 library automation system (ManagedIrbis ported to PHP 5). Available on [Packagist](https://packagist.org/packages/amironov73/phpirbis).
 
 [![Latest Stable Version](https://poser.pugx.org/amironov73/phpirbis/v/stable)](https://packagist.org/packages/amironov73/phpirbis) 
 [![Total Downloads](https://poser.pugx.org/amironov73/phpirbis/downloads)](https://packagist.org/packages/amironov73/phpirbis)
 [![Latest Unstable Version](https://poser.pugx.org/amironov73/phpirbis/v/unstable)](https://packagist.org/packages/amironov73/phpirbis)
 [![Monthly Downloads](https://poser.pugx.org/amironov73/phpirbis/d/monthly)](https://packagist.org/packages/amironov73/phpirbis)
 
-Now supported PHP 5.4+ on Windows (Open Server) and Ubuntu Linux.
+Now supported PHP 5.4+ on Windows (Open Server), MacOS X (MAMP and MAMP Pro) and Ubuntu Linux.
 
 ![phpstorm](Docs/img/phpstorm.png)
 

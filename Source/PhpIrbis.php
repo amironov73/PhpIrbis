@@ -22,82 +22,82 @@ mb_internal_encoding(UTF_ENCODING);
 
 // Статус записи
 
-const LOGICALLY_DELETED  = 1;  // Запись логически удалена
-const PHYSICALLY_DELETED = 2;  // Запись физически удалена
-const ABSENT             = 4;  // Запись отсутствует
-const NON_ACTUALIZED     = 8;  // Запись не актуализирована
-const LAST_VERSION       = 32; // Последняя версия записи
-const LOCKED_RECORD      = 64; // Запись заблокирована на ввод
+const LOGICALLY_DELETED  = 1;  ///< Запись логически удалена
+const PHYSICALLY_DELETED = 2;  ///< Запись физически удалена
+const ABSENT             = 4;  ///< Запись отсутствует
+const NON_ACTUALIZED     = 8;  ///< Запись не актуализирована
+const LAST_VERSION       = 32; ///< Последняя версия записи
+const LOCKED_RECORD      = 64; ///< Запись заблокирована на ввод
 
 // Распространённые форматы
 
-const ALL_FORMAT       = "&uf('+0')";  // Полные данные по полям
-const BRIEF_FORMAT     = '@brief';     // Краткое библиографическое описание
-const IBIS_FORMAT      = '@ibiskw_h';  // Формат IBIS (старый)
-const INFO_FORMAT      = '@info_w';    // Информационный формат
-const OPTIMIZED_FORMAT = '@';          // Оптимизированный формат
+const ALL_FORMAT       = "&uf('+0')";  ///< Полные данные по полям
+const BRIEF_FORMAT     = '@brief';     ///< Краткое библиографическое описание
+const IBIS_FORMAT      = '@ibiskw_h';  ///< Формат IBIS (старый)
+const INFO_FORMAT      = '@info_w';    ///< Информационный формат
+const OPTIMIZED_FORMAT = '@';          ///< Оптимизированный формат
 
 // Распространённые поиски
 
-const KEYWORD_PREFIX    = 'K=';  // Ключевые слова
-const AUTHOR_PREFIX     = 'A=';  // Индивидуальный автор, редактор, составитель
-const COLLECTIVE_PREFIX = 'M=';  // Коллектив или мероприятие
-const TITLE_PREFIX      = 'T=';  // Заглавие
-const INVENTORY_PREFIX  = 'IN='; // Инвентарный номер, штрих-код или радиометка
-const INDEX_PREFIX      = 'I=';  // Шифр документа в базе
+const KEYWORD_PREFIX    = 'K=';  ///< Ключевые слова
+const AUTHOR_PREFIX     = 'A=';  ///< Индивидуальный автор, редактор, составитель
+const COLLECTIVE_PREFIX = 'M=';  ///< Коллектив или мероприятие
+const TITLE_PREFIX      = 'T=';  ///< Заглавие
+const INVENTORY_PREFIX  = 'IN='; ///< Инвентарный номер, штрих-код или радиометка
+const INDEX_PREFIX      = 'I=';  ///< Шифр документа в базе
 
 // Логические операторы для поиска
 
-const LOGIC_OR                = 0; // Только ИЛИ
-const LOGIC_OR_AND            = 1; // ИЛИ и И
-const LOGIC_OR_AND_NOT        = 2; // ИЛИ, И, НЕТ (по умолчанию)
-const LOGIC_OR_AND_NOT_FIELD  = 3; // ИЛИ, И, НЕТ, И (в поле)
-const LOGIC_OR_AND_NOT_PHRASE = 4; // ИЛИ, И, НЕТ, И (в поле), И (фраза)
+const LOGIC_OR                = 0; ///< Только ИЛИ
+const LOGIC_OR_AND            = 1; ///< ИЛИ и И
+const LOGIC_OR_AND_NOT        = 2; ///< ИЛИ, И, НЕТ (по умолчанию)
+const LOGIC_OR_AND_NOT_FIELD  = 3; ///< ИЛИ, И, НЕТ, И (в поле)
+const LOGIC_OR_AND_NOT_PHRASE = 4; ///< ИЛИ, И, НЕТ, И (в поле), И (фраза)
 
 // Коды АРМ
 
-const ADMINISTRATOR = 'A'; // Адмнистратор
-const CATALOGER     = 'C'; // Каталогизатор
-const ACQUSITIONS   = 'M'; // Комплектатор
-const READER        = 'R'; // Читатель
-const CIRCULATION   = 'B'; // Книговыдача
-const BOOKLAND      = 'B'; // Книговыдача
-const PROVISION     = 'K'; // Книгообеспеченность
+const ADMINISTRATOR = 'A'; ///< Адмнистратор
+const CATALOGER     = 'C'; ///< Каталогизатор
+const ACQUSITIONS   = 'M'; ///< Комплектатор
+const READER        = 'R'; ///< Читатель
+const CIRCULATION   = 'B'; ///< Книговыдача
+const BOOKLAND      = 'B'; ///< Книговыдача
+const PROVISION     = 'K'; ///< Книгообеспеченность
 
 // Команды глобальной корректировки
 
-const ADD_FIELD        = 'ADD'; // добавление нового повторения поля или подполя в заданное существующее поле
-const DELETE_FIELD     = 'DEL'; // удаляет поле или подполе в поле
-const REPLACE_FIELD    = 'REP'; // замена целиком поля или подполя
-const CHANGE_FIELD     = 'CHA'; // замена данных в поле или в подполе
-const CHANGE_WITH_CASE = 'CHAC'; // замена данных в поле или в подполе с учетом регистра символов
-const DELETE_RECORD    = 'DELR'; // удаляет записи, поданные на корректировку
-const UNDELETE_RECORD  = 'UNDELR'; // восстанавливает записи
-const CORRECT_RECORD   = 'CORREC'; // вызывает на корректировку другие записи, отобранные по поисковым терминам  из текущей или другой, доступной в системе, базы данных
-const CREATE_RECORD    = 'NEWMFN'; // создание новой записи в текущей или другой базе данных
-const EMPTY_RECORD     = 'EMPTY'; // очищает (опустошает) текущую запись
-const UNDO_RECORD      = 'UNDOR'; // переход к одной из предыдущих копий записи (откат)
-const GBL_END          = 'END'; // закрывающая операторная скобка
-const GBL_IF           = 'IF'; // логическое ветвление
-const GBL_FI           = 'FI'; // закрывающий оператор для ветвления
-const GBL_ALL          = 'ALL'; // дополняет записи всеми полями текущей записи
-const GBL_REPEAT       = 'REPEAT'; // цикл из группы операторов
-const GBL_UNTIL        = 'UNTIL'; // закрывающий оператор для цикла
-const PUTLOG           = 'PUTLOG'; // формирование пользовательского протокола
+const ADD_FIELD        = 'ADD';    ///< добавление нового повторения поля или подполя в заданное существующее поле
+const DELETE_FIELD     = 'DEL';    ///< удаляет поле или подполе в поле
+const REPLACE_FIELD    = 'REP';    ///< замена целиком поля или подполя
+const CHANGE_FIELD     = 'CHA';    ///< замена данных в поле или в подполе
+const CHANGE_WITH_CASE = 'CHAC';   ///< замена данных в поле или в подполе с учетом регистра символов
+const DELETE_RECORD    = 'DELR';   ///< удаляет записи, поданные на корректировку
+const UNDELETE_RECORD  = 'UNDELR'; ///< восстанавливает записи
+const CORRECT_RECORD   = 'CORREC'; ///< вызывает на корректировку другие записи, отобранные по поисковым терминам  из текущей или другой, доступной в системе, базы данных
+const CREATE_RECORD    = 'NEWMFN'; ///< создание новой записи в текущей или другой базе данных
+const EMPTY_RECORD     = 'EMPTY';  ///< очищает (опустошает) текущую запись
+const UNDO_RECORD      = 'UNDOR';  ///< переход к одной из предыдущих копий записи (откат)
+const GBL_END          = 'END';    ///< закрывающая операторная скобка
+const GBL_IF           = 'IF';     ///< логическое ветвление
+const GBL_FI           = 'FI';     ///< закрывающий оператор для ветвления
+const GBL_ALL          = 'ALL';    ///< дополняет записи всеми полями текущей записи
+const GBL_REPEAT       = 'REPEAT'; ///< цикл из группы операторов
+const GBL_UNTIL        = 'UNTIL';  ///< закрывающий оператор для цикла
+const PUTLOG           = 'PUTLOG'; ///< формирование пользовательского протокола
 
 /**
- * Разделитель строк в ИРБИС.
+ * @brief Разделитель строк в ИРБИС.
  */
 const IRBIS_DELIMITER = "\x1F\x1E";
 
 /**
- * Короткие версии разделителя строк ИРБИС.
+ * @brief Короткие версии разделителя строк ИРБИС.
  */
 const SHORT_DELIMITER = "\x1E";
 const ALT_DELIMITER   = "\x1F";
 
 /**
- * Пустая ли данная строка?
+ * @brief Пустая ли данная строка?
  *
  * @param string $text Строка для изучения.
  * @return bool
@@ -108,7 +108,7 @@ function is_null_or_empty($text)
 } // function is_null_or_empty
 
 /**
- * Строки совпадают с точностью до регистра символов?
+ * @brief Строки совпадают с точностью до регистра символов?
  *
  * @param string $str1 Первая строка.
  * @param string $str2 Вторая строка.
@@ -120,7 +120,7 @@ function same_string($str1, $str2)
 } // function same_string
 
 /**
- * Безопасное получение элемента массива по индексу.
+ * @brief Безопасное получение элемента массива по индексу.
  *
  * @param array $a Массив.
  * @param int $ofs Индекс.
@@ -135,7 +135,7 @@ function safe_get(array $a, $ofs)
 } // function safe_get
 
 /**
- * Замена переводов строки с ИРБИСных на обычные.
+ * @brief Замена переводов строки с ИРБИСных на обычные.
  *
  * @param string $text Текст для замены.
  * @return mixed Текст с замененными переводами строки.
@@ -146,7 +146,7 @@ function irbis_to_dos($text)
 } // function irbis_to_dos
 
 /**
- * Разбивка текста на строки по ИРБИСным разделителям.
+ * @brief Разбивка текста на строки по ИРБИСным разделителям.
  *
  * @param string $text Текст для разбиения.
  * @return array Массив строк.
@@ -157,7 +157,7 @@ function irbis_to_lines($text)
 } // function irbis_to_lines
 
 /**
- * Удаление комментариев из строки.
+ * @brief Удаление комментариев из строки.
  *
  * @param string $text Текст для удаления комментариев.
  * @return string Очищенный текст.
@@ -222,7 +222,7 @@ function remove_comments($text)
 } // function remove_comments
 
 /**
- * Подготовка динамического формата
+ * @brief Подготовка динамического формата
  * для передачи на сервер.
  *
  * В формате должны отсутствовать комментарии
@@ -264,7 +264,7 @@ function prepare_format($text)
 } // function prepare_format
 
 /**
- * Получение описания по коду ошибки, возвращенному сервером.
+ * @brief Получение описания по коду ошибки, возвращенному сервером.
  *
  * @param int $code Код ошибки.
  * @return string Словесное описание ошибки.
@@ -332,7 +332,7 @@ function describe_error($code)
 } // function describe_error
 
 /**
- * "Хорошие" коды для readRecord.
+ * @brief "Хорошие" коды для readRecord.
  *
  * @return array "Хорошие" коды для readRecord.
  */
@@ -342,7 +342,7 @@ function codes_for_read_record()
 } // function codes_for_read_record
 
 /**
- * "Хорошие" коды для readTerms.
+ * @brief "Хорошие" коды для readTerms.
  *
  * @return array "Хорошие" коды для readTerms.
  */
@@ -352,7 +352,7 @@ function codes_for_read_terms()
 } // function codes_for_read_terms
 
 /**
- * Специфичное для ИРБИС исключение.
+ * @brief Специфичное для ИРБИС исключение.
  */
 final class IrbisException extends \Exception
 {
@@ -370,7 +370,7 @@ final class IrbisException extends \Exception
 } // class IrbisException
 
 /**
- * Подполе записи. Состоит из кода и значения.
+ * @brief Подполе записи. Состоит из кода и значения.
  */
 final class SubField
 {
@@ -385,7 +385,7 @@ final class SubField
     public $value;
 
     /**
-     * Конструктор подполя.
+     * @brief Конструктор подполя.
      *
      * @param string $code Код подполя.
      * @param string $value Значение подполя.
@@ -396,13 +396,16 @@ final class SubField
         $this->value = $value;
     } // function __construct
 
+    /**
+     * @brief Клонирование подполя.
+     */
     public function __clone()
     {
         $this->value = str_repeat($this->value, 1);
     } // function __clone
 
     /**
-     * Декодирование подполя из протокольного представления.
+     * @brief Декодирование подполя из протокольного представления.
      *
      * @param string $line
      */
@@ -413,7 +416,7 @@ final class SubField
     } // function decode
 
     /**
-     * Верификация подполя.
+     * @brief Верификация подполя.
      *
      * @param bool $throw Бросать ли исключение при ошибке?
      * @return bool Результат верификации.
@@ -436,7 +439,8 @@ final class SubField
 } // class SubField
 
 /**
- * Поле записи. Состоит из метки и (опционального) значения.
+ * @brief Поле записи. Состоит из метки и (опционального) значения.
+ *
  * Может содержать произвольное количество подполей.
  */
 final class RecordField
@@ -457,7 +461,7 @@ final class RecordField
     public $subfields = array();
 
     /**
-     * Конструктор поля.
+     * @brief Конструктор поля.
      *
      * @param int $tag Метка поля.
      * @param string $value Значение поля.
@@ -468,6 +472,9 @@ final class RecordField
         $this->value = $value;
     } // function __construct
 
+    /**
+     * @brief Клонирование поля.
+     */
     public function __clone()
     {
         $this->value = str_repeat($this->value, 1);
@@ -479,7 +486,7 @@ final class RecordField
     } // function __clone
 
     /**
-     * Добавление подполя с указанными кодом и значением.
+     * @brief Добавление подполя с указанными кодом и значением.
      *
      * @param string $code Код подполя.
      * @param string $value Значение подполя.
@@ -496,7 +503,7 @@ final class RecordField
     } // function add
 
     /**
-     * Очищает поле (удаляет значение и все подполя).
+     * @brief Очищает поле (удаляет значение и все подполя).
      *
      * @return $this
      */
@@ -509,7 +516,7 @@ final class RecordField
     } // function clear
 
     /**
-     * Декодирование поля из протокольного представления.
+     * @brief Декодирование поля из протокольного представления.
      *
      * @param string $line
      */
@@ -536,7 +543,7 @@ final class RecordField
     } // function decode
 
     /**
-     * Получает массив встроенных полей из данного поля.
+     * @brief Получает массив встроенных полей из данного поля.
      *
      * @return array Встроенные поля.
      */
@@ -578,7 +585,7 @@ final class RecordField
     } // function getEmbeddedFields
 
     /**
-     * Возвращает первое вхождение подполя с указанным кодом.
+     * @brief Возвращает первое вхождение подполя с указанным кодом.
      *
      * @param string $code Код искомого подполя.
      * @return SubField|null Найденное подполе.
@@ -595,7 +602,7 @@ final class RecordField
     } // function getFirstSubfield
 
     /**
-     * Возвращает значение первого вхождения подполя с указанным кодом.
+     * @brief Возвращает значение первого вхождения подполя с указанным кодом.
      *
      * @param string $code Код искомого подполя.
      * @return string Значение найденного подполя либо пустая строка.
@@ -612,7 +619,7 @@ final class RecordField
     } // function getFirstSubfieldValue
 
     /**
-     * Вставляет подполе по указанному индексу.
+     * @brief Вставляет подполе по указанному индексу.
      *
      * @param int $index Позиция для вставки.
      * @param SubField $subfield Подполе.
@@ -623,7 +630,7 @@ final class RecordField
     } // function insertAt
 
     /**
-     * Удаляет подполе по указанному индексу.
+     * @brief Удаляет подполе по указанному индексу.
      *
      * @param int $index Индекс для удаления.
      */
@@ -634,7 +641,7 @@ final class RecordField
     } // function removeAt
 
     /**
-     * Удаляет все подполя с указанным кодом.
+     * @brief Удаляет все подполя с указанным кодом.
      *
      * @param string $code Искомый код подполя.
      */
@@ -655,7 +662,7 @@ final class RecordField
     } // function removeSubfield
 
     /**
-     * Верификация поля.
+     * @brief Верификация поля.
      *
      * @param bool $throw Бросать ли исключение при ошибке?
      * @return bool Результат верификации.
@@ -693,7 +700,7 @@ final class RecordField
 } // class RecordField
 
 /**
- * Запись. Состоит из произвольного количества полей.
+ * @brief Запись. Состоит из произвольного количества полей.
  */
 final class MarcRecord
 {
@@ -1007,7 +1014,7 @@ final class MarcRecord
 } // class MarcRecord
 
 /**
- * Запись в "сыром" ("неразобранном") виде.
+ * @brief Запись в "сыром" ("неразобранном") виде.
  */
 final class RawRecord
 {
@@ -1080,7 +1087,7 @@ final class RawRecord
 } // class RawRecord
 
 /**
- * Строка найденной записи в ответе сервера.
+ * @brief Строка найденной записи в ответе сервера.
  */
 final class FoundLine
 {
@@ -1199,11 +1206,19 @@ final class FoundLine
 } // class FoundLine
 
 /**
- * Пара строк в меню.
+ * @brief Пара строк в меню.
  */
 final class MenuEntry
 {
-    public $code, $comment;
+    /**
+     * @var string Код -- первая строка в меню.
+     */
+    public $code;
+
+    /**
+     * @var string Соответствующее коду значение -- вторая строка в меню.
+     */
+    public $comment;
 
     public function __toString()
     {
@@ -1212,7 +1227,7 @@ final class MenuEntry
 } // class MenuEntry
 
 /**
- * Файл меню. Состоит из пар строк (см. MenuEntry).
+ * @brief Файл меню. Состоит из пар строк (см. MenuEntry).
  */
 final class MenuFile
 {
@@ -1335,7 +1350,7 @@ final class MenuFile
 } // class MenuFile
 
 /**
- * Строка INI-файла. Состоит из ключа
+ * @brief Строка INI-файла. Состоит из ключа
  * и (опционального) значения.
  */
 final class IniLine
@@ -1357,7 +1372,7 @@ final class IniLine
 } // class IniLine
 
 /**
- * Секция INI-файла. Состоит из строк
+ * @brief Секция INI-файла. Состоит из строк
  * (см. IniLine).
  */
 final class IniSection
@@ -1457,7 +1472,7 @@ final class IniSection
 } // class IniSection
 
 /**
- * INI-файл. Состоит из секций (см. IniSection).
+ * @brief INI-файл. Состоит из секций (см. IniSection).
  */
 final class IniFile
 {
@@ -1587,7 +1602,7 @@ final class IniFile
 } // class IniFile
 
 /**
- * Узел дерева TRE-файла.
+ * @brief Узел дерева TRE-файла.
  */
 final class TreeNode
 {
@@ -1636,7 +1651,7 @@ final class TreeNode
 } // class TreeNode
 
 /**
- * Дерево, хранящееся в TRE-файле.
+ * @brief Дерево, хранящееся в TRE-файле.
  */
 final class TreeFile
 {
@@ -1765,7 +1780,7 @@ final class TreeFile
 } // class TreeFile
 
 /**
- * Информация о базе данных ИРБИС.
+ * @brief Информация о базе данных ИРБИС.
  */
 final class DatabaseInfo
 {
@@ -1885,7 +1900,7 @@ final class DatabaseInfo
 } // class DatabaseInfo
 
 /**
- * Информация о запущенном на ИРБИС-сервере процессе.
+ * @brief Информация о запущенном на ИРБИС-сервере процессе.
  */
 final class ProcessInfo
 {
@@ -1983,7 +1998,7 @@ final class ProcessInfo
 } // class ProcessInfo
 
 /**
- * Информация о версии ИРБИС-сервера.
+ * @brief Информация о версии ИРБИС-сервера.
  */
 final class VersionInfo
 {

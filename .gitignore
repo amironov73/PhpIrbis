@@ -30,3 +30,6 @@ vendor/
 
 # Composer
 composer.phar
+
+# Doxygen
+doxygen/
