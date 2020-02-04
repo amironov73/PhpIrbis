@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="css/bootstrap-reboot.min.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/fontawesome.min.css">
+    <link rel="stylesheet" href="css/solid.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+
+    <title>Просмотр PDF</title>
+</head>
+<body>
+
+<noscript>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="alert alert-danger col-12 text-center">
+                <strong>Извините, данное приложение не работает без JavaScript. Пожалуйста, включите его.</strong>
+            </div>
+        </div>
+    </div>
+</noscript>
+
+<script>
+    var $buoop = {required:{e:-4,f:-3,o:-3,s:-1,c:-3},insecure:true,api:2020.02 };
+    function $buo_f(){
+        var e = document.createElement("script");
+        e.src = "//browser-update.org/update.min.js";
+        document.body.appendChild(e);
+    };
+    try {document.addEventListener("DOMContentLoaded", $buo_f,false)}
+    catch(e){window.attachEvent("onload", $buo_f)}
+</script>
+
+<div id="app">
+
+    <!-- Навигация -->
+    <nav id="navbar" class="navbar navbar-expand-md navbar-dark sticky-top bg-dark">
+
+        <!-- Кнопка сокрытия навбара -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggler"
+                aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            Поиск и заказ
+        </button>
+
+        <!-- Скрывающаяся часть навбара -->
+        <div class="collapse navbar-collapse" id="navbarToggler">
+            <div class="text-white">Просмотр</div>
+        </div>
+
+    </nav>
+
+</div>
+
+</body>
+
+<script src="js/axios.min.js"></script>
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/vue.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/viewer.js"></script>
+
+</html>
