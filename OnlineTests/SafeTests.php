@@ -87,20 +87,25 @@ $found = $connection->searchAll("K=БЕТОН$");
 echo '<p>БЕТОН ALL</p>', PHP_EOL;
 echo '<p>', implode(', ', $found), '</p>', PHP_EOL;
 
-//$record = $connection->readRecord(123);
-//echo '<p>' , $record->mfn, ' => ', count($record->fields), '</p>';
+$record = $connection->readRecord(123);
+echo '<p>' , $record->mfn, ' => ', count($record->fields), '</p>';
 
-//$terms = $connection->readTerms("K=");
-//echo '<p>', implode('<br/>', $terms), '</p>';
+$terms = $connection->readTerms("K=");
+echo '<p>', implode('<br/>', $terms), '</p>';
 
-//$content = $connection->readTextFile("3.IBIS.WS.OPT");
-//echo '<p>', $content, '</p>';
+$content = $connection->readTextFile("3.IBIS.WS.OPT");
+echo '<p>', $content, '</p>';
 
-//$records = $connection->readRecords(array(10, 20, 30));
-//dumpArray($records);
+$records = $connection->readRecords(array(10, 20, 30));
+dumpArray($records);
 
-//$records = $connection->searchRead("K=ALG$", 10);
-//dumpArray($records);
+$records = $connection->searchRead("K=ALG$", 10);
+foreach ($records as $record) {
+    echo $record->fm(200, 'a'), PHP_EOL;
+}
+
+$oneRecord = $connection->searchSingleRecord("K=ALG$");
+echo $oneRecord->fm(200, 'a'), PHP_EOL;
 
 $mfn = 123;
 $format = "'Ἀριστοτέλης: ', v200^a";
@@ -122,11 +127,8 @@ if (!$found) {
 $count = $connection->searchCount('"A=ПУШКИН$"');
 echo "<p>COUNT: ", $count, "</p>", PHP_EOL;
 
-//$single = $connection->searchSingleRecord('"I=65.304.13-772296"');
-//echo "<p>$single</p>";
-
-//$postings = $connection->getRecordPostings(2, "A=$");
-//dumpArray($postings);
+$postings = $connection->getRecordPostings(2, "A=$");
+dumpArray($postings);
 
 try {
     $tree = $connection->readTreeFile('3.IBIS.II.TRE');

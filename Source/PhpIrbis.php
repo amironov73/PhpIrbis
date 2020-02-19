@@ -1140,7 +1140,7 @@ final class FoundLine
             $parts = explode('#', $line, 2);
             $item = new FoundLine();
             $item->mfn = intval($parts[0]);
-            $item->description = str_replace(ALT_DELIMITER, " ", safe_get($parts, 1));
+            $item->description = safe_get($parts, 1);
             array_push($result, $item);
         }
 
