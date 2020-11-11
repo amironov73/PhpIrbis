@@ -1,5 +1,8 @@
 <?php
 
+/** @noinspection PhpUnused */
+/** @noinspection PhpFullyQualifiedNameUsageInspection */
+
 namespace Irbis;
 
 require_once __DIR__ . '/PhpIrbis.php';
