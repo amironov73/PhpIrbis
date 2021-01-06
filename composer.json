@@ -33,6 +33,10 @@
     }
   ],
   "autoload": {
-    "classmap": ["Source/PhpIrbis.php", "Source/Gbl.php", "Source/Jsoner.php"]
+    "classmap": ["Source/PhpIrbis.php",
+      "Source/Gbl.php",
+      "Source/Jsoner.php",
+      "Source/Search.php"
+    ]
   }
 }
