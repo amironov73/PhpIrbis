@@ -33,3 +33,7 @@ composer.phar
 
 # Doxygen
 doxygen/
+
+# Sphinx documentation
+docs/_build/
+Docs/_build/
