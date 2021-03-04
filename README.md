@@ -40,11 +40,3 @@ foreach ($found as $mfn) {
 $connection->disconnect();
 ```
 
-#### Documentation (in russian)
-
-* [**Общее описание**](Docs/chapter1.md)
-* [**Класс Connection**](Docs/chapter2.md)
-* [**Классы MarcRecord, RecordField и SubField**](Docs/chapter3.md)
-* [**Вспомогательные классы и функции**](Docs/chapter4.md)
-* [**Построитель запросов**](Docs/chapter5.md)
-* [**Глобальная корректировка**](Docs/chapter6.md)

@@ -1,0 +1,327 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ru" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Прочие (вспомогательные) классы и функции &mdash; документация PhpIrbis 0.4</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/translations.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Алфавитный указатель" href="genindex.html" />
+    <link rel="search" title="Поиск" href="search.html" />
+    <link rel="next" title="Построитель запросов" href="chapter5.html" />
+    <link rel="prev" title="Классы MarcRecord, RecordField и SubField" href="chapter3.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PhpIrbis
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Содержание</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="chapter1.html">Библиотека PhpIrbis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter2.html">Класс Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter3.html">Классы MarcRecord, RecordField и SubField</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Прочие (вспомогательные) классы и функции</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#foundline">FoundLine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#menufile-menuline">MenuFile и MenuLine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inifile-inisection-iniline">IniFile, IniSection и IniLine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#treefile-treeline">TreeFile и TreeLine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#databaseinfo">DatabaseInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#processinfo">ProcessInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#versioninfo">VersionInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#clientinfo">ClientInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#userinfo">UserInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tabledefinition">TableDefinition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#serverstat">ServerStat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#postingparameters">PostingParameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#termparameters">TermParameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#terminfo">TermInfo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#termposting">TermPosting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#searchparameters">SearchParameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#searchscenario">SearchScenario</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parfile">ParFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optfile-optline">OptFile и OptLine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gblstatement-gblsettings">GblStatement и GblSettings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#clientquery">ClientQuery</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#serverresponse">ServerResponse</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter5.html">Построитель запросов</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter6.html">Глобальная корректировка</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PhpIrbis</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Прочие (вспомогательные) классы и функции</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/chapter4.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="id1">
+<h1>Прочие (вспомогательные) классы и функции<a class="headerlink" href="#id1" title="Ссылка на этот заголовок">¶</a></h1>
+<div class="section" id="foundline">
+<h2>FoundLine<a class="headerlink" href="#foundline" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Строка найденной записи, может содержать результат расформатирования найденной записи.</p>
+</div>
+<div class="section" id="menufile-menuline">
+<h2>MenuFile и MenuLine<a class="headerlink" href="#menufile-menuline" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Файл меню. Состоит из пар строк.</p>
+</div>
+<div class="section" id="inifile-inisection-iniline">
+<h2>IniFile, IniSection и IniLine<a class="headerlink" href="#inifile-inisection-iniline" title="Ссылка на этот заголовок">¶</a></h2>
+<p>INI-файл, состоящий из секций, которые в свою очередь состоят из строк вида «ключ=значение».</p>
+</div>
+<div class="section" id="treefile-treeline">
+<h2>TreeFile и TreeLine<a class="headerlink" href="#treefile-treeline" title="Ссылка на этот заголовок">¶</a></h2>
+<p>TRE-файл – древовидный справочник.</p>
+</div>
+<div class="section" id="databaseinfo">
+<h2>DatabaseInfo<a class="headerlink" href="#databaseinfo" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Информация о базе данных ИРБИС.</p>
+</div>
+<div class="section" id="processinfo">
+<h2>ProcessInfo<a class="headerlink" href="#processinfo" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Информация о запущенном на ИРБИС-сервере процессе.</p>
+</div>
+<div class="section" id="versioninfo">
+<h2>VersionInfo<a class="headerlink" href="#versioninfo" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Информация о версии ИРБИС-сервера.</p>
+</div>
+<div class="section" id="clientinfo">
+<h2>ClientInfo<a class="headerlink" href="#clientinfo" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Информация о клиенте, подключенном к серверу ИРБИС (не обязательно о текущем).</p>
+</div>
+<div class="section" id="userinfo">
+<h2>UserInfo<a class="headerlink" href="#userinfo" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Информация о зарегистрированном пользователе системы (по данным <code class="docutils literal notranslate"><span class="pre">client_m.mnu</span></code>).</p>
+</div>
+<div class="section" id="tabledefinition">
+<h2>TableDefinition<a class="headerlink" href="#tabledefinition" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Данные для метода <code class="docutils literal notranslate"><span class="pre">printTable</span></code>.</p>
+</div>
+<div class="section" id="serverstat">
+<h2>ServerStat<a class="headerlink" href="#serverstat" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Статистика работы ИРБИС-сервера.</p>
+</div>
+<div class="section" id="postingparameters">
+<h2>PostingParameters<a class="headerlink" href="#postingparameters" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Параметры для запроса постингов с сервера.</p>
+</div>
+<div class="section" id="termparameters">
+<h2>TermParameters<a class="headerlink" href="#termparameters" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Параметры для запроса терминов с сервера.</p>
+</div>
+<div class="section" id="terminfo">
+<h2>TermInfo<a class="headerlink" href="#terminfo" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Информация о термине поискового словаря.</p>
+</div>
+<div class="section" id="termposting">
+<h2>TermPosting<a class="headerlink" href="#termposting" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Постинг термина в поисковом индексе.</p>
+</div>
+<div class="section" id="searchparameters">
+<h2>SearchParameters<a class="headerlink" href="#searchparameters" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Параметры для поиска записей (метод searchEx).</p>
+</div>
+<div class="section" id="searchscenario">
+<h2>SearchScenario<a class="headerlink" href="#searchscenario" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Сценарий поиска.</p>
+</div>
+<div class="section" id="parfile">
+<h2>ParFile<a class="headerlink" href="#parfile" title="Ссылка на этот заголовок">¶</a></h2>
+<p>PAR-файл – содержит пути к файлам базы данных ИРБИС.</p>
+</div>
+<div class="section" id="optfile-optline">
+<h2>OptFile и OptLine<a class="headerlink" href="#optfile-optline" title="Ссылка на этот заголовок">¶</a></h2>
+<p>OPT-файл – файл оптимизации рабочих листов и форматов показа.</p>
+</div>
+<div class="section" id="gblstatement-gblsettings">
+<h2>GblStatement и GblSettings<a class="headerlink" href="#gblstatement-gblsettings" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Классы для глобальной корректировки базы данных.</p>
+</div>
+<div class="section" id="clientquery">
+<h2>ClientQuery<a class="headerlink" href="#clientquery" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Клиентский запрос. Инфраструктурный класс.</p>
+</div>
+<div class="section" id="serverresponse">
+<h2>ServerResponse<a class="headerlink" href="#serverresponse" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Ответ сервера. Инфраструктурный класс.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="chapter5.html" class="btn btn-neutral float-right" title="Построитель запросов" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="chapter3.html" class="btn btn-neutral float-left" title="Классы MarcRecord, RecordField и SubField" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2018-2021, Alexey Mironov &lt;amironov73@gmail.com&gt;.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

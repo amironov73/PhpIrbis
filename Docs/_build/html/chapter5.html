@@ -1,0 +1,305 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ru" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Построитель запросов &mdash; документация PhpIrbis 0.4</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/translations.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Алфавитный указатель" href="genindex.html" />
+    <link rel="search" title="Поиск" href="search.html" />
+    <link rel="next" title="Глобальная корректировка" href="chapter6.html" />
+    <link rel="prev" title="Прочие (вспомогательные) классы и функции" href="chapter4.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PhpIrbis
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Содержание</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="chapter1.html">Библиотека PhpIrbis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter2.html">Класс Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter3.html">Классы MarcRecord, RecordField и SubField</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter4.html">Прочие (вспомогательные) классы и функции</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Построитель запросов</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter6.html">Глобальная корректировка</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PhpIrbis</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Построитель запросов</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/chapter5.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="id1">
+<h1>Построитель запросов<a class="headerlink" href="#id1" title="Ссылка на этот заголовок">¶</a></h1>
+<p>Класс <code class="docutils literal notranslate"><span class="pre">Search</span></code> представляет собой построитель запросов в синтаксисе прямого поиска ИРБИС64. В нём имеются следующие статические методы:</p>
+<ul class="simple">
+<li><p><strong>all()</strong> – отбор всех документов в базе. Фактически строит запрос <code class="docutils literal notranslate"><span class="pre">I=$</span></code>.</p></li>
+<li><p><strong>equals($prefix, …)</strong> – поиск по совпадению с одним из перечисленных значений. Возвращает построитель запросов для последующих цепочечных вызовов.</p></li>
+</ul>
+<p>Экземплярные методы:</p>
+<ul class="simple">
+<li><p><strong>and_(….)</strong> – логическое И. Возвращает построитель запросов для последующих цепочечных вызовов.</p></li>
+<li><p><strong>not_($text)</strong> – логическое НЕ. Возвращает построитель запросов для последующих цепочечных вызовов.</p></li>
+<li><p><strong>or_(…)</strong> – логическое ИЛИ. Возвращает построитель запросов для последующих цепочечных вызовов.</p></li>
+<li><p><strong>sameField(…)</strong> – логический оператор «в том же поле». Возвращает построитель запросов для последующих цепочечных вызовов.</p></li>
+<li><p><strong>sameRepeat(…)</strong> – логический оператор «в том же повторении поля». Возвращает построитель запросов для последующих цепочечных вызовов.</p></li>
+</ul>
+<p>Пример:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$expression = (string) Search::equals(&#39;TJ=&#39;, &#39;Аврора&#39;,</span>
+<span class="x">    &#39;Новый мир&#39;)-&gt;and_(Search::equals(&#39;G=&#39;, &#39;199$&#39;, &#39;200$&#39;));</span>
+</pre></div>
+</div>
+<p>Поскольку вышеприведённый синтаксис довольно громоздкий, предоставляются следующие функции, значительно упрощающие формирование запроса:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 63%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Функция</p></th>
+<th class="head"><p>Поиск по</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>author</p></td>
+<td><p>автору</p></td>
+</tr>
+<tr class="row-odd"><td><p>bbk</p></td>
+<td><p>индексу ББК</p></td>
+</tr>
+<tr class="row-even"><td><p>document_kind</p></td>
+<td><p>виду документа</p></td>
+</tr>
+<tr class="row-odd"><td><p>keyword</p></td>
+<td><p>ключевым словам</p></td>
+</tr>
+<tr class="row-even"><td><p>language</p></td>
+<td><p>языку текста</p></td>
+</tr>
+<tr class="row-odd"><td><p>magazine</p></td>
+<td><p>заглавию журнала</p></td>
+</tr>
+<tr class="row-even"><td><p>mhr</p></td>
+<td><p>месту хранения</p></td>
+</tr>
+<tr class="row-odd"><td><p>number</p></td>
+<td><p>инвентарному номеру</p></td>
+</tr>
+<tr class="row-even"><td><p>place</p></td>
+<td><p>месту издания (городу)</p></td>
+</tr>
+<tr class="row-odd"><td><p>publisher</p></td>
+<td><p>издательству</p></td>
+</tr>
+<tr class="row-even"><td><p>rzn</p></td>
+<td><p>разделу знаний</p></td>
+</tr>
+<tr class="row-odd"><td><p>subject</p></td>
+<td><p>предметной рубрике</p></td>
+</tr>
+<tr class="row-even"><td><p>title</p></td>
+<td><p>заглавию</p></td>
+</tr>
+<tr class="row-odd"><td><p>udc</p></td>
+<td><p>индексу УДК</p></td>
+</tr>
+<tr class="row-even"><td><p>year</p></td>
+<td><p>году издания</p></td>
+</tr>
+</tbody>
+</table>
+<p>Пример применения построителя с упрощённым формированием запроса:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$client = new Irbis\Connection();</span>
+<span class="x">$client-&gt;host = &#39;irbis.server&#39;;</span>
+<span class="x">$client-&gt;port = 5555;</span>
+<span class="x">$client-&gt;username = &#39;ninja&#39;;</span>
+<span class="x">$client-&gt;password = &#39;i_am_invisible&#39;;</span>
+<span class="x">$client-&gt;connect();</span>
+<span class="x">$expression = author(&#39;Пушкин$&#39;)-&gt;and_(title(&#39;СКАЗКИ$&#39;));</span>
+<span class="x">$found = client-&gt;searchCount($expression);</span>
+<span class="x">echo &quot;Найдено: &quot;, $found;</span>
+<span class="x">$client-&gt;disconnect();</span>
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="chapter6.html" class="btn btn-neutral float-right" title="Глобальная корректировка" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="chapter4.html" class="btn btn-neutral float-left" title="Прочие (вспомогательные) классы и функции" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2018-2021, Alexey Mironov &lt;amironov73@gmail.com&gt;.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,728 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ru" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Класс Connection &mdash; документация PhpIrbis 0.4</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/translations.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Алфавитный указатель" href="genindex.html" />
+    <link rel="search" title="Поиск" href="search.html" />
+    <link rel="next" title="Классы MarcRecord, RecordField и SubField" href="chapter3.html" />
+    <link rel="prev" title="Библиотека PhpIrbis" href="chapter1.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PhpIrbis
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Содержание</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="chapter1.html">Библиотека PhpIrbis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Класс Connection</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Подключение к серверу и отключение от него</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">Многопоточность</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">Подтверждение подключения</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">Чтение записей с сервера</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">Сохранение записи на сервере</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">Удаление записи на сервере</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">Поиск записей</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">Форматирование записей</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">Печать таблиц</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">Работа с контекстом</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id11">Работа с мастер-файлом</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id12">Работа со словарем</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id13">Информационные функции</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id14">Администраторские функции</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id15">Расширение функциональности</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chapter3.html">Классы MarcRecord, RecordField и SubField</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter4.html">Прочие (вспомогательные) классы и функции</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter5.html">Построитель запросов</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter6.html">Глобальная корректировка</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PhpIrbis</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Класс Connection</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/chapter2.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="connection">
+<h1>Класс Connection<a class="headerlink" href="#connection" title="Ссылка на этот заголовок">¶</a></h1>
+<p>Класс <cite>Connection</cite> - «рабочая лошадка». Он осуществляет связь с сервером и всю необходимую перепаковку данных из клиентского представления в сетевое.</p>
+<p>Экземпляр клиента создается конструктором:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$connection = new Irbis\Connection();</span>
+</pre></div>
+</div>
+<p>При создании клиента можно указать (некоторые) настройки:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$client = new Irbis\Connection();</span>
+<span class="x">$client-&gt;host = &#39;irbis.rsl.ru&#39;;</span>
+<span class="x">$client-&gt;port = 5555;</span>
+<span class="x">$client-&gt;username = &#39;ninja&#39;;</span>
+<span class="x">$client-&gt;password = &#39;i_am_invisible&#39;;</span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 13%" />
+<col style="width: 40%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Поле</p></th>
+<th class="head"><p>Тип</p></th>
+<th class="head"><p>Назначение</p></th>
+<th class="head"><p>Значение по умолчанию</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>host</p></td>
+<td><p>string</p></td>
+<td><p>Адрес сервера</p></td>
+<td><p>„127.0.0.1“</p></td>
+</tr>
+<tr class="row-odd"><td><p>port</p></td>
+<td><p>integer</p></td>
+<td><p>Порт</p></td>
+<td><p>6666</p></td>
+</tr>
+<tr class="row-even"><td><p>username</p></td>
+<td><p>string</p></td>
+<td><p>Имя (логин) пользователя</p></td>
+<td><p>пустая строка</p></td>
+</tr>
+<tr class="row-odd"><td><p>password</p></td>
+<td><p>string</p></td>
+<td><p>Пароль пользователя</p></td>
+<td><p>пустая строка</p></td>
+</tr>
+<tr class="row-even"><td><p>database</p></td>
+<td><p>string</p></td>
+<td><p>Имя базы данных</p></td>
+<td><p>„IBIS“</p></td>
+</tr>
+<tr class="row-odd"><td><p>workstation</p></td>
+<td><p>string</p></td>
+<td><p>Тип АРМа (см. таблицу ниже)</p></td>
+<td><p>„C“</p></td>
+</tr>
+</tbody>
+</table>
+<p>Типы АРМов</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 36%" />
+<col style="width: 64%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Обозначение</p></th>
+<th class="head"><p>Тип</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>„R“</p></td>
+<td><p>Читатель</p></td>
+</tr>
+<tr class="row-odd"><td><p>„C“</p></td>
+<td><p>Каталогизатор</p></td>
+</tr>
+<tr class="row-even"><td><p>„M“</p></td>
+<td><p>Комплектатор</p></td>
+</tr>
+<tr class="row-odd"><td><p>„B“</p></td>
+<td><p>Книговыдача</p></td>
+</tr>
+<tr class="row-even"><td><p>„K“</p></td>
+<td><p>Книгообеспеченность</p></td>
+</tr>
+<tr class="row-odd"><td><p>„A“</p></td>
+<td><p>Администратор</p></td>
+</tr>
+</tbody>
+</table>
+<p>Можно использовать мнемонические константы, определённые в <cite>PhpIrbis</cite>:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">const ADMINISTRATOR = &#39;A&#39;; // Адмнистратор</span>
+<span class="x">const CATALOGER     = &#39;C&#39;; // Каталогизатор</span>
+<span class="x">const ACQUSITIONS   = &#39;M&#39;; // Комплектатор</span>
+<span class="x">const READER        = &#39;R&#39;; // Читатель</span>
+<span class="x">const CIRCULATION   = &#39;B&#39;; // Книговыдача</span>
+<span class="x">const BOOKLAND      = &#39;B&#39;; // Книговыдача</span>
+<span class="x">const PROVISITON    = &#39;K&#39;; // Книгообеспеченность</span>
+</pre></div>
+</div>
+<p>Обратите внимание, что адрес сервера задается строкой, так что может принимать как значения вроде <code class="docutils literal notranslate"><span class="pre">192.168.1.1</span></code>, так и <code class="docutils literal notranslate"><span class="pre">irbis.yourlib.com</span></code>.</p>
+<p>Если какой-либо из вышеперечисленных параметров не задан явно, используется значение по умолчанию.</p>
+<div class="section" id="id1">
+<h2>Подключение к серверу и отключение от него<a class="headerlink" href="#id1" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Только что созданный клиент еще не подключен к серверу. Подключаться необходимо явно с помощью метода <code class="docutils literal notranslate"><span class="pre">connect</span></code>, при этом можно указать параметры подключения:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$client = new Irbis\Connection();</span>
+<span class="x">$client-&gt;host = &#39;myhost.com&#39;;</span>
+<span class="x">if (!$client-&gt;connect()) {</span>
+<span class="x">    echo &quot;Не удалось подключиться!&quot;;</span>
+<span class="x">    die(1);</span>
+<span class="x">}</span>
+</pre></div>
+</div>
+<p>Отключаться от сервера можно двумя способами: во-первых, с помощью метода <code class="docutils literal notranslate"><span class="pre">disconnect</span></code>:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$client-&gt;disconnect();</span>
+</pre></div>
+</div>
+<p>во-вторых, клиент автоматически отключается от сервера при уничтожении экземпляра класса:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">unset($client); // Происходит неявный вызов disconnect()</span>
+</pre></div>
+</div>
+<p>При подключении клиент получает с сервера INI-файл с настройками, которые могут понадобиться в процессе работы:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$client-&gt;connect();</span>
+<span class="x">// Получаем имя MNU-файла, хранящего перечень форматов</span>
+<span class="x">$formatMenuName = $client-&gt;iniFile-&gt;getValue(&#39;Main&#39;, &#39;FmtMnu&#39;, &#39;FMT31.MNU&#39;);</span>
+</pre></div>
+</div>
+<p>Полученный с сервера INI-файл хранится в поле <code class="docutils literal notranslate"><span class="pre">iniFile</span></code>.</p>
+<p>Повторная попытка подключения с помощью того же экземпляра <code class="docutils literal notranslate"><span class="pre">Irbis\Connection</span></code> игнорируется. При необходимости можно создать другой экземпляр и подключиться с его помощью (если позволяют клиентские лицензии). Аналогично игнорируются повторные попытки отключения от сервера.</p>
+<p>Проверить статус «клиент подключен или нет» можно с помощью метода <code class="docutils literal notranslate"><span class="pre">isConnected</span></code>:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">if (!$client-&gt;isConnected()) {</span>
+<span class="x">    // В настоящее время мы не подключены к серверу</span>
+<span class="x">}</span>
+</pre></div>
+</div>
+<p>Вместо индивидуального задания каждого из полей <code class="docutils literal notranslate"><span class="pre">host</span></code>, <code class="docutils literal notranslate"><span class="pre">port</span></code>, <code class="docutils literal notranslate"><span class="pre">username</span></code>, <code class="docutils literal notranslate"><span class="pre">password</span></code> и <code class="docutils literal notranslate"><span class="pre">database</span></code>, можно использовать метод <code class="docutils literal notranslate"><span class="pre">parseConnectionString</span></code>:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$client-&gt;parseConnectionString(&#39;host=192.168.1.4;port=5555;&#39; .</span>
+<span class="x">         &#39;username=itsme;password=secret;&#39;);</span>
+<span class="x">$client-&gt;connect();</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h2>Многопоточность<a class="headerlink" href="#id2" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Клиент написан в наивном однопоточном стиле, поэтому не поддерживает одновременный вызов методов из разных потоков.</p>
+<p>Для одновременной отсылки на сервер нескольких команд необходимо создать соответствующее количество экземпляров подключений (если подобное позволяет лицензия сервера).</p>
+</div>
+<div class="section" id="id3">
+<h2>Подтверждение подключения<a class="headerlink" href="#id3" title="Ссылка на этот заголовок">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">PhpIrbis</span></code> самостоятельно не посылает на сервер подтверждений того, что клиент все еще подключен. Этим должно заниматься приложение, например, по таймеру.</p>
+<p>Подтверждение посылается серверу методом <code class="docutils literal notranslate"><span class="pre">noOp</span></code>:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$client-&gt;noOp();</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>Чтение записей с сервера<a class="headerlink" href="#id4" title="Ссылка на этот заголовок">¶</a></h2>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$mfn = 123;</span>
+<span class="x">$record = $client-&gt;readRecord($mfn);</span>
+</pre></div>
+</div>
+<p>Можно прочитать несколько записей сразу:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$mfns = array(12, 34, 56);</span>
+<span class="x">$records = $client-&gt;readRecords($mfns);</span>
+</pre></div>
+</div>
+<p>Можно прочитать определенную версию записи</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$mfn = 123;</span>
+<span class="x">$version = 3;</span>
+<span class="x">$record = $client-&gt;readRecordVersion($mfn, $version);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h2>Сохранение записи на сервере<a class="headerlink" href="#id5" title="Ссылка на этот заголовок">¶</a></h2>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">// Любым образом создаём или получаем с сервера запись.</span>
+<span class="x">$record = $client-&gt;readRecord(123);</span>
+
+<span class="x">// Производим какие-то манипуляции над записью</span>
+<span class="x">$record-&gt;add(999, &#39;123&#39;);</span>
+
+<span class="x">// Отсылаем запись на сервер</span>
+<span class="x">$newMaxMfn = $client-&gt;writeRecord($record);</span>
+<span class="x">echo &quot;New MaxMFN: $newMaxMfn&quot;;</span>
+</pre></div>
+</div>
+<p>Сохранение нескольких записей (возможно, из разных баз данных):</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$records = array();</span>
+<span class="x">...</span>
+<span class="x">if (!$client-&gt;writeRecords($records))) {</span>
+<span class="x">    echo &quot;Failure!&quot;;</span>
+<span class="x">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id6">
+<h2>Удаление записи на сервере<a class="headerlink" href="#id6" title="Ссылка на этот заголовок">¶</a></h2>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$mfn = 123;</span>
+<span class="x">$client-&gt;deleteRecord($mfn);</span>
+</pre></div>
+</div>
+<p>Восстановление записи:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$mfn = 123;</span>
+<span class="x">$record = $client-&gt;undeleteRecord($mfn);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id7">
+<h2>Поиск записей<a class="headerlink" href="#id7" title="Ссылка на этот заголовок">¶</a></h2>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$found = $client-&gt;search(&#39;&quot;A=ПУШКИН$&quot;&#39;);</span>
+<span class="x">echo &quot;Найдено записей: &quot; . count($found);</span>
+</pre></div>
+</div>
+<p>Обратите внимание, что поисковый запрос заключен в дополнительные кавычки. Эти кавычки явлются элементом синтаксиса поисковых запросов ИРБИС64, и лучше их не опускать.</p>
+<p>Вышеприведённый запрос вернёт не более 32 тыс. найденных записей. Сервер ИРБИС64 за одно обращение к нему может выдать не более 32 тыс. записей. Чтобы получить все записи, используйте метод searchAll (см. ниже), он выполнит столько обращений к серверу, сколько нужно.</p>
+<p>Поиск с одновременной загрузкой записей:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$records = $client-&gt;searchRead(&#39;&quot;A=ПУШКИН$&quot;&#39;, 50);</span>
+<span class="x">echo &quot;Найдено записей: &quot; . count($records);</span>
+</pre></div>
+</div>
+<p>Поиск и загрузка единственной записи:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$record = $client-&gt;searchSingleRecord(&#39;&quot;I=65.304.13-772296&quot;&#39;);</span>
+<span class="x">if (!$record) {</span>
+<span class="x">    echo &#39;Не нашли!&#39;;</span>
+<span class="x">}</span>
+</pre></div>
+</div>
+<p>Количество записей, соответствующих поисковому выражению:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$expression = &#39;&quot;A=ПУШКИН$&quot;&#39;;</span>
+<span class="x">$count = $client-&gt;searchCount($expression);</span>
+</pre></div>
+</div>
+<p>Расширенный поиск: можно задать не только количество возвращаемых записей, но и расформатировать их.</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$parameters = new Irbis\SearchParameters();</span>
+<span class="x">$parameters-&gt;expression = &#39;&quot;A=ПУШКИН$&quot;&#39;;</span>
+<span class="x">$parameters-&gt;format = BRIEF_FORMAT;</span>
+<span class="x">$parameters-&gt;numberOfRecords = 5;</span>
+<span class="x">$found = $client-&gt;searchEx($parameters);</span>
+<span class="x">if (!$found) {</span>
+<span class="x">    echo &#39;Не нашли&#39;;</span>
+<span class="x">} else {</span>
+<span class="x">    // в $found находится массив FoundLine</span>
+<span class="x">    $first = $found[0];</span>
+<span class="x">    echo &quot;&lt;p&gt;MFN: {$first-&gt;mfn}, DESCRIPTION: {$first-&gt;description}&lt;/p&gt;&quot;;</span>
+<span class="x">}</span>
+</pre></div>
+</div>
+<p>Поиск всех записей (даже если их окажется больше 32 тыс.):</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$found = $client-&gt;searchAll(&#39;&quot;A=ПУШКИН$&quot;&#39;);</span>
+<span class="x">echo &quot;Найдено записей: &quot; . count($found);</span>
+</pre></div>
+</div>
+<p>Подобные запросы следует использовать с осторожностью, т. к. они, во-первых, создают повышенную нагрузку на сервер, и во-вторых, потребляют очень много памяти на клиенте. Некоторые запросы (например, «I=$») могут вернуть все записи в базе данных, а их там может быть десятки миллионов.</p>
+</div>
+<div class="section" id="id8">
+<h2>Форматирование записей<a class="headerlink" href="#id8" title="Ссылка на этот заголовок">¶</a></h2>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$mfn = 123;</span>
+<span class="x">$format = BRIEF_FORMAT;</span>
+<span class="x">$text = $client-&gt;formatRecord($format, $mfn);</span>
+<span class="x">echo &#39;&lt;p&gt;Результат форматирования: &#39; . $text . &#39;&lt;/p&gt;&#39;;</span>
+</pre></div>
+</div>
+<p>При необходимости можно использовать в формате все символы UNICODE:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$mfn = 123;</span>
+<span class="x">$format = &quot;&#39;Ἀριστοτέλης: &#39;, v200^a&quot;;</span>
+<span class="x">$text = $client-&gt;formatRecord($format, $mfn);</span>
+<span class="x">echo &#39;&lt;p&gt;Результат форматирования: &#39; . $text . &#39;&lt;/p&gt;&#39;;</span>
+</pre></div>
+</div>
+<p>Форматирование нескольких записей:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$mfns = array ( 12, 34, 56 );</span>
+<span class="x">$format = BRIEF_FORMAT;</span>
+<span class="x">$lines = $client-&gt;formatRecords($format, $mfns);</span>
+<span class="x">echo &#39;&lt;p&gt;Результаты:&lt;br/&gt;&#39; . implode(&#39;&lt;br/&gt;&#39;, $lines) . &#39;&lt;/p&gt;&#39;;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id9">
+<h2>Печать таблиц<a class="headerlink" href="#id9" title="Ссылка на этот заголовок">¶</a></h2>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$table = new Irbis\TableDefinition();</span>
+<span class="x">$table-&gt;database = &#39;IBIS&#39;;</span>
+<span class="x">$table-&gt;table = &#39;@tabf1w&#39;;</span>
+<span class="x">$table-&gt;searchQuery = &#39;&quot;T=A$&quot;&#39;;</span>
+<span class="x">$text = $client-&gt;printTable($table);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id10">
+<h2>Работа с контекстом<a class="headerlink" href="#id10" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Контекст в данном случае – файлы обвязки, хранящиеся на сервере ИРБИС64 (форматы, меню и проч.).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 72%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Функция</p></th>
+<th class="head"><p>Назначение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>listFiles</p></td>
+<td><p>Получение списка файлов на сервере</p></td>
+</tr>
+<tr class="row-odd"><td><p>readIniFile</p></td>
+<td><p>Получение INI-файла с сервера</p></td>
+</tr>
+<tr class="row-even"><td><p>readMenuFile</p></td>
+<td><p>Получение MNU-файла с сервера</p></td>
+</tr>
+<tr class="row-odd"><td><p>readSearchScenario</p></td>
+<td><p>Загрузка сценариев поиска с сервера</p></td>
+</tr>
+<tr class="row-even"><td><p>readTextFile</p></td>
+<td><p>Получение текстового файла с сервера</p></td>
+</tr>
+<tr class="row-odd"><td><p>readTextLines</p></td>
+<td><p>Получение текстового файла в виде массива строк</p></td>
+</tr>
+<tr class="row-even"><td><p>readTreeFile</p></td>
+<td><p>Получение TRE-файла с сервера</p></td>
+</tr>
+<tr class="row-odd"><td><p>updateIniFile</p></td>
+<td><p>Обновление строк серверного INI-файла</p></td>
+</tr>
+<tr class="row-even"><td><p>writeTextFile</p></td>
+<td><p>Сохранение текстового файла на сервере</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id11">
+<h2>Работа с мастер-файлом<a class="headerlink" href="#id11" title="Ссылка на этот заголовок">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 73%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Функция</p></th>
+<th class="head"><p>Назначение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>readRawRecord</p></td>
+<td><p>Чтение указанной записи в «сыром» виде</p></td>
+</tr>
+<tr class="row-odd"><td><p>writeRawRecord</p></td>
+<td><p>Сохранение на сервере «сырой» записи</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id12">
+<h2>Работа со словарем<a class="headerlink" href="#id12" title="Ссылка на этот заголовок">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 74%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Функция</p></th>
+<th class="head"><p>Назначение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>getRecordPostings</p></td>
+<td><p>Массив постингов для указанных MFN и префикса</p></td>
+</tr>
+<tr class="row-odd"><td><p>listTerms</p></td>
+<td><p>Получение списка терминов с указанным префиксом</p></td>
+</tr>
+<tr class="row-even"><td><p>readPostings</p></td>
+<td><p>Чтение постингов поискового словаря</p></td>
+</tr>
+<tr class="row-odd"><td><p>readTerms</p></td>
+<td><p>Чтение терминов поискового словаря</p></td>
+</tr>
+<tr class="row-even"><td><p>readTermsEx</p></td>
+<td><p>Расширенное чтение терминов</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id13">
+<h2>Информационные функции<a class="headerlink" href="#id13" title="Ссылка на этот заголовок">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Функция</p></th>
+<th class="head"><p>Назначение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>getDatabaseInfo</p></td>
+<td><p>Получение информации о базе данных</p></td>
+</tr>
+<tr class="row-odd"><td><p>getMaxMfn</p></td>
+<td><p>Получение максимального MFN для указанной базы данных</p></td>
+</tr>
+<tr class="row-even"><td><p>getServerVersion</p></td>
+<td><p>Получение версии сервера</p></td>
+</tr>
+<tr class="row-odd"><td><p>listDatabases</p></td>
+<td><p>Получение списка баз данных с сервера</p></td>
+</tr>
+<tr class="row-even"><td><p>toConnectionString</p></td>
+<td><p>Получение строки подключения</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id14">
+<h2>Администраторские функции<a class="headerlink" href="#id14" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Нижеперечисленные записи доступны лишь из АРМ «Администратор», поэтому подключаться к серверу необходимо так:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$client = new Irbis\Connection();</span>
+<span class="x">$client-&gt;username = &#39;librarian&#39;;</span>
+<span class="x">$client-&gt;password = &#39;secret&#39;;</span>
+<span class="x">$client-&gt;workstation = ADMINISTRATOR;</span>
+<span class="x">if (!$client-&gt;connect()) {</span>
+<span class="x">    echo &#39;Не удалось подключиться!&#39;;</span>
+<span class="x">    die(1);</span>
+<span class="x">}</span>
+</pre></div>
+</div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 29%" />
+<col style="width: 71%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Функция</p></th>
+<th class="head"><p>Назначение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>actualizeDatabase</p></td>
+<td><p>Актуализация базы данных</p></td>
+</tr>
+<tr class="row-odd"><td><p>actualizeRecord</p></td>
+<td><p>Актуализация записи</p></td>
+</tr>
+<tr class="row-even"><td><p>createDatabase</p></td>
+<td><p>Создание базы данных</p></td>
+</tr>
+<tr class="row-odd"><td><p>createDictionary</p></td>
+<td><p>Создание словаря</p></td>
+</tr>
+<tr class="row-even"><td><p>deleteDatabase</p></td>
+<td><p>Удаление базы данных</p></td>
+</tr>
+<tr class="row-odd"><td><p>deleteFile</p></td>
+<td><p>Удаление файла на сервере</p></td>
+</tr>
+<tr class="row-even"><td><p>getServerStat</p></td>
+<td><p>Получение статистики с сервера</p></td>
+</tr>
+<tr class="row-odd"><td><p>getUserList</p></td>
+<td><p>Получение списка пользователей с сервера</p></td>
+</tr>
+<tr class="row-even"><td><p>listProcesses</p></td>
+<td><p>Получение списка серверных процессов</p></td>
+</tr>
+<tr class="row-odd"><td><p>reloadDictionary</p></td>
+<td><p>Пересоздание словаря</p></td>
+</tr>
+<tr class="row-even"><td><p>reloadMasterFile</p></td>
+<td><p>Пересоздание мастер-файла</p></td>
+</tr>
+<tr class="row-odd"><td><p>restartServer</p></td>
+<td><p>Перезапуск сервера</p></td>
+</tr>
+<tr class="row-even"><td><p>truncateDatabase</p></td>
+<td><p>Опустошение базы данных</p></td>
+</tr>
+<tr class="row-odd"><td><p>unlockDatabase</p></td>
+<td><p>Разблокирование базы данных</p></td>
+</tr>
+<tr class="row-even"><td><p>unlockRecords</p></td>
+<td><p>Разблокирование записей</p></td>
+</tr>
+<tr class="row-odd"><td><p>updateUserList</p></td>
+<td><p>Обновление списка пользователей на сервере</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id15">
+<h2>Расширение функциональности<a class="headerlink" href="#id15" title="Ссылка на этот заголовок">¶</a></h2>
+<p><strong>executeAnyCommand(string $command, array $params)</strong> – выполнение произвольной команды с параметрами в кодировке ANSI.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="chapter3.html" class="btn btn-neutral float-right" title="Классы MarcRecord, RecordField и SubField" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="chapter1.html" class="btn btn-neutral float-left" title="Библиотека PhpIrbis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2018-2021, Alexey Mironov &lt;amironov73@gmail.com&gt;.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

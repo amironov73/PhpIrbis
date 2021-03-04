@@ -1,0 +1,472 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="ru" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Глобальная корректировка &mdash; документация PhpIrbis 0.4</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/translations.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Алфавитный указатель" href="genindex.html" />
+    <link rel="search" title="Поиск" href="search.html" />
+    <link rel="prev" title="Построитель запросов" href="chapter5.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PhpIrbis
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Содержание</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="chapter1.html">Библиотека PhpIrbis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter2.html">Класс Connection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter3.html">Классы MarcRecord, RecordField и SubField</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter4.html">Прочие (вспомогательные) классы и функции</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chapter5.html">Построитель запросов</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Глобальная корректировка</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">Операторы ГК</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">Настройки ГК</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">Простой пример выполнения ГК</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">Построитель ГК</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PhpIrbis</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Глобальная корректировка</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/chapter6.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="id1">
+<h1>Глобальная корректировка<a class="headerlink" href="#id1" title="Ссылка на этот заголовок">¶</a></h1>
+<p>Глобальная корректировка (ГК) позволяет применить изменения сразу к нескольким записям в базе данных (даже ко всей базе в целом). Это очень мощный инструмент, который следует использовать с осторожностью.</p>
+<p>Документация по глобальной корректировке доступна на сайте <a class="reference external" href="http://sntnarciss.ru/irbis/spravka/pril00701000000.htm">http://sntnarciss.ru/irbis/spravka/pril00701000000.htm</a></p>
+<div class="section" id="id2">
+<h2>Операторы ГК<a class="headerlink" href="#id2" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Глобальная корректировка состоит из отдельных операторов. Каждый оператор выполняет одно действие, например, добавляет в запись поле или подполе, заменяет одну строку на другое и т. д. Также существуют составные операторы, которые включают в себя несколько операторов (например, условный оператор, который в зависимости от выполнения определённых условий исполняет или нет группу операторов).</p>
+<p>Оператор ГК в <code class="docutils literal notranslate"><span class="pre">PhpIrbis</span></code> воплощён в классе <code class="docutils literal notranslate"><span class="pre">GblStatement</span></code>, включающем в себя следующие поля:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 10%" />
+<col style="width: 77%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Поле</p></th>
+<th class="head"><p>Тип</p></th>
+<th class="head"><p>Назначение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>command</p></td>
+<td><p>string</p></td>
+<td><p>Команда, выполняемая оператором. Например, <code class="docutils literal notranslate"><span class="pre">ADD</span></code> или <code class="docutils literal notranslate"><span class="pre">DEL</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>parameter1</p></td>
+<td><p>string</p></td>
+<td><p>Первый параметр, как правило, спецификация поля/подполя.</p></td>
+</tr>
+<tr class="row-even"><td><p>parameter2</p></td>
+<td><p>string</p></td>
+<td><p>Второй параметр, как правило, спецификация повторения.</p></td>
+</tr>
+<tr class="row-odd"><td><p>format1</p></td>
+<td><p>string</p></td>
+<td><p>Первый формат, например, выражение для замены.</p></td>
+</tr>
+<tr class="row-even"><td><p>format2</p></td>
+<td><p>string</p></td>
+<td><p>Второй формат, например, заменяющее выражение.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Класс <code class="docutils literal notranslate"><span class="pre">GblStatement</span></code> снабжен конструктором:</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">/**</span>
+<span class="x"> * GblStatement constructor.</span>
+<span class="x"> *</span>
+<span class="x"> * @param string $command Команда.</span>
+<span class="x"> * @param string $parameter1 Параметр 1.</span>
+<span class="x"> * @param string $parameter2 Параметр 2.</span>
+<span class="x"> * @param string $format1 Формат 1.</span>
+<span class="x"> * @param string $format2 Формат 2.</span>
+<span class="x"> */</span>
+<span class="x"> public function __construct($command,</span>
+<span class="x">   $parameter1 = &#39;XXXXXXXXX&#39;,</span>
+<span class="x">   $parameter2 = &#39;XXXXXXXXX&#39;,</span>
+<span class="x">   $format1 = &#39;XXXXXXXXX&#39;,</span>
+<span class="x">   $format2 = &#39;XXXXXXXXX&#39;)</span>
+</pre></div>
+</div>
+<p>Лишние (не нужные для данной команды) параметры можно не задавать, они автоматически будут заполнены символом
+<code class="docutils literal notranslate"><span class="pre">X</span></code>.</p>
+<p>Пример инициализации операторов ГК (формат немного сокращен для читаемости):</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$statements = array (</span>
+<span class="x">  new GblStatement (&#39;ADD&#39;, &#39;920&#39;, &#39;XXXX&#39;, &#39;ATHRA&#39;),</span>
+<span class="x">  new GblStatement (&#39;DEL&#39;, &#39;1007&#39;, &#39;1&#39;),</span>
+<span class="x">  new GblStatement (&#39;REP&#39;, &#39;330^f&#39;, &#39;F&#39;, &quot;(if p(v330) then if p(v330^f) then ... fi/)&quot;)</span>
+<span class="x">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>Настройки ГК<a class="headerlink" href="#id3" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Настроек для ГК довольно много, поэтому они собраны в класс <code class="docutils literal notranslate"><span class="pre">GblSettings</span></code>, предоставляющий следующий поля:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21%" />
+<col style="width: 8%" />
+<col style="width: 71%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Поле</p></th>
+<th class="head"><p>Тип</p></th>
+<th class="head"><p>Назначение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>actualize</p></td>
+<td><p>bool</p></td>
+<td><p>Актуализировать записи?</p></td>
+</tr>
+<tr class="row-odd"><td><p>autoin</p></td>
+<td><p>bool</p></td>
+<td><p>Запускать autoin.gbl?</p></td>
+</tr>
+<tr class="row-even"><td><p>database</p></td>
+<td><p>string</p></td>
+<td><p>Имя базы данных, на которой будет выполняться ГК.</p></td>
+</tr>
+<tr class="row-odd"><td><p>filename</p></td>
+<td><p>string</p></td>
+<td><p>Имя файла на сервере, хранящего сценарий ГК.</p></td>
+</tr>
+<tr class="row-even"><td><p>formalControl</p></td>
+<td><p>string</p></td>
+<td><p>Применять формальный контроль?</p></td>
+</tr>
+<tr class="row-odd"><td><p>lowerBound</p></td>
+<td><p>int</p></td>
+<td><p>Нижняя граница MFN для поиска обрабатываемых записей.</p></td>
+</tr>
+<tr class="row-even"><td><p>maxMfn</p></td>
+<td><p>int</p></td>
+<td><p>Максимальный MFN.</p></td>
+</tr>
+<tr class="row-odd"><td><p>mfnList</p></td>
+<td><p>array</p></td>
+<td><p>Массив явно заданных MFN, на которых будет выполняться ГК.</p></td>
+</tr>
+<tr class="row-even"><td><p>minMfn</p></td>
+<td><p>int</p></td>
+<td><p>Минимальный MFN. 0 означает «все записи в базе».</p></td>
+</tr>
+<tr class="row-odd"><td><p>parameters</p></td>
+<td><p>array</p></td>
+<td><p>(Опциональные) параметры ГК.</p></td>
+</tr>
+<tr class="row-even"><td><p>searchExpression</p></td>
+<td><p>string</p></td>
+<td><p>Поисковое выражение отбора записей по словарю.</p></td>
+</tr>
+<tr class="row-odd"><td><p>sequentialExpression</p></td>
+<td><p>string</p></td>
+<td><p>Выражение для отбора записей последовательным поиском (опциональное).</p></td>
+</tr>
+<tr class="row-even"><td><p>statements</p></td>
+<td><p>array</p></td>
+<td><p>Массив операторов.</p></td>
+</tr>
+<tr class="row-odd"><td><p>upperBound</p></td>
+<td><p>int</p></td>
+<td><p>Верхняя граница MFN для поиска обрабатываемых записей.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Если какая-либо из настроек не задана, она принимает (разумное) значение по умолчанию. Абсолютно необходимым является задание массива операторов, т. к. иначе ГК не имеет смысла.</p>
+</div>
+<div class="section" id="id4">
+<h2>Простой пример выполнения ГК<a class="headerlink" href="#id4" title="Ссылка на этот заголовок">¶</a></h2>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$settings = new Irbis\GblSettings();</span>
+<span class="x">$settings-&gt;database = &#39;IBIS&#39;;</span>
+<span class="x">$settings-&gt;mfnList = array(1, 2, 3);</span>
+<span class="x">$settings-&gt;statements = array (</span>
+<span class="x">  new Irbis\GblStatement(ADD_FIELD, &#39;3000&#39;, &#39;XXXXXXXXX&#39;, &quot;&#39;Hello&#39;&quot;)</span>
+<span class="x">);</span>
+<span class="x">$result = $connection-&gt;globalCorrection($settings);</span>
+<span class="x">foreach($result as $line) {</span>
+<span class="x">    echo &quot;&lt;br/&gt;$line&quot;;</span>
+<span class="x">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id5">
+<h2>Построитель ГК<a class="headerlink" href="#id5" title="Ссылка на этот заголовок">¶</a></h2>
+<p>Для более удобного формирования массива операторов ГК можно применять класс <code class="docutils literal notranslate"><span class="pre">Gbl</span></code>, вынесенный в файл <code class="docutils literal notranslate"><span class="pre">Gbl.php</span></code>. В частности, с его помощью довольно наглядно (за счёт отступов) формируются вложенные группы операторов.</p>
+<p>Предоставляются следующие методы:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Метод</p></th>
+<th class="head"><p>Назначение</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>add</p></td>
+<td><p>Добавление нового повторения поля в заданное (существующее или нет) поле.</p></td>
+</tr>
+<tr class="row-odd"><td><p>all</p></td>
+<td><p>Дополняет записи всеми полями текущей записи.</p></td>
+</tr>
+<tr class="row-even"><td><p>build</p></td>
+<td><p>Выдача настроек ГК по заданным значениям.</p></td>
+</tr>
+<tr class="row-odd"><td><p>change</p></td>
+<td><p>Замена данных в поле или в подполе.</p></td>
+</tr>
+<tr class="row-even"><td><p>changeWithCase</p></td>
+<td><p>Замена данных в поле или в подполе с учётом регистра символов.</p></td>
+</tr>
+<tr class="row-odd"><td><p>comment</p></td>
+<td><p>Комментарий. Может находиться между другими операторами и содержать любой текст.</p></td>
+</tr>
+<tr class="row-even"><td><p>correct</p></td>
+<td><p>Из текущей записи вызывает на корректировку другие записи, отобранные по поисковым терминам  из текущей или другой базы данных.</p></td>
+</tr>
+<tr class="row-odd"><td><p>delete</p></td>
+<td><p>Удаляет поле или подполе.</p></td>
+</tr>
+<tr class="row-even"><td><p>deleteRecord</p></td>
+<td><p>Удаляет записи, поданные на корректировку. Не требует никаких дополнительных данных.</p></td>
+</tr>
+<tr class="row-odd"><td><p>empty_</p></td>
+<td><p>Очищает (опустошает) текущую запись.</p></td>
+</tr>
+<tr class="row-even"><td><p>if_</p></td>
+<td><p>Определяет условие выполнения операторов, следующих за ним.</p></td>
+</tr>
+<tr class="row-odd"><td><p>newMfn</p></td>
+<td><p>Создаёт новую запись в текущей или другой базе данных.</p></td>
+</tr>
+<tr class="row-even"><td><p>parameter</p></td>
+<td><p>Задание параметра ГК.</p></td>
+</tr>
+<tr class="row-odd"><td><p>putlog</p></td>
+<td><p>Формирование пользовательского протокола.</p></td>
+</tr>
+<tr class="row-even"><td><p>repeat</p></td>
+<td><p>Организует цикл выполнения группы операторов.</p></td>
+</tr>
+<tr class="row-odd"><td><p>replace</p></td>
+<td><p>Замена целиком поля или подполя на новое значение.</p></td>
+</tr>
+<tr class="row-even"><td><p>statement</p></td>
+<td><p>Добавление произвольного оператора к ГК.</p></td>
+</tr>
+<tr class="row-odd"><td><p>undelete</p></td>
+<td><p>Восстанавливает удалённые записи.</p></td>
+</tr>
+<tr class="row-even"><td><p>undo</p></td>
+<td><p>Переход к одной из предыдущих копий записи.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Пример применения построителя.</p>
+<div class="highlight-php notranslate"><div class="highlight"><pre><span></span><span class="x">$gbl = new \Irbis\Gbl();</span>
+<span class="x">$gbl-&gt;parameter(&#39;mhr.mnu&#39;, &#39;Укажите место хранения&#39;)</span>
+<span class="x">    -&gt;comment(&#39;Это комментарий в начале&#39;)</span>
+<span class="x">    -&gt;newMfn(&quot;&#39;TEST&#39;&quot;,</span>
+<span class="x">        (new \Irbis\Gbl())-&gt;add(700, &quot;&#39;^AἈριστοτέλης&#39;&quot;)</span>
+<span class="x">            -&gt;add(200, &quot;&#39;^Aアリストテレス&#39;&quot;)</span>
+<span class="x">            -&gt;add(300, &quot;&#39;Пробная запись&#39;&quot;)</span>
+<span class="x">            -&gt;add(920, &quot;&#39;PAZK&#39;&quot;)</span>
+<span class="x">        )</span>
+<span class="x">    -&gt;comment(&#39;Это комментарий в конце&#39;);</span>
+
+<span class="x">$settings = $gbl-&gt;build();</span>
+<span class="x">$settings-&gt;database = &#39;IBIS&#39;;</span>
+<span class="x">$result = $connection-&gt;globalCorrection($settings);</span>
+</pre></div>
+</div>
+<p>Сформированные настройки выдаются методом <code class="docutils literal notranslate"><span class="pre">build</span></code>.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="chapter5.html" class="btn btn-neutral float-left" title="Построитель запросов" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2018-2021, Alexey Mironov &lt;amironov73@gmail.com&gt;.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
