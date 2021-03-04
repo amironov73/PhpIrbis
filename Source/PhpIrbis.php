@@ -1,5 +1,9 @@
 <?php
 
+/** @noinspection PhpUnused */
+/** @noinspection PhpUnnecessaryLocalVariableInspection */
+/** @noinspection PhpFullyQualifiedNameUsageInspection */
+
 namespace Irbis;
 
 //
@@ -356,13 +360,23 @@ function codes_for_read_terms()
  */
 final class IrbisException extends \Exception
 {
+    /**
+     * @brief Конструктор.
+     *
+     * @param string $message Сообщение об ошибке.
+     * @param int $code Код ошибки.
+     * @param mixed $previous Вложенное исключение.
+     */
     public function __construct($message = "",
                                 $code = 0,
-                                \Throwable $previous = null)
+                                $previous = null)
     {
         parent::__construct($message, $code, $previous);
     } // function __construct
 
+    /**
+     * @return string Текстовое представление исключения.
+     */
     public function __toString()
     {
         return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
@@ -662,6 +676,31 @@ final class RecordField
     } // function removeSubfield
 
     /**
+     * @brief Устанавливает значение подполя с указанным кодом.
+     *
+     * @param string $code Искомый код подполя.
+     * @param string $value Новое значение подполя.
+     * @return $this
+     */
+    public function setSubfield($code, $value)
+    {
+        if (!$value) {
+            $this->removeSubfield($code);
+        }
+        else {
+            $subfield = $this->getFirstSubfield($code);
+            if (!$subfield) {
+                $this->add($code, $value);
+                $subfield = $this->getFirstSubfield($code);
+            }
+
+            $subfield->value = $value;
+        }
+
+        return $this;
+    } // function setSubfield
+
+    /**
      * @brief Верификация поля.
      *
      * @param bool $throw Бросать ли исключение при ошибке?
@@ -926,7 +965,7 @@ final class MarcRecord
      */
     public function isDeleted()
     {
-        return boolval($this->status & 3);
+        return ($this->status & 3) != 0;
     } // function is_deleted
 
     /**
@@ -987,6 +1026,57 @@ final class MarcRecord
 
         return $this;
     } // function reset
+
+    /**
+     * @brief Установка значения поля до первого разделителя.
+     *
+     * @param int $tag Искомая метка поля.
+     * @param string $value Новое значение до первого разделителя.
+     * @return $this
+     */
+    public function setValue($tag, $value)
+    {
+        if (!$value) {
+            $this->removeField($tag);
+        }
+        else {
+            $field = $this->getField($tag);
+            if (!$field) {
+                $field = $this->add($tag);
+            }
+
+            $field->value = $value;
+        }
+
+        return $this;
+    } // function setValue
+
+    /**
+     * @brief Установка значения подполя.
+     *
+     * @param int $tag Метка поля.
+     * @param string $code Искомый код подполя.
+     * @param string $value Новое значение подполя.
+     * @return $this
+     */
+    public function setSubfield($tag, $code, $value)
+    {
+        $field = $this->getField($tag);
+        if (!$value) {
+            if ($field) {
+                $field->removeSubfield($code);
+            }
+        }
+        else {
+            if (!$field) {
+                $field = $this->add($tag);
+            }
+
+            $field->setSubfield($code, $value);
+        }
+
+        return $this;
+    } // function setSubfield
 
     /**
      * Верификация записи.

@@ -20,6 +20,7 @@
   ],
   "require": {
     "php": ">= 5.4.0",
+    "ext-curl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-sockets": "*",
@@ -32,6 +33,10 @@
     }
   ],
   "autoload": {
-    "classmap": ["Source/PhpIrbis.php"]
+    "classmap": ["Source/PhpIrbis.php",
+      "Source/Gbl.php",
+      "Source/Jsoner.php",
+      "Source/Search.php"
+    ]
   }
 }

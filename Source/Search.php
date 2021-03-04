@@ -1,5 +1,8 @@
 <?php
 
+/** @noinspection PhpUnused */
+/** @noinspection PhpFullyQualifiedNameUsageInspection */
+
 namespace Irbis;
 
 /**
