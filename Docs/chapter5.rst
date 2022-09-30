@@ -60,7 +60,7 @@ year            году издания
     $client->username = 'ninja';
     $client->password = 'i_am_invisible';
     $client->connect();
-    $expression = author('Пушкин$')->and_(title('СКАЗКИ$'));
-    $found = client->searchCount($expression);
+    $expression = Irbis\author('Пушкин$')->and_(Irbis\title('СКАЗКИ$'));
+    $found = $client->searchCount($expression);
     echo "Найдено: ", $found;
     $client->disconnect();
