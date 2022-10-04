@@ -19,11 +19,6 @@ namespace Irbis;
 // Если это не так, возможны проблемы
 //
 
-const UTF_ENCODING = 'UTF-8';
-const ANSI_ENCODING = 'Windows-1251';
-
-mb_internal_encoding(UTF_ENCODING);
-
 // Статус записи
 
 const LOGICALLY_DELETED  = 1;  ///< Запись логически удалена
@@ -138,6 +133,106 @@ function safe_get(array $a, $ofs)
     return null;
 } // function safe_get
 
+// Таблица ручной перекодировки из CP1251 в UTF8.
+$_ansiTable = array
+(
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+    19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
+    35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+    51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66,
+    67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82,
+    83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98,
+    99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+    112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124,
+    125, 126, 127, 1026, 1027, 8218, 1107, 8222, 8230, 8224, 8225,
+    8364, 8240, 1033, 8249, 1034, 1036, 1035, 1039, 1106, 8216, 8217,
+    8220, 8221, 8226, 8211, 8212, 152, 8482, 1113, 8250, 1114, 1116,
+    1115, 1119, 160, 1038, 1118, 1032, 164, 1168, 166, 167, 1025, 169,
+    1028, 171, 172, 173, 174, 1031, 176, 177, 1030, 1110, 1169, 181,
+    182, 183, 1105, 8470, 1108, 187, 1112, 1029, 1109, 1111, 1040,
+    1041, 1042, 1043, 1044, 1045, 1046, 1047, 1048, 1049, 1050, 1051,
+    1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059, 1060, 1061, 1062,
+    1063, 1064, 1065, 1066, 1067, 1068, 1069, 1070, 1071, 1072, 1073,
+    1074, 1075, 1076, 1077, 1078, 1079, 1080, 1081, 1082, 1083, 1084,
+    1085, 1086, 1087, 1088, 1089, 1090, 1091, 1092, 1093, 1094, 1095,
+    1096, 1097, 1098, 1099, 1100, 1101, 1102, 1103
+);
+
+/**
+ * @brief Ручная перекодировка текста из CP1251 в UTF-8.
+ *
+ */
+function ansiToUtf ($text)
+{
+    global $_ansiTable;
+
+    $length = strlen ($text);
+    $result = '';
+
+    for ($i = 0; $i < $length; $i++) {
+        $chr = ord ($text[$i]);
+        $chr = $_ansiTable[$chr];
+        if ($chr < 128) {
+            $result .= chr ($chr);
+        }
+        else {
+            $result .= chr (($chr >> 6) | 0xC0);
+            $result .= chr (($chr & 0x3F) | 0x80);
+        }
+    }
+
+    return $result;
+} // function ansiToUtf
+
+/**
+ * @brief Ручная перекодировка текста из CP1251 в UTF-8.
+ *
+ */
+function utfToAnsi ($text)
+{
+    global $_ansiTable;
+
+    $length = strlen ($text);
+    $result = '';
+    $offset = 0;
+
+    while ($offset < $length) {
+        $chr = ord ($text[$offset++]);
+        if ($chr < 128) {
+            $result .= chr ($chr);
+        }
+        else {
+            if (($chr & 0xE0) === 0xC0) {
+                $wide =  ($chr & 0x1F) << 6;
+                $wide |= (ord ($text[$offset++]) & 0x3F);
+                $chr = '?';
+                for ($i = 0; $i < 256; $i++) {
+                    if ($_ansiTable[$i] === $wide) {
+                        $chr = chr ($i);
+                        break;
+                    }
+                }
+
+                $result .= $chr;
+            }
+            else if (($chr & 0xF0) === 0xE0) {
+                $result .= '?';
+                $offset++;
+                $offset++;
+            }
+            else {
+                $result .= '?';
+                $offset++;
+                $offset++;
+                $offset++;
+            }
+        }
+
+    }
+
+    return $result;
+} // function utfToAnsi
+
 /**
  * @brief Замена переводов строки с ИРБИСных на обычные.
  *
@@ -196,11 +291,11 @@ function remove_comments($text)
                 break;
 
             default:
-                if ($c == '/') {
-                    if ($index + 1 < $length && $text[$index + 1] == '*') {
+                if ($c === '/') {
+                    if ($index + 1 < $length && $text[$index + 1] === '*') {
                         while ($index < $length) {
                             $c = $text[$index];
-                            if ($c == "\r" || $c == "\n") {
+                            if ($c === "\r" || $c === "\n") {
                                 $result .= $c;
                                 break;
                             }
@@ -210,7 +305,7 @@ function remove_comments($text)
                     } else {
                         $result .= $c;
                     }
-                } else if ($c == "'" || $c == '"' || $c == '|') {
+                } else if ($c === "'" || $c === '"' || $c === '|') {
                     $state = $c;
                     $result .= $c;
                 } else {
@@ -539,7 +634,7 @@ final class RecordField
         $this->tag = intval(strtok($line, "#"));
         $body = strtok('');
 
-        if ($body[0] == '^') {
+        if ($body[0] === '^') {
             $this->value = '';
             $all = explode('^', $body);
         } else {
@@ -1401,7 +1496,7 @@ final class MenuFile
         $length = count($lines);
         for ($i = 0; $i < $length; $i += 2) {
             $code = $lines[$i];
-            if (!$code || substr($code, 5) == '*****') {
+            if (!$code || substr($code, 5) === '*****') {
                 break;
             }
 
@@ -1516,7 +1611,8 @@ final class IniSection
      */
     public function remove($key)
     {
-        for ($i = 0; $i < count($this->lines); $i++) {
+        $length = count($this->lines);
+        for ($i = 0; $i < $length; $i++) {
             if (same_string($this->lines[$i]->key, $key)) {
                 unset($this->lines[$i]);
                 break;
@@ -1641,7 +1737,7 @@ final class IniFile
                 continue;
             }
 
-            if ($trimmed[0] == '[') {
+            if ($trimmed[0] === '[') {
                 $name = substr($trimmed, 1, strlen($trimmed) - 2);
                 $section = $this->getOrCreateSection($name);
             } else if ($section) {
@@ -1788,7 +1884,7 @@ final class TreeFile
         $result = 0;
         $length = strlen($text);
         for ($i = 0; $i < $length; $i++) {
-            if ($text[$i] == "\t") {
+            if ($text[$i] === "\t") {
                 $result++;
             } else {
                 break;
@@ -1962,7 +2058,7 @@ final class DatabaseInfo
         $result = array();
         foreach ($menu->entries as $entry) {
             $name = $entry->code;
-            if ($name == '*****') {
+            if ($name === '*****') {
                 break;
             }
 
@@ -3058,7 +3154,7 @@ final class OptFile
                 continue;
             }
 
-            if ($line[0] == '*') {
+            if ($line[0] === '*') {
                 break;
             }
 
@@ -3334,7 +3430,8 @@ final class GblSettings
      */
     public function substituteParameters($text)
     {
-       for ($i = 0; $i < count($this->parameters); $i += 1) {
+        $length = count($this->parameters);
+       for ($i = 0; $i < $length; $i += 1) {
            $mark = '%' . strval($i + 1);
            $text = str_replace($mark, $this->parameters[$i]->value, $text);
        }
@@ -3387,7 +3484,7 @@ final class ClientQuery
      */
     public function addAnsi($value)
     {
-        $converted = mb_convert_encoding($value, ANSI_ENCODING, UTF_ENCODING);
+        $converted = utfToAnsi($value);
         $this->accumulator .= $converted;
 
         return $this;
@@ -3408,9 +3505,9 @@ final class ClientQuery
 
         $prepared = prepare_format(ltrim($format));
 
-        if ($format[0] == '@') {
+        if ($format[0] === '@') {
             $this->addAnsi($format);
-        } else if ($format[0] == '!') {
+        } else if ($format[0] === '!') {
             $this->addUtf($prepared);
         } else {
             $this->addUtf("!" . $prepared);
@@ -3590,7 +3687,7 @@ final class ServerResponse
     public function readAnsi()
     {
         $result = $this->getLine();
-        $result = mb_convert_encoding($result, UTF_ENCODING, ANSI_ENCODING);
+        $result = ansiToUtf($result);
 
         return $result;
     }
@@ -3633,7 +3730,7 @@ final class ServerResponse
     {
         $result = substr($this->answer, $this->offset);
         $this->offset = $this->answerLength;
-        $result = mb_convert_encoding($result, mb_internal_encoding(), ANSI_ENCODING);
+        $result = ansiToUtf($result);
 
         return $result;
     }
@@ -5549,7 +5646,8 @@ final class Connection
 
         if (!$dontParse) {
             $lines = $response->readRemainingUtfLines();
-            for ($i = 0; $i < count($records); $i++) {
+            $length = count($records);
+            for ($i = 0; $i < $length; $i++) {
                 $text = $lines[$i];
                 if (is_null_or_empty($text)) {
                     continue;
