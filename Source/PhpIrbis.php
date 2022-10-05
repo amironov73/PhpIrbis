@@ -206,7 +206,8 @@ function utfToAnsi ($text)
                 $wide =  ($chr & 0x1F) << 6;
                 $wide |= (ord ($text[$offset++]) & 0x3F);
                 $chr = '?';
-                for ($i = 0; $i < 256; $i++) {
+                for ($i = 128; $i < 256; $i++) {
+                    // начинать с 0 нет смысла, сэкономим такты процессора
                     if ($_ansiTable[$i] === $wide) {
                         $chr = chr ($i);
                         break;
@@ -606,7 +607,7 @@ final class RecordField
         $subfield = new SubField();
         $subfield->code = $code;
         $subfield->value = $value;
-        array_push($this->subfields, $subfield);
+        $this->subfields[] = $subfield;
 
         return $this;
     } // function add
@@ -646,7 +647,7 @@ final class RecordField
             if (!empty($one)) {
                 $sf = new SubField();
                 $sf->decode($one);
-                array_push($this->subfields, $sf);
+                $this->subfields[] = $sf;
             }
         }
     } // function decode
@@ -664,7 +665,7 @@ final class RecordField
             if ($subfield->code == '1') {
                 if ($found) {
                     if (count($found->subfields) || $found->value) {
-                        array_push($result, $found);
+                        $result[] = $found;
                     }
                     $found = null;
                 }
@@ -679,14 +680,14 @@ final class RecordField
                 }
             } else {
                 if ($found) {
-                    array_push($found->subfields, $subfield);
+                    $found->subfields[] = $subfield;
                 }
             }
         }
 
         if ($found) {
             if (count($found->subfields) || $found->value) {
-                array_push($result, $found);
+                $result[] = $found;
             }
         }
 
@@ -885,7 +886,7 @@ final class MarcRecord
         $field = new RecordField();
         $field->tag = $tag;
         $field->value = $value;
-        array_push($this->fields, $field);
+        $this->fields[] = $field;
 
         return $field;
     } // function add
@@ -929,7 +930,7 @@ final class MarcRecord
             if ($line) {
                 $field = new RecordField();
                 $field->decode($line);
-                array_push($this->fields, $field);
+                $this->fields[] = $field;
             }
         }
     } // function decode
@@ -997,13 +998,13 @@ final class MarcRecord
                     foreach ($field->subfields as $subfield) {
                         if (strcasecmp($subfield->code, $code) == 0) {
                             if ($subfield->value) {
-                                array_push($result, $subfield->value);
+                                $result[] = $subfield->value;
                             }
                         }
                     }
                 } else {
                     if ($field->value) {
-                        array_push($result, $field->value);
+                        $result[] = $field->value;
                     }
                 }
             }
@@ -1045,7 +1046,7 @@ final class MarcRecord
         $result = array();
         foreach ($this->fields as $field) {
             if ($field->tag == $tag) {
-                array_push($result, $field);
+                $result[] = $field;
             }
         }
 
@@ -1326,7 +1327,7 @@ final class FoundLine
             $item = new FoundLine();
             $item->mfn = intval($parts[0]);
             $item->description = safe_get($parts, 1);
-            array_push($result, $item);
+            $result[] = $item;
         }
 
         return $result;
@@ -1344,7 +1345,7 @@ final class FoundLine
         foreach ($lines as $line) {
             $parts = explode('#', $line, 2);
             $mfn = intval($parts[0]);
-            array_push($result, $mfn);
+            $result[] = $mfn;
         }
 
         return $result;
@@ -1360,7 +1361,7 @@ final class FoundLine
     {
         $result = array();
         foreach ($found as $item) {
-            array_push($result, $item->description);
+            $result[] = $item->description;
         }
 
         return $result;
@@ -1376,7 +1377,7 @@ final class FoundLine
     {
         $result = array();
         foreach ($found as $item) {
-            array_push($result, $item->mfn);
+            $result[] = $item->mfn;
         }
 
         return $result;
@@ -1433,7 +1434,7 @@ final class MenuFile
         $entry = new MenuEntry();
         $entry->code = $code;
         $entry->comment = $comment;
-        array_push($this->entries, $entry);
+        $this->entries[] = $entry;
 
         return $this;
     }
@@ -1504,7 +1505,7 @@ final class MenuFile
             $entry = new MenuEntry();
             $entry->code = $code;
             $entry->comment = $comment;
-            array_push($this->entries, $entry);
+            $this->entries[] = $entry;
         }
     }
 
@@ -1927,7 +1928,7 @@ final class TreeFile
             throw new IrbisException();
         }
 
-        array_push($list, new TreeNode($line));
+        $list[] = new TreeNode($line);
         $lines = array_slice($lines, 1);
         foreach ($lines as $line) {
             if (is_null_or_empty($line)) {
@@ -1943,7 +1944,7 @@ final class TreeFile
             $line = substr($line, $currentLevel);
             $node = new TreeNode($line);
             $node->level = $currentLevel;
-            array_push($list, $node);
+            $list[] = $node;
         }
 
         $maxLevel = 0;
@@ -2020,7 +2021,7 @@ final class DatabaseInfo
         $result = array();
         $items = explode(SHORT_DELIMITER, $line);
         foreach ($items as $item) {
-            array_push($result, intval($item));
+            $result[] = intval($item);
         }
 
         return $result;
@@ -2073,7 +2074,7 @@ final class DatabaseInfo
             $db->name = $name;
             $db->description = $description;
             $db->readOnly = $readOnly;
-            array_push($result, $db);
+            $result[] = $db;
         }
 
         return $result;
@@ -2170,7 +2171,7 @@ final class ProcessInfo
             $process->processId = $lines[8];
             $process->state = $lines[9];
 
-            array_push($result, $process);
+            $result[] = $process;
             $lines = array_slice($lines, $linesPerProcess);
         }
 
@@ -2651,7 +2652,7 @@ final class TermInfo
                 $term = new TermInfo();
                 $term->count = intval($parts[0]);
                 $term->text = safe_get($parts, 1);
-                array_push($result, $term);
+                $result[] = $term;
             }
         }
 
@@ -2715,7 +2716,7 @@ final class TermPosting
             $item->occurrence = intval(safe_get($parts, 2));
             $item->count = intval(safe_get($parts, 3));
             $item->text = safe_get($parts, 4);
-            array_push($result, $item);
+            $result[] = $item;
         }
 
         return $result;
@@ -2890,7 +2891,7 @@ final class SearchScenario
                 $scenario->logic = self::get($section, "Logic", $i);
                 $scenario->advance = self::get($section, "Adv", $i);
                 $scenario->format = self::get($section, "Pft", $i);
-                array_push($result, $scenario);
+                $result[] = $scenario;
             }
         }
 
@@ -3160,7 +3161,7 @@ final class OptFile
 
             $item = new OptLine();
             $item->parse($line);
-            array_push($this->lines, $item);
+            $this->lines[] = $item;
         }
     }
 
@@ -3715,7 +3716,7 @@ final class ServerResponse
 
         while ($this->offset < $this->answerLength) {
             $line = $this->readAnsi();
-            array_push($result, $line);
+            $result[] = $line;
         }
 
         return $result;
@@ -3746,7 +3747,7 @@ final class ServerResponse
 
         while ($this->offset < $this->answerLength) {
             $line = $this->readUtf();
-            array_push($result, $line);
+            $result[] = $line;
         }
 
         return $result;
@@ -4209,7 +4210,7 @@ final class Connection
         foreach ($lines as $line) {
             $parts = explode('#', $line, 2);
             if (count($parts) == 2)
-                array_push($result, irbis_to_dos($parts[1]));
+                $result[] = irbis_to_dos($parts[1]);
         }
 
         return $result;
@@ -4469,7 +4470,7 @@ final class Connection
             $files = irbis_to_lines($line);
             foreach ($files as $file) {
                 if (!is_null_or_empty($file)) {
-                    array_push($result, $file);
+                    $result[] = $file;
                 }
             }
         }
@@ -4529,7 +4530,7 @@ final class Connection
                 if ($text != $startTerm) {
                     $lastTerm = $text;
                     $text = substr($text, $prefixLength);
-                    array_push($result, $text);
+                    $result[] = $text;
                 }
             }
             $startTerm = $lastTerm;
@@ -4871,7 +4872,7 @@ final class Connection
             $result = array();
             $record = $this->readRecord($mfnList[0]);
             if ($record) {
-                array_push($result, $record);
+                $result[] = $record;
             }
             return $result;
         }
@@ -4897,7 +4898,7 @@ final class Connection
                 $record = new MarcRecord();
                 $record->decode($parts);
                 $record->database = $this->database;
-                array_push($result, $record);
+                $result[] = $record;
             }
         }
 
