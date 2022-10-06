@@ -103,7 +103,7 @@ const ALT_DELIMITER   = "\x1F";
  */
 function is_null_or_empty($text)
 {
-    return (!isset($text) || $text == false || trim($text) == '');
+    return (!isset($text) || !$text || !trim($text));
 } // function is_null_or_empty
 
 /**
@@ -115,7 +115,7 @@ function is_null_or_empty($text)
  */
 function same_string($str1, $str2)
 {
-    return strcasecmp($str1, $str2) == 0;
+    return strcasecmp($str1, $str2) === 0;
 } // function same_string
 
 /**
@@ -426,9 +426,7 @@ function describe_error($code)
         -100003 => 'Не подключен к серверу'
     );
 
-    $result = $errors[$code] ?: 'Неизвестная ошибка';
-
-    return $result;
+    return $errors[$code] ?: 'Неизвестная ошибка';
 } // function describe_error
 
 /**
@@ -475,7 +473,7 @@ final class IrbisException extends \Exception
      */
     public function __toString()
     {
-        return __CLASS__ . ": [{$this->code}]: {$this->message}\n";
+        return __CLASS__ . ": [$this->code]: $this->message\n";
     } // function __toString
 } // class IrbisException
 
@@ -759,7 +757,7 @@ final class RecordField
     {
         $flag = false;
         $len = count($this->subfields);
-        for ($i = 0; $i < $len; $i = $i + 1) {
+        for ($i = 0; $i < $len; ++$i) {
             $sub = $this->subfields[$i];
             if (same_string($sub->code, $code)) {
                 unset($this->subfields[$i]);
@@ -965,10 +963,10 @@ final class MarcRecord
     public function fm($tag, $code = '')
     {
         foreach ($this->fields as $field) {
-            if ($field->tag == $tag) {
+            if ($field->tag === $tag) {
                 if ($code) {
                     foreach ($field->subfields as $subfield) {
-                        if (strcasecmp($subfield->code, $code) == 0) {
+                        if (strcasecmp($subfield->code, $code) === 0) {
                             return $subfield->value;
                         }
                     }
@@ -993,10 +991,10 @@ final class MarcRecord
     {
         $result = array();
         foreach ($this->fields as $field) {
-            if ($field->tag == $tag) {
+            if ($field->tag === $tag) {
                 if ($code) {
                     foreach ($field->subfields as $subfield) {
-                        if (strcasecmp($subfield->code, $code) == 0) {
+                        if (strcasecmp($subfield->code, $code) === 0) {
                             if ($subfield->value) {
                                 $result[] = $subfield->value;
                             }
@@ -1023,7 +1021,7 @@ final class MarcRecord
     public function getField($tag, $occurrence = 0)
     {
         foreach ($this->fields as $field) {
-            if ($field->tag == $tag) {
+            if ($field->tag === $tag) {
                 if (!$occurrence) {
                     return $field;
                 }
@@ -1045,7 +1043,7 @@ final class MarcRecord
     {
         $result = array();
         foreach ($this->fields as $field) {
-            if ($field->tag == $tag) {
+            if ($field->tag === $tag) {
                 $result[] = $field;
             }
         }
@@ -1061,7 +1059,7 @@ final class MarcRecord
      */
     public function isDeleted()
     {
-        return ($this->status & 3) != 0;
+        return ($this->status & 3) !== 0;
     } // function is_deleted
 
     /**
@@ -1517,9 +1515,7 @@ final class MenuFile
      */
     public static function trimCode($code)
     {
-        $result = trim($code, '-=:');
-
-        return $result;
+        return trim($code, '-=:');
     }
 
     public function __toString()
@@ -1641,7 +1637,7 @@ final class IniSection
                 $item = new IniLine();
                 $item->key = $key;
                 $item->value = $value;
-                array_push($this->lines, $item);
+                $this->lines[] = $item;
             }
         }
     }
@@ -1698,7 +1694,7 @@ final class IniFile
         if (!$result) {
             $result = new IniSection();
             $result->name = $name;
-            array_push($this->sections, $result);
+            $this->sections[] = $result;
         }
 
         return $result;
@@ -1739,7 +1735,7 @@ final class IniFile
             }
 
             if ($trimmed[0] === '[') {
-                $name = substr($trimmed, 1, strlen($trimmed) - 2);
+                $name = substr($trimmed, 1, -1);
                 $section = $this->getOrCreateSection($name);
             } else if ($section) {
                 $parts = explode('=', $trimmed, 2);
@@ -1748,7 +1744,7 @@ final class IniFile
                 $item = new IniLine();
                 $item->key = $key;
                 $item->value = $value;
-                array_push($section->lines, $item);
+                $section->lines[] = $item;
             }
         }
     }
@@ -1826,7 +1822,7 @@ final class TreeNode
     public function add($value)
     {
         $child = new TreeNode($value);
-        array_push($this->children, $child);
+        $this->children[] = $child;
 
         return $this;
     }
@@ -1871,7 +1867,7 @@ final class TreeFile
             }
 
             if ($child->level == $level2) {
-                array_push($parent->children, $child);
+                $parent->children[] = $child;
             }
 
             $next++;
@@ -1904,7 +1900,7 @@ final class TreeFile
     public function addRoot($value)
     {
         $result = new TreeNode($value);
-        array_push($this->roots, $result);
+        $this->roots[] = $result;
 
         return $result;
     }
@@ -1960,7 +1956,7 @@ final class TreeFile
 
         foreach ($list as $item) {
             if ($item->level == 0) {
-                array_push($this->roots, $item);
+                $this->roots[] = $item;
             }
         }
     }
@@ -2429,7 +2425,7 @@ final class UserInfo
             $user->acquisitions = $lines[6];
             $user->provision = $lines[7];
             $user->administrator = $lines[8];
-            array_push($result, $user);
+            $result[] = $user;
 
             $lines = array_slice($lines, $linesPerUser + 1);
         }
@@ -2544,7 +2540,7 @@ final class ServerStat
             $client->parse($lines);
             if (!$client->name)
                 break;
-            array_push($this->runningClients, $client);
+            $this->runningClients[] = $client;
             $lines = array_slice($lines, $linesPerClient + 1);
         }
     }
@@ -4113,9 +4109,7 @@ final class Connection
         foreach ($params as $param)
             $query->addAnsi($param)->newLine();
 
-        $response = $this->execute($query);
-
-        return $response;
+        return $this->execute($query);
     } // function executeAnyCommand
 
     /**
@@ -4140,9 +4134,7 @@ final class Connection
         if (!$response || !$response->checkReturnCode())
             return false;
 
-        $result = $response->readRemainingUtfText();
-
-        return $result;
+        return $response->readRemainingUtfText();
     } // function formatRecord
 
     /**
@@ -4171,9 +4163,7 @@ final class Connection
         if (!$response || !$response->checkReturnCode())
             return false;
 
-        $result = $response->readRemainingUtfText();
-
-        return $result;
+        return $response->readRemainingUtfText();
     } // function formatVirtualRecord
 
     /**
@@ -4236,9 +4226,8 @@ final class Connection
             return false;
 
         $lines = $response->readRemainingAnsiLines();
-        $result = DatabaseInfo::parseResponse($lines);
 
-        return $result;
+        return DatabaseInfo::parseResponse($lines);
     } // function getDatabaseInfo
 
     /**
@@ -4347,9 +4336,7 @@ final class Connection
         if (!$response || !$response->checkReturnCode())
             return false;
 
-        $result = UserInfo::parse($response->readRemainingAnsiLines());
-
-        return $result;
+        return UserInfo::parse($response->readRemainingAnsiLines());
     } // function getUserList
 
     /**
@@ -4411,9 +4398,7 @@ final class Connection
         if (!$response || !$response->checkReturnCode())
             return false;
 
-        $result = $response->readRemainingAnsiLines();
-
-        return $result;
+        return $response->readRemainingAnsiLines();
     } // function globalCorrection
 
     /**
@@ -4441,9 +4426,7 @@ final class Connection
         if (!$menu)
             return false;
 
-        $result = DatabaseInfo::parseMenu($menu);
-
-        return $result;
+        return DatabaseInfo::parseMenu($menu);
     } // function listDatabases
 
     /**
@@ -4495,9 +4478,8 @@ final class Connection
             return false;
 
         $lines = $response->readRemainingAnsiLines();
-        $result = ProcessInfo::parse($lines);
 
-        return $result;
+        return ProcessInfo::parse($lines);
     } // function listProcesses
 
     /**
@@ -4527,7 +4509,7 @@ final class Connection
                 if (strcmp(substr($text, 0, $prefixLength), $prefix)) {
                     break 2;
                 }
-                if ($text != $startTerm) {
+                if ($text !== $startTerm) {
                     $lastTerm = $text;
                     $text = substr($text, $prefixLength);
                     $result[] = $text;
@@ -4575,7 +4557,7 @@ final class Connection
             }
 
             $parts = explode('=', $item, 2);
-            if (count($parts) != 2) {
+            if (count($parts) !== 2) {
                 continue;
             }
 
@@ -4621,7 +4603,7 @@ final class Connection
                     break;
 
                 default:
-                    throw new IrbisException("Unknown key {$name}");
+                    throw new IrbisException("Unknown key $name");
             }
         }
     } // function parseConnectionString
@@ -4653,9 +4635,7 @@ final class Connection
         if (!$response)
             return false;
 
-        $result = $response->readRemainingUtfText();
-
-        return $result;
+        return $response->readRemainingUtfText();
     } // function printTable
 
     /**
@@ -4767,9 +4747,8 @@ final class Connection
             return false;
 
         $lines = $response->readRemainingUtfLines();
-        $result = TermPosting::parse($lines);
 
-        return $result;
+        return TermPosting::parse($lines);
     } // function readPostings
 
     /**
@@ -4921,9 +4900,7 @@ final class Connection
         if (!$iniFile)
             return false;
 
-        $result = SearchScenario::parse($iniFile);
-
-        return $result;
+        return SearchScenario::parse($iniFile);
     } // function readSearchScenario
 
     /**
@@ -4967,9 +4944,8 @@ final class Connection
             return false;
 
         $lines = $response->readRemainingUtfLines();
-        $result = TermInfo::parse($lines);
 
-        return $result;
+        return TermInfo::parse($lines);
     } // function readTermsEx
 
     /**
@@ -5218,9 +5194,8 @@ final class Connection
         $parameters = new SearchParameters();
         $parameters->expression = $expression;
         $found = $this->searchEx($parameters);
-        $result = FoundLine::toMfn($found);
 
-        return $result;
+        return FoundLine::toMfn($found);
     } // function search
 
     /**
@@ -5293,9 +5268,7 @@ final class Connection
         if (!$response || !$response->checkReturnCode())
             return false;
 
-        $result = $response->readInteger(); // Число найденных записей
-
-        return $result;
+        return $response->readInteger(); // Число найденных записей
     } // function searchCount
 
     /**
@@ -5356,7 +5329,7 @@ final class Connection
             $record = new MarcRecord();
             $record->decode($lines);
             $record->database = $this->database;
-            array_push($result, $record);
+            $result[] = $record;
         }
 
         return $result;
