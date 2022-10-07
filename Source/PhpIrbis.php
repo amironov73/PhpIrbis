@@ -134,7 +134,7 @@ function safe_get(array $a, $ofs)
 } // function safe_get
 
 // Таблица ручной перекодировки из CP1251 в UTF8.
-$_ansiTable = array
+static $_ansiTable = array
 (
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
     19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
@@ -268,7 +268,7 @@ function remove_comments($text)
         return $text;
     }
 
-    if (strpos($text, '/*') == false) {
+    if (strpos($text, '/*') === false) {
         return $text;
     }
 
@@ -284,7 +284,7 @@ function remove_comments($text)
             case "'":
             case '"':
             case '|':
-                if ($c == $state) {
+                if ($c === $state) {
                     $state = '';
                 }
 
@@ -322,12 +322,9 @@ function remove_comments($text)
 } // function remove_comments
 
 /**
- * @brief Подготовка динамического формата
- * для передачи на сервер.
+ * @brief Подготовка динамического формата для передачи на сервер.
  *
- * В формате должны отсутствовать комментарии
- * и служебные символы (например, перевод
- * строки или табуляция).
+ * В формате должны отсутствовать комментарии и служебные символы (например, перевод строки или табуляция).
  *
  * @param string $text Текст для обработки.
  * @return string Обработанный текст.
@@ -660,7 +657,7 @@ final class RecordField
         $result = array();
         $found = null;
         foreach ($this->subfields as $subfield) {
-            if ($subfield->code == '1') {
+            if ($subfield->code === '1') {
                 if ($found) {
                     if (count($found->subfields) || $found->value) {
                         $result[] = $found;
@@ -1093,9 +1090,9 @@ final class MarcRecord
     {
         $flag = false;
         $len = count($this->fields);
-        for ($i = 0; $i < $len; $i = $i + 1) {
+        for ($i = 0; $i < $len; ++$i) {
             $field = $this->fields[$i];
-            if ($field->tag == $tag) {
+            if ($field->tag === $tag) {
                 unset($this->fields[$i]);
                 $flag = true;
             }
@@ -1446,21 +1443,21 @@ final class MenuFile
     public function getEntry($code)
     {
         foreach ($this->entries as $entry) {
-            if (strcasecmp($entry->code, $code) == 0) {
+            if (strcasecmp($entry->code, $code) === 0) {
                 return $entry;
             }
         }
 
         $code = trim($code);
         foreach ($this->entries as $entry) {
-            if (strcasecmp($entry->code, $code) == 0) {
+            if (strcasecmp($entry->code, $code) === 0) {
                 return $entry;
             }
         }
 
         $code = self::trimCode($code);
         foreach ($this->entries as $entry) {
-            if (strcasecmp($entry->code, $code) == 0) {
+            if (strcasecmp($entry->code, $code) === 0) {
                 return $entry;
             }
         }
@@ -1866,7 +1863,7 @@ final class TreeFile
                 break;
             }
 
-            if ($child->level == $level2) {
+            if ($child->level === $level2) {
                 $parent->children[] = $child;
             }
 
@@ -1920,7 +1917,7 @@ final class TreeFile
         $list = array();
         $currentLevel = 0;
         $line = $lines[0];
-        if (self::countIndent($line) != 0) {
+        if (self::countIndent($line) !== 0) {
             throw new IrbisException();
         }
 
@@ -1955,7 +1952,7 @@ final class TreeFile
         }
 
         foreach ($list as $item) {
-            if ($item->level == 0) {
+            if ($item->level === 0) {
                 $this->roots[] = $item;
             }
         }
@@ -2038,7 +2035,7 @@ final class DatabaseInfo
             $result->nonActualizedRecords = self::parseLine(safe_get($lines, 2));
             $result->lockedRecords = self::parseLine(safe_get($lines, 3));
             $result->maxMfn = intval(safe_get($lines, 4));
-            $result->databaseLocked = intval(safe_get($lines, 5)) != 0;
+            $result->databaseLocked = intval(safe_get($lines, 5)) !== 0;
         }
 
         return $result;
@@ -2061,7 +2058,7 @@ final class DatabaseInfo
 
             $description = $entry->comment;
             $readOnly = false;
-            if ($name[0] == '-') {
+            if ($name[0] === '-') {
                 $name = substr($name, 1);
                 $readOnly = true;
             }
@@ -2144,8 +2141,8 @@ final class ProcessInfo
         if (empty($lines) || count($lines) < 2)
             return $result;
 
-        $processCount = intval($lines[0]);
-        $linesPerProcess = intval($lines[1]);
+        $processCount = (int)$lines[0];
+        $linesPerProcess = (int)$lines[1];
         if (!$processCount || !$linesPerProcess) {
             return $result;
         }
@@ -2176,7 +2173,7 @@ final class ProcessInfo
 
     public function __toString()
     {
-        return "{$this->number} {$this->ipAddress} {$this->name}";
+        return "$this->number $this->ipAddress $this->name";
     }
 } // class ProcessInfo
 
@@ -2212,15 +2209,15 @@ final class VersionInfo
      */
     public function parse(array $lines)
     {
-        if (count($lines) == 3) {
+        if (count($lines) === 3) {
             $this->version = $lines[0];
-            $this->connectedClients = intval($lines[1]);
-            $this->maxClients = intval($lines[2]);
+            $this->connectedClients = (int)$lines[1];
+            $this->maxClients = (int)$lines[2];
         } else {
             $this->organization = $lines[0];
             $this->version = safe_get($lines, 1);
-            $this->connectedClients = intval(safe_get($lines, 2));
-            $this->maxClients = intval(safe_get($lines, 3));
+            $this->connectedClients = (int)safe_get($lines, 2);
+            $this->maxClients = (int)safe_get($lines, 3);
         }
     }
 
@@ -2273,8 +2270,7 @@ final class ClientInfo
     public $registered = '';
 
     /**
-     * @var string Последнее подтверждение,
-     * посланное серверу.
+     * @var string Последнее подтверждение, посланное серверу.
      */
     public $acknowledged = '';
 
@@ -2295,8 +2291,9 @@ final class ClientInfo
      */
     public function parse(array $lines)
     {
-        if (empty($lines) || count($lines) < 10)
+        if (empty($lines) || count($lines) < 10) {
             return;
+        }
 
         $this->number = $lines[0];
         $this->ipAddress = $lines[1];
@@ -2511,8 +2508,7 @@ final class ServerStat
     public $clientCount = 0;
 
     /**
-     * @var int Общее количество команд,
-     * исполненных сервером с момента запуска.
+     * @var int Общее количество команд, исполненных сервером с момента запуска.
      */
     public $totalCommandCount = 0;
 
@@ -2793,14 +2789,12 @@ final class SearchParameters
 final class SearchScenario
 {
     /**
-     * @var string Название поискового атрибута
-     * (автор, инвентарный номер и т. д.).
+     * @var string Название поискового атрибута (автор, инвентарный номер и т. д.).
      */
     public $name = '';
 
     /**
-     * @var string Префикс соответствующих терминов
-     * в словаре (может быть пустым).
+     * @var string Префикс соответствующих терминов в словаре (может быть пустым).
      */
     public $prefix = '';
 
@@ -3163,11 +3157,11 @@ final class OptFile
 
     public static function sameChar($pattern, $testable)
     {
-        if ($pattern == '+') {
+        if ($pattern === '+') {
             return true;
         }
 
-        return strtolower($pattern) == strtolower($testable);
+        return strtolower($pattern) === strtolower($testable);
     }
 
     /**
@@ -3184,7 +3178,7 @@ final class OptFile
         }
 
         if (!$testable) {
-            return $pattern[0] == '+';
+            return $pattern[0] === '+';
         }
 
         $patternIndex = 0;
@@ -3198,11 +3192,11 @@ final class OptFile
             $testableNext = $testableIndex++ < strlen($testable);
 
             if ($patternNext && !$testableNext) {
-                if ($patternChar == '+') {
+                if ($patternChar === '+') {
                     while ($patternIndex < strlen($pattern)) {
                         $patternChar = $pattern[$patternIndex];
                         $patternIndex++;
-                        if ($patternChar != '+') {
+                        if ($patternChar !== '+') {
                             return false;
                         }
                     }
@@ -3428,7 +3422,7 @@ final class GblSettings
     public function substituteParameters($text)
     {
         $length = count($this->parameters);
-       for ($i = 0; $i < $length; $i += 1) {
+       for ($i = 0; $i < $length; ++$i) {
            $mark = '%' . strval($i + 1);
            $text = str_replace($mark, $this->parameters[$i]->value, $text);
        }
@@ -3650,8 +3644,8 @@ final class ServerResponse
             $symbol = $this->answer[$this->offset];
             $this->offset++;
 
-            if ($symbol == chr(13)) {
-                if ($this->answer[$this->offset] == chr(10)) {
+            if ($symbol === chr(13)) {
+                if ($this->answer[$this->offset] === chr(10)) {
                     $this->offset++;
                 }
                 break;
@@ -3953,16 +3947,18 @@ final class Connection
      */
     function createDatabase($database, $description, $readerAccess = 1)
     {
-        if (!$this->_checkConnection())
+        if (!$this->_checkConnection()) {
             return false;
+        }
 
         $query = new ClientQuery($this, 'T');
         $query->addAnsi($database)->newLine();
         $query->addAnsi($description)->newLine();
         $query->add($readerAccess)->newLine();
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode())
+        if (!$response || !$response->checkReturnCode()) {
             return false;
+        }
 
         return true;
     } // function createDatabase
@@ -3975,14 +3971,16 @@ final class Connection
      */
     public function createDictionary($database)
     {
-        if (!$this->_checkConnection())
+        if (!$this->_checkConnection()) {
             return false;
+        }
 
         $query = new ClientQuery($this, 'Z');
         $query->addAnsi($database)->newLine();
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode())
+        if (!$response || !$response->checkReturnCode()) {
             return false;
+        }
 
         return true;
     } // function createDictionary
@@ -3995,14 +3993,16 @@ final class Connection
      */
     public function deleteDatabase($database)
     {
-        if (!$this->_checkConnection())
+        if (!$this->_checkConnection()) {
             return false;
+        }
 
         $query = new ClientQuery($this, 'W');
         $query->addAnsi($database)->newLine();
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode())
+        if (!$response || !$response->checkReturnCode()) {
             return false;
+        }
 
         return true;
     } // function deleteDatabase
@@ -4026,8 +4026,9 @@ final class Connection
     public function deleteRecord($mfn)
     {
         $record = $this->readRecord($mfn);
-        if (!$record)
+        if (!$record) {
             return false;
+        }
 
         if (!$record->isDeleted()) {
             $record->status |= LOGICALLY_DELETED;
@@ -4044,15 +4045,18 @@ final class Connection
      */
     public function disconnect()
     {
-        if (!$this->connected)
+        if (!$this->connected) {
             return true;
+        }
 
         $query = new ClientQuery($this, 'B');
         $query->addAnsi($this->username);
-        if (!$this->execute($query))
+        if (!$this->execute($query)) {
             return false;
+        }
 
         $this->connected = false;
+
         return true;
     } // function disconnect
 
@@ -4102,12 +4106,14 @@ final class Connection
      */
     public function executeAnyCommand($command, array $params = [])
     {
-        if (!$this->_checkConnection())
+        if (!$this->_checkConnection()) {
             return false;
+        }
 
         $query = new ClientQuery($this, $command);
-        foreach ($params as $param)
+        foreach ($params as $param) {
             $query->addAnsi($param)->newLine();
+        }
 
         return $this->execute($query);
     } // function executeAnyCommand
@@ -4122,8 +4128,9 @@ final class Connection
      */
     public function formatRecord($format, $mfn)
     {
-        if (!$this->_checkConnection())
+        if (!$this->_checkConnection()) {
             return false;
+        }
 
         $query = new ClientQuery($this, 'G');
         $query->addAnsi($this->database)->newLine();
@@ -4131,8 +4138,9 @@ final class Connection
         $query->add(1)->newLine();
         $query->add($mfn)->newLine();
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode())
+        if (!$response || !$response->checkReturnCode()) {
             return false;
+        }
 
         return $response->readRemainingUtfText();
     } // function formatRecord
@@ -4147,11 +4155,13 @@ final class Connection
      */
     public function formatVirtualRecord($format, MarcRecord $record)
     {
-        if (!$this->_checkConnection())
+        if (!$this->_checkConnection()) {
             return false;
+        }
 
-        if (!$record)
+        if (!$record) {
             return false;
+        }
 
         $query = new ClientQuery($this, 'G');
         $database = $record->database ?: $this->database;
@@ -4160,8 +4170,9 @@ final class Connection
         $query->add(-2)->newLine();
         $query->addUtf($record->encode());
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode())
+        if (!$response || !$response->checkReturnCode()) {
             return false;
+        }
 
         return $response->readRemainingUtfText();
     } // function formatVirtualRecord
@@ -4239,14 +4250,16 @@ final class Connection
      */
     public function getMaxMfn($database)
     {
-        if (!$this->_checkConnection())
+        if (!$this->_checkConnection()) {
             return 0;
+        }
 
         $query = new ClientQuery($this, 'O');
         $query->addAnsi($database);
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode())
+        if (!$response || !$response->checkReturnCode()) {
             return 0;
+        }
 
         return $response->returnCode;
     } // function getMaxMfn
@@ -4261,18 +4274,21 @@ final class Connection
     public function getRecordPostings($mfn, $prefix)
     {
         $result = array();
-        if (!$this->_checkConnection())
+        if (!$this->_checkConnection()) {
             return $result;
+        }
 
         $query = new ClientQuery($this, 'V');
         $query->addAnsi($this->database)->newLine();
         $query->add($mfn)->newLine();
         $query->addUtf($prefix)->newLine();
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode())
+        if (!$response || !$response->checkReturnCode()) {
             return $result;
+        }
 
         $lines = $response->readRemainingUtfLines();
+
         return TermPosting::parse($lines);
     } // function getRecordPostings
 
@@ -4284,13 +4300,15 @@ final class Connection
      */
     public function getServerStat()
     {
-        if (!$this->_checkConnection())
+        if (!$this->_checkConnection()) {
             return false;
+        }
 
         $query = new ClientQuery($this, '+1');
         $response = $this->execute($query);
-        if (!$response || !$response->checkReturnCode())
+        if (!$response || !$response->checkReturnCode()) {
             return false;
+        }
 
         $result = new ServerStat();
         $result->parse($response->readRemainingAnsiLines());

@@ -66,8 +66,10 @@ final class Search
             $result->_buffer = $result->_buffer
                 . ' + '
                 . self::wrapIfNeeded($prefix . $value);
-        if (count($values))
+        if (count($values)) {
             $result->_buffer .= ')';
+        }
+
         return $result;
     } // function equals
 
@@ -79,11 +81,15 @@ final class Search
     public static function needWrap($text)
     {
         $text = (string)$text;
-        if (empty($text))
+        if (empty($text)) {
             return true;
+        }
+
         $c = $text[0];
-        if ($c == '"' or $c == '(')
+        if ($c === '"' or $c === '(') {
             return false;
+        }
+
         if (strpos($text, ' ') !== false
             or strpos($text, '+') !== false
             or strpos($text, '*') !== false
@@ -91,8 +97,10 @@ final class Search
             or strpos($text, '#') !== false
             or strpos($text, '(') !== false
             or strpos($text, ')') !== false
-            or strpos($text, '"') !== false)
+            or strpos($text, '"') !== false) {
             return true;
+        }
+
         return false;
     } // function needWrap
 
