@@ -144,6 +144,7 @@ final class Teapot
 
         $result = '';
         $first = true;
+        sort($terms);
         foreach ($terms as $term => $k) {
             if (isStopWord($term)) {
                 continue;
