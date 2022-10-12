@@ -277,6 +277,16 @@ final class Teapot
     public $suffix;
 
     /**
+     * @var RelevanceSettings Настройки для оценки релевантности.
+     */
+    public $settings;
+
+    /**
+     * @var int Максимальное количество найденных записей.
+     */
+    public $limit;
+
+    /**
      * Конструктор.
      */
     public function __construct()
@@ -284,6 +294,8 @@ final class Teapot
         // поиск по: автору, заглавию, коллективу, ключевым словам
         $this->prefixes = array('A=', 'T=', 'M=', 'K=');
         $this->suffix = '$';
+        $this->settings = RelevanceSettings::forIbis();
+        $this->limit = 500;
     }
 
     /**
@@ -319,8 +331,9 @@ final class Teapot
 
         $result = '';
         $first = true;
+        $terms = array_keys($terms);
         sort($terms);
-        foreach ($terms as $term => $k) {
+        foreach ($terms as $term) {
             if (isStopWord($term)) {
                 continue;
             }
@@ -358,12 +371,13 @@ final class Teapot
             return [];
         }
 
-        $found = $connection->searchRead($expression);
+        $found = $connection->searchRead($expression, $this->limit);
         if (!$found) {
             return [];
         }
 
         $evaluator = new RelevanceEvaluator();
+        $evaluator->settings = $this->settings;
         $evaluator->terms = $this->terms;
         $rating = [];
         foreach ($found as $record) {
