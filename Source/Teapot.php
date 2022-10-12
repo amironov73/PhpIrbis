@@ -69,19 +69,123 @@ final class RelevanceCoefficient
 }
 
 /**
+ * Настройки для оценки релевантности.
+ */
+final class RelevanceSettings
+{
+    /**
+     * @var array Массив коэффициентов релевантности.
+     */
+    public $coefficents;
+
+    /**
+     * @var double Релевантность для упоминаний в посторонних полях.
+     */
+    public $extraneous;
+
+    /**
+     * @var double Мультипликатор для случая полного совпадения.
+     */
+    public $multiplier;
+
+    /**
+     * Конструктор.
+     */
+    public function __construct()
+    {
+        $this->coefficents = array();
+        $this->extraneous = 1.0;
+        $this->multiplier = 2.0;
+    }
+
+    /**
+     * @return RelevanceSettings Настройки по умолчанию для базы IBIS.
+     */
+    public static function forIbis()
+    {
+        $result = new RelevanceSettings();
+        $result->extraneous = 1.0;
+        $result->multiplier = 2.0;
+        $result->coefficents = [
+
+            // заглавие или авторы
+            new RelevanceCoefficient (10,
+                [
+                    200, // основное заглавие
+                    700, 701, // индивидуальные авторы
+                    710, 711, 971, 972, // коллективные авторы
+                    923, // выпуск, часть
+                    922, // статья сборника
+                    925, // несколько томов в одной книге
+                    961, // индивидуальные авторы общей части
+                    962, // коллективы общей части
+                    461, // заглавие общей части
+                    463 // издание, в котором опубликована статья
+                ]),
+
+            // редакторы
+            new RelevanceCoefficient(7, [702]),
+
+            // прочие заглавия
+            new RelevanceCoefficient(6, [
+                510, // параллельное заглавие
+                517, // разночтение заглавия
+                541, // перевод заглавия
+                924, // "другое" заглавие
+                921 // транслитерированное заглавие
+            ]),
+
+            // содержание
+            new RelevanceCoefficient(6, [
+                330, // оглавление
+                922 // статья из журнала
+            ]),
+
+            // рубрики
+            new RelevanceCoefficient(5, [
+                606, // предметная рубрика
+                607, // географическая рубрика
+                600, 601, // персоналия
+                965 // дескриптор
+            ]),
+
+            // серия
+            new RelevanceCoefficient(4, [225]),
+
+            // ключевые слова и аннотации
+
+            new RelevanceCoefficient(3, [
+                610, // ненормированное ключевое слово
+                331 // аннотация
+            ])
+        ];
+
+        return $result;
+    }
+
+    /**
+     * Загрузка настроек из указанного файла.
+     *
+     * @param $filename string Имя файла.
+     * @return RelevanceSettings
+     */
+    public static function load($filename)
+    {
+        $text = file_get_contents($filename);
+        $text = preg_replace( '![ \t]*//.*[ \t]*[\r\n]!', '', $text );
+        return json_decode($text, false);
+    }
+}
+
+/**
  * Оценщик релевантности найденных библиографических записей.
  */
 final class RelevanceEvaluator
 {
     /**
-     * @var array Массив коэффициентов.
+     * @var RelevanceSettings Настройки для оценки.
      */
-    public $coefficients;
-
-    /**
-     * @var string Поисковый запрос.
-     */
-    public $searchExpression;
+    public $settings;
 
     /**
      * @var array Массив терминов, на которые разбивается поисковый запрос.
@@ -89,14 +193,71 @@ final class RelevanceEvaluator
     public $terms;
 
     /**
+     * Оценка содержимого подполя.
+     *
+     * @param $text string Содержимое подполя.
+     * @param $value double Важность поля.
+     * @return double Оценка, выраженная числом.
+     */
+    private function evaluateText($text, $value) {
+        $result = 0.0;
+
+        if ($text) {
+            foreach ($this->terms as $term) {
+                if (stripos($text, $term) !== false) {
+                    if (strcasecmp($text, $term) === 0) {
+                        $result += $value * $this->settings->multiplier;
+                    } else {
+                        $result += $value;
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Оценка содержимого поля.
+     *
+     * @param $field RecordField Поле, подоежащее оценке.
+     * @param $value double Важность поля.
+     * @return double Оценка, выраженная числом.
+     */
+    private function evaluateField ($field, $value) {
+        $result = $this->evaluateText($field->value, $value);
+
+        foreach ($field->subfields as $subfield) {
+            $result += $this->evaluateText($subfield->value, $value);
+        }
+
+        return $result;
+    }
+
+    /**
      * Оценка реалеватности записи.
      *
-     * @param $record MarcRecord Запись, подлежащая оwtyrt
-     * @return double
+     * @param $record MarcRecord Запись, подлежащая оценке.
+     * @return double Оценка, выраженная числом.
      */
     public function evaluate($record)
     {
-        return 0.0;
+        $result = 0.0;
+
+        foreach ($this->settings->coefficents as $coefficent) {
+            foreach ($coefficent->fields as $tag) {
+                $fields = $record->getFields($tag);
+                foreach ($fields as $field) {
+                    $result += $this->evaluateField($field, $coefficent->value);
+                }
+            }
+        }
+
+        foreach ($record->fields as $field) {
+            $result += $this->evaluateField($field, $this->settings->extraneous);
+        }
+
+        return $result;
     }
 }
 
@@ -120,12 +281,26 @@ final class Teapot
      */
     public function __construct()
     {
+        // поиск по: автору, заглавию, коллективу, ключевым словам
         $this->prefixes = array('A=', 'T=', 'M=', 'K=');
         $this->suffix = '$';
     }
 
+    /**
+     * @var array Массив терминов.
+     */
+    private $terms;
+
+    /**
+     * Построение поискового выражения по запросу на естественном языке.
+     *
+     * @param $query string Запрос на естественном языке.
+     * @return string Выражение для поиска по словарю.
+     */
     public function buildSearchExpression($query)
     {
+        $this->terms = [];
+
         if (!$query) {
             return '';
         }
@@ -150,6 +325,7 @@ final class Teapot
                 continue;
             }
 
+            $this->terms []= $term;
             foreach ($this->prefixes as $prefix) {
                 if (!$first) {
                     $result .= ' + ';
@@ -162,5 +338,49 @@ final class Teapot
         }
 
         return $result;
+    }
+
+    /**
+     * Поиск "для чайников" в текущей базе.
+     *
+     * @param $connection Connection Активное подключение к серверу.
+     * @param $query string Запрос на естественном языке.
+     * @return array Массив найденных MFN.
+     */
+    public function search($connection, $query) {
+        $query = trim($query);
+        if (!$query) {
+            return [];
+        }
+
+        $expression = $this->buildSearchExpression($query);
+        if (!$expression) {
+            return [];
+        }
+
+        $found = $connection->searchRead($expression);
+        if (!$found) {
+            return [];
+        }
+
+        $evaluator = new RelevanceEvaluator();
+        $evaluator->terms = $this->terms;
+        $rating = [];
+        foreach ($found as $record) {
+            $item = (object) array (
+                'record' => $record,
+                'rating' => $evaluator->evaluate($record)
+            );
+            $rating []= $item;
+        }
+
+        usort($rating, static function ($first, $second) {
+            // сортировка по убыванию
+            return $second->rating - $first->rating;
+        });
+
+        return array_map (static function ($item) {
+            return $item->record->mfn;
+        }, $rating);
     }
 }
