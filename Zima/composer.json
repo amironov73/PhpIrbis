@@ -1,0 +1,15 @@
+{
+  "name": "amironov73/ZimaPhp",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "amiro",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {
+    "php": "5.6"
+  }
+}
