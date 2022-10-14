@@ -153,7 +153,6 @@ final class RelevanceSettings
             new RelevanceCoefficient(4, [225]),
 
             // ключевые слова и аннотации
-
             new RelevanceCoefficient(3, [
                 610, // ненормированное ключевое слово
                 331 // аннотация
@@ -282,7 +281,7 @@ final class Teapot
     public $settings;
 
     /**
-     * @var int Максимальное количество найденных записей.
+     * @var int Максимальное количество возвращаемых записей.
      */
     public $limit;
 
