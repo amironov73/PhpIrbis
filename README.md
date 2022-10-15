@@ -40,3 +40,6 @@ foreach ($found as $mfn) {
 $connection->disconnect();
 ```
 
+### Documentation (in russian)
+
+[![Badge](https://readthedocs.org/projects/phpirbis/badge/)](https://phpirbis.readthedocs.io/) 
