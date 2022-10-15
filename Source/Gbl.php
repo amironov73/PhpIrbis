@@ -38,7 +38,7 @@ final class Gbl
         $param = new GblParameter();
         $param->value = $value;
         $param->title = $title;
-        array_push($this->_parameters, $param);
+        $this->_parameters[] = $param;
         return $this;
     } // function parameter
 
@@ -62,7 +62,7 @@ final class Gbl
     {
         $statement = new GblStatement($command, $parameter1,
             $parameter2, $format1, $format2);
-        array_push($this->_statements, $statement);
+        $this->_statements[] = $statement;
 
         return $this;
     } // function statement
@@ -75,25 +75,25 @@ final class Gbl
      */
     private function nestedStatements($array, $skip=0)
     {
-        if (count($array) == 0) {
+        if (count($array) === 0) {
             return;
         }
 
-        for ($i=0; $i < $skip; $i +=1) {
+        for ($i=0; $i < $skip; ++$i) {
             array_shift($array);
         }
 
         $gbl = $array[0];
-        if ($gbl instanceof Gbl) {
+        if ($gbl instanceof self) {
             foreach ($gbl->_statements as $stmt) {
-                array_push($this->_statements, $stmt);
+                $this->_statements[] = $stmt;
             }
         } else if ($gbl instanceof GblStatement) {
             foreach ($array as $stmt) {
-                array_push($this->_statements, $stmt);
+                $this->_statements[] = $stmt;
             }
         } else {
-            throw new \Exception("unexpected");
+            throw new \RuntimeException("unexpected");
         }
     } // function nestedStatements
 
@@ -318,11 +318,11 @@ final class Gbl
         $result = strval(count($this->_parameters));
 
         foreach ($this->_parameters as $param) {
-            $result = $result . "\n" . $param->value . "\n" . $param->title;
+            $result .= "\n" . $param->value . "\n" . $param->title;
         }
 
         foreach ($this->_statements as $stmt) {
-            $result = $result . "\n" . $stmt->command . "\n" .
+            $result .=  "\n" . $stmt->command . "\n" .
                     $stmt->parameter1 . "\n" .
                     $stmt->parameter2 . "\n" .
                     $stmt->format1 . "\n" .

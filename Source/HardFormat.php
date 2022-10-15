@@ -62,12 +62,12 @@ function _append($text, $chunk) {
 function _append_with_space($text, $chunk, $suffix = null) {
     if (!empty($chunk)) {
         $last = '\0';
-        if (strlen ($text)) {
+        if ($text) {
             $last = $text[strlen($text) - 1];
         }
 
         if (!ctype_space($last)) {
-            $text = $text . ' ';
+            $text .= ' ';
         }
 
         return $text . $chunk . $suffix;
@@ -474,7 +474,7 @@ final class HardFormat {
         foreach ($this->_record->getFields(19) as $field) {
             // основной документ или приложение?
             $mainDocument = $field->getFirstSubFieldValue('x');
-            if ($mainDocument == '0') {
+            if ($mainDocument === '0') {
                 $result = _add_separator($result);
 
                 // тип номера
