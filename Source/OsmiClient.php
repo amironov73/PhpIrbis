@@ -28,9 +28,9 @@ final class OsmiClient
 
     /**
      * OsmiClient constructor.
-     * @param string $_baseUrl
-     * @param string $_apiId
-     * @param string $_apiKey
+     * @param string $baseUrl
+     * @param string $apiId
+     * @param string $apiKey
      */
     public function __construct($baseUrl, $apiId, $apiKey)
     {

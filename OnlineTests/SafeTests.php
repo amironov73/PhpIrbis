@@ -1,4 +1,6 @@
 <?php
+# Безопасные тесты с подключением к серверу ИРБИС64
+# Не меняют содержимого базы, не создают и не удаляют записей
 
 error_reporting(E_ALL);
 
@@ -28,16 +30,16 @@ if (!$connection->connect()) {
 }
 
 $ini = $connection->iniFile;
-echo "<p>VERSION: {$connection->serverVersion}<br/>", PHP_EOL;
-echo "INTERVAL: {$connection->interval}<br/>", PHP_EOL;
+echo "<p>VERSION: $connection->serverVersion<br/>", PHP_EOL;
+echo "INTERVAL: $connection->interval<br/>", PHP_EOL;
 $dbnnamecat = $ini->getValue('Main', 'DBNNAMECAT');
-echo "DBNNAMECAT: {$dbnnamecat}</p>", PHP_EOL;
+echo "DBNNAMECAT: $dbnnamecat</p>", PHP_EOL;
 
 $connection->noOp();
 echo '<p>NO OP</p>', PHP_EOL;
 
 $version = $connection->getServerVersion();
-echo "<p>Версия: {$version->version} {$version->organization}</p>", PHP_EOL;
+echo "<p>Версия: $version->version $version->organization</p>", PHP_EOL;
 
 $processes = $connection->listProcesses();
 dumpArray($processes);
@@ -45,7 +47,7 @@ dumpArray($processes);
 $databases = $connection->listDatabases();
 echo "<p>", PHP_EOL;
 foreach ($databases as $db) {
-    echo "{$db->name} {$db->description}<br/>", PHP_EOL;
+    echo "$db->name $db->description<br/>", PHP_EOL;
 }
 echo "</p>", PHP_EOL;
 
@@ -121,7 +123,7 @@ if (!$found) {
     echo '<p>Не нашли</p>', PHP_EOL;
 } else {
     $first = $found[0];
-    echo "<p>MFN: {$first->mfn}, DESCRIPTION: {$first->description}</p>", PHP_EOL;
+    echo "<p>MFN: $first->mfn, DESCRIPTION: $first->description</p>", PHP_EOL;
 }
 
 $count = $connection->searchCount('"A=ПУШКИН$"');
