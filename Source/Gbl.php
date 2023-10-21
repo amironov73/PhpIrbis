@@ -13,7 +13,10 @@ require_once __DIR__ . '/PhpIrbis.php';
  */
 final class Gbl
 {
+    // параметры ГК, часто отсутствуют
     private $_parameters = array();
+
+    // операторы ГК, должен быть хотя бы один, иначе ГК не имеет смысла
     private $_statements = array();
 
     /**
@@ -28,10 +31,10 @@ final class Gbl
     } // function build
 
     /**
-     * Задание параметра.
-     * @param $value
-     * @param $title
-     * @return $this
+     * Задание параметра ГК.
+     * @param mixed $value Значение параметра.
+     * @param string $title Опциональное наименование параметра.
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function parameter($value, $title)
     {
@@ -43,13 +46,13 @@ final class Gbl
     } // function parameter
 
     /**
-     * Произвольный оператор.
-     * @param $command
-     * @param string $parameter1
-     * @param string $parameter2
-     * @param string $format1
-     * @param string $format2
-     * @return $this
+     * Добавление произвольного оператора к текущей ГК.
+     * @param string $command Код команды, например, 'ADD' мли 'DEL'.
+     * @param mixed $parameter1 Первый параметр, как правило, спецификация поля/подполя.
+     * @param mixed $parameter2 Второй параметр, как правило, спецификация повторения.
+     * @param string $format1 Первый формат, например, выражение для замены.
+     * @param string $format2 Второй формат, например, заменяющее выражение.
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function statement
         (
@@ -68,9 +71,9 @@ final class Gbl
     } // function statement
 
     /**
-     * Обработка вложенных операторов.
-     * @param $array
-     * @param int $skip
+     * Обработка вложенных операторов ГК.
+     * @param array $array Массив вложенных операторов ГК.
+     * @param int $skip Количество пропускаемых элементов (как правило, не задается).
      * @throws \Exception
      */
     private function nestedStatements($array, $skip=0)
@@ -98,10 +101,12 @@ final class Gbl
     } // function nestedStatements
 
     /**
-     * Добавление нового повторения поля в заданное (существующее или нет) поле.
-     * @param $field
-     * @param $value
-     * @return Gbl
+     * Добавление нового повторения поля к заданному (существующему
+     * или нет - неважно) полю.
+     * @param int|string $field Метка добавляемого поля, например, '700'.
+     * @param mixed $value Значение добавляемого поля в формате ИРБИС,
+     * например, '^aМиронов^bА.^gАлексей'.
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function add($field, $value)
     {
@@ -119,7 +124,7 @@ final class Gbl
      * Он дополняет записи всеми полями текущей записи. Т.е. это способ, например, создать
      * новую запись и наполнить ее содержимым текущей записи. Или можно вызвать на корректировку
      * другую запись (CORREC), очистить ее (EMPTY) и наполнить содержимым текущей записи.
-     * @return Gbl
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function all()
     {
@@ -128,10 +133,10 @@ final class Gbl
 
     /**
      * Замена данных в поле или в подполе.
-     * @param $field
-     * @param $from
-     * @param $to
-     * @return Gbl
+     * @param int|string $field Метка поля/подполя, например, '700^b'.
+     * @param mixed $from Заменяемое значение, например, 'А.В.'.
+     * @param mixed $to Заменяющее значение, например, 'А. В.'.
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function change($field, $from, $to)
     {
@@ -147,10 +152,10 @@ final class Gbl
 
     /**
      * Замена данных в поле или в подполе с учётом регистра символов.
-     * @param $field
-     * @param $from
-     * @param $to
-     * @return Gbl
+     * @param int|string $field Метка поля/подполя, например, '700^b'.
+     * @param mixed $from Заменяемое значение, например, 'А.В.'.
+     * @param mixed $to Заменяющее значение, например, 'А. В.'.
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function changeWithCase($field, $from, $to)
     {
@@ -166,8 +171,9 @@ final class Gbl
 
     /**
      * Комментарий. Может находиться между другими операторами и содержать любой текст.
-     * @param $text
-     * @return Gbl
+     * @param mixed $text Произвольный текст комментария.
+     * ИРБИС никак не интерпретирует его.
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function comment($text)
     {
@@ -176,11 +182,19 @@ final class Gbl
 
     /**
      * Из текущей записи вызывает на корректировку другие записи,
-     * отобранные по поисковым терминам  из текущей или другой базы данных.
-     * @param $database
-     * @param $modelField
-     * @param $expression
-     * @return Gbl
+     * отобранные по поисковым терминам из текущей или другой базы данных.
+     * @param string $database Имя базы данных, например, 'IBIS'.
+     * Если строка – ‘*’, то этой базой данных останется текущая.
+     * @param string $modelField Строка, которая передается в корректируемые
+     * записи в виде «модельного» поля с меткой 1001. Т.е. это способ передачи
+     * данных от текущей записи в корректируемые. Следует не забывать в последнем
+     * операторе группы удалять поле 1001.
+     * @param string $expression Строки, которые будут рассматриваться как термины
+     * словаря другой (или той же) базы данных. Записи, связанные с этими терминами,
+     * будут далее корректироваться. Если последним символом термина будет
+     * символ ‘$’ (усечение), то отбор записей на корректировку будет аналогичен
+     * проведению в другой базе данных поиска ‘термин$’.
+     * @return Gbl $this Для цепочечных вызовов.
      * @throws \Exception
      */
     public function correct($database, $modelField, $expression)
@@ -192,10 +206,14 @@ final class Gbl
 
     /**
      * Удаляет поле или подполе.
-     * @param $field
-     * @param string $repeat
-     * @param string $format
-     * @return Gbl
+     * @param int|string $field Метка удаляемого поля/подполя.
+     * @param string $repeat Спецификация повторения.
+     * @param string $format Если повторение поля задано признаком F,
+     * то удаляются повторения в зависимости от значения строк,
+     * полученных расформатированием данного аргумента.
+     * Если значение строки ‘1’, то соответствующее по порядку
+     * повторение удаляется, иначе нет.
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function delete($field, $repeat = '*', $format='XXX')
     {
@@ -210,7 +228,7 @@ final class Gbl
 
     /**
      * Удаляет записи, поданные на корректировку. Не требует никаких дополнительных данных.
-     * @return Gbl
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function deleteRecord()
     {
@@ -219,7 +237,7 @@ final class Gbl
 
     /**
      * Очищает (опустошает) текущую запись.
-     * @return Gbl
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function empty_()
     {
@@ -232,8 +250,8 @@ final class Gbl
      * результатом которого может быть строка ‘1’, что означает разрешение
      * на выполнение последующих операторов, или любое другое значение,
      * что означает запрет на выполнение последующих операторов.
-     * @param $condition
-     * @return Gbl
+     * @param mixed $condition Условие, например 'a(v700)'.
+     * @return Gbl $this Для цепочечных вызовов.
      * @throws \Exception
      */
     public function if_($condition)
@@ -245,8 +263,8 @@ final class Gbl
 
     /**
      * Создаёт новую запись в текущей или другой базе данных.
-     * @param $database
-     * @return Gbl
+     * @param string $database Имя базы данных, например, 'IBIS'.
+     * @return Gbl $this Для цепочечных вызовов.
      * @throws \Exception
      */
     public function newMfn($database)
@@ -258,8 +276,9 @@ final class Gbl
 
     /**
      * Формирование пользовательского протокола.
-     * @param $text
-     * @return Gbl
+     * @param mixed $text Произвольный текст, выводимый в протокол.
+     * ИРБИС его никак не интерпретирует.
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function putlog($text)
     {
@@ -270,8 +289,8 @@ final class Gbl
      * Операторы REPEAT-UNTIL организуют цикл выполнения группы операторов.
      * Группа операторов между ними будет выполняться до тех пор, пока формат
      * в операторе UNTIL будет давать значение ‘1’.
-     * @param $untilCondition
-     * @return Gbl
+     * @param mixed $untilCondition Условие продолжения цикла.
+     * @return Gbl $this Для цепочечных вызовов.
      * @throws \Exception
      */
     public function repeat($untilCondition)
@@ -283,9 +302,9 @@ final class Gbl
 
     /**
      * Замена целиком поля или подполя на новое значение.
-     * @param $field
-     * @param $to
-     * @return Gbl
+     * @param int|string $field Спецификация поля/подполя, например, '700^a'.
+     * @param mixed $to Заменяющий текст, например, 'Пушкин'.
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function replace($field, $to)
     {
@@ -296,7 +315,7 @@ final class Gbl
      * Восстанавливает записи в диапазоне MFN, который задан в форме ГЛОБАЛЬНОЙ.
      * Не требует никаких дополнительных данных. Операторы, следующие за данным,
      * выполняются на восстановленных записях.
-     * @return Gbl
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function undelete()
     {
@@ -306,7 +325,7 @@ final class Gbl
     /**
      * Переход к одной из предыдущих копий записи (откат).
      * @param $version
-     * @return Gbl
+     * @return Gbl $this Для цепочечных вызовов.
      */
     public function undo($version)
     {
