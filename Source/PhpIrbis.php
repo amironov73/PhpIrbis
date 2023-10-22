@@ -134,6 +134,31 @@ function safe_get(array $a, $ofs)
 } // function safe_get
 
 /**
+ * Проверяет, начинается ли строка с указанного фрагмента.
+ * @param string $haystack Строка, подлежащая проверке.
+ * @param string $needle Искомый фрагмент.
+ * @return bool Результат проверки.
+ */
+function startsWith($haystack, $needle) {
+    $length = strlen ($needle);
+    return substr ($haystack, 0, $length) === $needle;
+} // function startsWith
+
+/**
+ * Проверяет, заканчивается ли строка указанным фрагментом.
+ * @param string $haystack Строка, подлежащая проверке.
+ * @param string $needle Искомый фрагмент.
+ * @return bool Результат проверки.
+ */
+function endsWith($haystack, $needle) {
+    $length = strlen($needle);
+    if(!$length) {
+        return true;
+    }
+    return substr($haystack, -$length) === $needle;
+} // function endsWith
+
+/**
  * @brief Таблица ручной перекодировки из CP1251 в UTF8.
  * @return array
  */

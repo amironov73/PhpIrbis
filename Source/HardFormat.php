@@ -11,7 +11,9 @@ namespace Irbis;
 require_once __DIR__ . '/PhpIrbis.php';
 
 /**
- * Доставание последнего непробельного символа из строки.
+ * Доставание последнего не-пробельного символа из строки.
+ * @param string $text Строка, из которой должен быть извлечен последний символ.
+ * @return string Последний символ, либо '\0'.
  */
 function _get_last_char($text) {
     $position = strlen($text) - 1;
@@ -25,10 +27,12 @@ function _get_last_char($text) {
     }
 
     return '\0';
-}
+} // function _get_last_char
 
 /**
  * Добавление точки в конец строки.
+ * @param string $text Текст, к которому должна быть добавлена точка.
+ * @return string Текст с добавленной точкой.
  */
 function _add_dot($text) {
     $last = _get_last_char($text);
@@ -36,17 +40,25 @@ function _add_dot($text) {
         return $text;
     }
     return $text . '. ';
-}
+} // function _add_dot
 
 /**
  * Добавление разделителя областей описания.
+ * @param string $text Текст, к которому должен быть добавлен разделитель.
+ * @return string Текст с добавленным разделителем.
  */
 function _add_separator($text) {
-    return $text . ". - ";
+    if (endsWith($text, '. - ')) {
+        return $text;
+    }
+    return $text . '. - ';
 }
 
 /**
- * Добавление куска к тексту.
+ * Добавление фрагмента к тексту.
+ * @param string $text Текст, к которому должен быть добавлен фрагмент.
+ * @param string $chunk Добавляемый фрагмент.
+ * @return string Результат конкатенации.
  */
 function _append($text, $chunk) {
     if (!empty ($chunk)) {
@@ -57,7 +69,11 @@ function _append($text, $chunk) {
 }
 
 /**
- * Добавление куска к тексту с пробелом.
+ * Добавление фрагмента к тексту с пробелом.
+ * @param string $text Текст, к которому должен быть добавлен фрагмент.
+ * @param string $chunk Добавляемый фрагмент.
+ * @param string $suffix Опциональный суффикс.
+ * @return string Результат конкатенации.
  */
 function _append_with_space($text, $chunk, $suffix = null) {
     if (!empty($chunk)) {
@@ -77,7 +93,11 @@ function _append_with_space($text, $chunk, $suffix = null) {
 }
 
 /**
- * Добавление к тексту куска с префиксом.
+ * Добавление к тексту фрагмента с префиксом.
+ * @param string $text Текст, к которому должен быть добавлен фрагмент.
+ * @param string $chunk Добавляемый фрагмент.
+ * @param string $prefix Префикс.
+ * @return string Результат конкатенации.
  */
 function _append_with_prefix($text, $chunk, $prefix) {
     if (!empty ($chunk)) {
@@ -88,7 +108,11 @@ function _append_with_prefix($text, $chunk, $prefix) {
 }
 
 /**
- * Добавление к тексту куска с суффиксом.
+ * Добавление к тексту фрагмента с суффиксом.
+ * @param string $text Текст, к которому должен быть добавлен фрагмент.
+ * @param string $chunk Добавляемый фрагмент.
+ * @param string $suffix Суффикс.
+ * @return string Результат конкатенации.
  */
 function _append_with_suffix($text, $chunk, $suffix) {
     if (!empty ($chunk)) {
@@ -100,6 +124,11 @@ function _append_with_suffix($text, $chunk, $suffix) {
 
 /**
  * Добавление к тексту куска с префиксом и суффиксом.
+ * @param string $text Текст, к которому должен быть добавлен фрагмент.
+ * @param string $chunk Добавляемый фрагмент.
+ * @param string $prefix Префикс.
+ * @param string $suffix Суффикс.
+ * @return string Результат конкатенации.
  */
 function _append_with_prefix_and_suffix($text, $chunk, $prefix, $suffix) {
     if (!empty($chunk)) {
@@ -111,6 +140,10 @@ function _append_with_prefix_and_suffix($text, $chunk, $prefix, $suffix) {
 
 /**
  * Добавление к тексту кодированной информации вида "a-ил.".
+ * @param string $text Текст, к которому должен быть добавлен фрагмент.
+ * @param string $chunk Добавляемый фрагмент.
+ * @param string $prefix Опциональный префикс.
+ * @return string Результат конкатенации.
  */
 function _append_with_code($text, $chunk, $prefix = null) {
     return $text . $prefix . $chunk;
@@ -118,6 +151,10 @@ function _append_with_code($text, $chunk, $prefix = null) {
 
 /**
  * Извлечение значения подполя с одним из указанных кодов.
+ * @param RecordField $field Поле записи.
+ * @param string $code1 Код подполя.
+ * @param string $code2 Код подполя.
+ * @return string Значение подполя либо пустая строка.
  */
 function _fm2($field, $code1, $code2) {
     foreach ($field->subfields as $subfield) {
@@ -132,6 +169,11 @@ function _fm2($field, $code1, $code2) {
 
 /**
  * Извлечение значения подполя с одним из указанных кодов.
+ * @param RecordField $field Поле записи.
+ * @param string $code1 Код подполя.
+ * @param string $code2 Код подполя.
+ * @param string $code3 Код подполя.
+ * @return string Значение подполя либо пустая строка.
  */
 function _fm3($field, $code1, $code2, $code3) {
     foreach ($field->subfields as $subfield) {
@@ -147,6 +189,12 @@ function _fm3($field, $code1, $code2, $code3) {
 
 /**
  * Извлечение значения подполя с одним из указанных кодов.
+ * @param RecordField $field Поле записи.
+ * @param string $code1 Код подполя.
+ * @param string $code2 Код подполя.
+ * @param string $code3 Код подполя.
+ * @param string $code4 Код подполя.
+ * @return string Значение подполя либо пустая строка.
  */
 function _fm4($field, $code1, $code2, $code3, $code4) {
     foreach ($field->subfields as $subfield) {
@@ -178,6 +226,7 @@ final class HardFormat {
 
     /**
      * Рабочий лист, ассоциированный с записью.
+     * @return string Рабочий лист, например, 'ASP'.
      */
     public function get_worksheet() {
         return $this->_record->fm(920);
@@ -185,6 +234,7 @@ final class HardFormat {
 
     /**
      * Автор книги из общей части.
+     * @return string Результат расформатирования.
      */
     public function common_author() {
         $result = '';
@@ -209,7 +259,8 @@ final class HardFormat {
     }
 
     /**
-     * Из общей части: основные сведения, поле 461.
+     * Из общей части: основные сведения, поле 461
+     * @return string Результат расформатирования..
      */
     public function common_info() {
         $result = '';
@@ -242,6 +293,7 @@ final class HardFormat {
 
     /**
      * Первый автор, поле 700.
+     * @return string Результат расформатирования.
      */
     public function first_author() {
         $result = '';
@@ -262,6 +314,7 @@ final class HardFormat {
 
     /**
      * Область заглавия, поле 200.
+     * @return string Результат расформатирования.
      */
     public function title_area() {
         $result = '';
@@ -334,6 +387,7 @@ final class HardFormat {
 
     /**
      * Сведения об издании, поле 205.
+     * @return string Результат расформатирования.
      */
     public function edition() {
         $result = '';
@@ -348,6 +402,7 @@ final class HardFormat {
 
     /**
      * Выходные данные, поле 210.
+     * @return string Результат расформатирования.
      */
     public function imprint() {
         $result = '';
@@ -364,6 +419,7 @@ final class HardFormat {
 
     /**
      * Физические характеристики, поле 215.
+     * @return string Результат расформатирования.
      */
     public function physical_characteristics() {
         $result = '';
@@ -402,6 +458,7 @@ final class HardFormat {
 
     /**
      * Область серии, поле 225.
+     * @return string Результат расформатирования.
      */
     public function series() {
         $result = '';
@@ -432,6 +489,7 @@ final class HardFormat {
 
     /**
      * ISBN и цена, поле 10.
+     * @return string Результат расформатирования.
      */
     public function isbn_and_price() {
         $result = '';
@@ -468,6 +526,7 @@ final class HardFormat {
 
     /**
      * Идентификационный номер нетекстового материала, поле 19.
+     * @return string Результат расформатирования.
      */
     public function identifier() {
         $result = '';
@@ -490,6 +549,7 @@ final class HardFormat {
 
     /**
      * Вид содержания, средства доступа и характеристика содержания.
+     * @return string Результат расформатирования.
      */
     public function kind_of_content() {
         $result = '';
@@ -504,6 +564,9 @@ final class HardFormat {
 
     /**
      * Краткое библиографическое описание.
+     * @param MarcRecord $record Новая запись (опционально, если не задать,
+     * используется старая запись.
+     * @return string Результат расформатирования.
      */
     public function brief($record = null) {
         if ($record) {
