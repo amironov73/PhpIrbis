@@ -179,7 +179,7 @@ function search_count()
     $result = $connection->searchCount($expression);
     $connection->disconnect();
     return $result;
-} // function search
+} // function search_count
 
 function search_format()
 {
@@ -196,7 +196,33 @@ function search_format()
     $result = \Irbis\FoundLine::toDescription($result);
     sort($result);
     return $result;
-} // function search
+} // function search_format
+
+function search_format2()
+{
+    $connection = get_connection();
+    $database = $_GET['db'] ?: $connection->database;
+    $connection->database = $database;
+    $expression = $_GET['expr'];
+    $format1 = $_GET['format1'];
+    $format2 = $_GET['format2'];
+    $mfns = $connection->search($expression);
+    $result1 = $connection->formatRecords($format1, $mfns);
+    $result2 = $connection->formatRecords($format2, $mfns);
+    $result = array();
+    $mfnCount = count($mfns);
+    for ($i = 0; $i < $mfnCount; $i++)
+    {
+        $item = [
+          "description" => $result1[$i],
+          "url" => $result2[$i]
+        ];
+        array_push($result, $item);
+    }
+
+    $connection->disconnect();
+    return $result;
+} // function search_format2
 
 function search_scenarios()
 {
@@ -296,6 +322,10 @@ switch ($operation) {
 
     case 'search_format':
         $result = search_format();
+        break;
+
+    case 'search_format2':
+        $result = search_format2();
         break;
 
     case 'server_stat':
