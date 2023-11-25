@@ -6,6 +6,18 @@
 // Работает с сервером ИРБИС64 2014 и выше.
 //
 
+use Irbis\Connection;
+use Irbis\DatabaseInfo;
+use Irbis\FoundLine;
+use Irbis\IrbisException;
+use Irbis\MarcRecord;
+use Irbis\MenuFile;
+use Irbis\OptFile;
+use Irbis\RawRecord;
+use Irbis\SearchParameters;
+use Irbis\SearchScenario;
+use Irbis\VersionInfo;
+
 require_once __DIR__ . '/PhpIrbis.php';
 
 $result = null;
@@ -17,6 +29,10 @@ if (!$operation) {
     die(1);
 }
 
+/**
+ * Получение информации о базе данных.
+ * @return DatabaseInfo Информация о базе данных.
+ */
 function db_info()
 {
     $connection = get_connection();
@@ -26,9 +42,13 @@ function db_info()
     return $result;
 }
 
+/**
+ * Подключение к серверу ИРБИС64.
+ * @return Connection Активное подключение к серверу ИРБИС64.
+ */
 function get_connection()
 {
-    $result = new Irbis\Connection();
+    $result = new Connection();
     $result->host = '127.0.0.1';
     $result->username = 'librarian';
     $result->password = 'secret';
@@ -41,6 +61,10 @@ function get_connection()
     return $result;
 } // function get_connection
 
+/**
+ * Получение списка баз данных.
+ * @return array Массив описаний баз данных.
+ */
 function list_databases()
 {
     $connection = get_connection();
@@ -50,6 +74,10 @@ function list_databases()
     return $result;
 } // function list_databases
 
+/**
+ * Получение списка серверных ресурсов.
+ * @return array Список найденных ресурсов.
+ */
 function list_files()
 {
     $connection = get_connection();
@@ -59,6 +87,10 @@ function list_files()
     return $result;
 } // function list_files
 
+/**
+ * Получение списка рабочих серверных процессов.
+ * @return array Массив описаний серверных процессов.
+ */
 function list_processes()
 {
     $connection = get_connection();
@@ -67,6 +99,10 @@ function list_processes()
     return $result;
 } // function list_processes
 
+/**
+ * Получение списка поисковых терминов.
+ * @return array Массив поисковых терминов.
+ */
 function list_terms()
 {
     $connection = get_connection();
@@ -78,6 +114,10 @@ function list_terms()
     return $result;
 } // function list_terms
 
+/**
+ * Получение максимального MFN для указанной базы данных.
+ * @return int Максимальный MFN.
+ */
 function max_mfn()
 {
     $connection = get_connection();
@@ -87,6 +127,10 @@ function max_mfn()
     return $result;
 } // function max_mfn
 
+/**
+ * Получение меню.
+ * @return MenuFile Меню.
+ */
 function read_menu()
 {
     $connection = get_connection();
@@ -96,53 +140,73 @@ function read_menu()
     return $result;
 } // function read_menu
 
+/**
+ * Получение файла оптимизации форматов.
+ * @return OptFile Файл оптимизации форматов.
+ */
 function read_opt()
 {
     $connection = get_connection();
     $spec = $_GET['spec'];
     try {
         $result = $connection->readOptFile($spec);
-    } catch (\Irbis\IrbisException $e) {
+    } catch (IrbisException $e) {
         $result = new Irbis\OptFile();
     }
     $connection->disconnect();
     return $result;
 } // function read_opt
 
+/**
+ * Чтение библиографической записи в сыром формате.
+ * @return RawRecord Запись в сыром формате.
+ */
 function read_raw_record()
 {
     $connection = get_connection();
     $database = $_GET['db'] ?: $connection->database;
     $connection->database = $database;
-    $mfn = intval($_GET['mfn']);
+    $mfn = (int) $_GET['mfn'];
     $result = $connection->readRawRecord($mfn);
     $connection->disconnect();
     return $result;
 } // function read_raw_record
 
+/**
+ * Чтение библиографической записи в структурированном формате.
+ * @return MarcRecord Запись в структурированном формате.
+ */
 function read_record()
 {
     $connection = get_connection();
     $database = $_GET['db'] ?: $connection->database;
     $connection->database = $database;
-    $mfn = intval($_GET['mfn']);
+    $mfn = (int) $_GET['mfn'];
     $result = $connection->readRecord($mfn);
     $connection->disconnect();
     return $result;
 } // function read_record
 
+/**
+ * Чтение массива поисковых терминов.
+ * @return array Массив поисковых терминов.
+ */
 function read_terms()
 {
     $connection = get_connection();
     $database = $_GET['db'] ?: $connection->database;
     $connection->database = $database;
     $start = $_GET['start'];
-    $number = intval($_GET['number'] ?: 100);
+    $number = (int) ($_GET['number'] ?: 100);
     $result = $connection->readTerms($start, $number);
     $connection->disconnect();
     return $result;
 } // function read_terms
 
+/**
+ * Чтение текстового ресурса с сервера.
+ * @return string Текстовый ресурс.
+ */
 function read_text_file()
 {
     $connection = get_connection();
@@ -152,6 +216,10 @@ function read_text_file()
     return $result;
 } // function read_text_file
 
+/**
+ * Перезапуск сервера.
+ * @return void
+ */
 function restart_server()
 {
     $connection = get_connection();
@@ -159,6 +227,10 @@ function restart_server()
     $connection->disconnect();
 } // function restart_server
 
+/**
+ * Поиск библиографических записей.
+ * @return array Массив MFN найденных записей.
+ */
 function search()
 {
     $connection = get_connection();
@@ -170,6 +242,10 @@ function search()
     return $result;
 } // function search
 
+/**
+ * Получение количества записей, удовлетворяющих поисковому запросу.
+ * @return int Количество найденных записей.
+ */
 function search_count()
 {
     $connection = get_connection();
@@ -181,23 +257,32 @@ function search_count()
     return $result;
 } // function search_count
 
+/**
+ * Поиск с форматированием.
+ * @return array Массив форматированных записей.
+ */
 function search_format()
 {
     $connection = get_connection();
     $database = $_GET['db'] ?: $connection->database;
     $expression = $_GET['expr'];
     $format = $_GET['format'];
-    $parameters = new \Irbis\SearchParameters();
+    $parameters = new SearchParameters();
     $parameters->database = $database;
     $parameters->expression = $expression;
     $parameters->format = $format;
     $result = $connection->searchEx($parameters);
     $connection->disconnect();
-    $result = \Irbis\FoundLine::toDescription($result);
+    $result = FoundLine::toDescription($result);
     sort($result);
     return $result;
 } // function search_format
 
+/**
+ * Поиск полнотекстовых документов.
+ * @return array Массив объектов, состоящих из форматированной записи
+ * и путь к полному тексту документа.
+ */
 function search_format2()
 {
     $connection = get_connection();
@@ -217,18 +302,21 @@ function search_format2()
           "description" => $result1[$i],
           "url" => $result2[$i]
         ];
-        array_push($result, $item);
+        $result[] = $item;
     }
 
     $connection->disconnect();
     return $result;
 } // function search_format2
 
+/**
+ * Получение поисковых сценариев по умолчанию.
+ * @return array Массив поисковых сценариев.
+ */
 function search_scenarios()
 {
     $connection = get_connection();
-    $result = \Irbis\SearchScenario::parse($connection->iniFile);
-    return $result;
+    return SearchScenario::parse($connection->iniFile);
 } // function search_scenarios
 
 function server_stat()
@@ -239,6 +327,10 @@ function server_stat()
     return $result;
 } // function server_stat
 
+/**
+ * Получение версии сервера ИРБИС64.
+ * @return VersionInfo Версия сервера.
+ */
 function server_version()
 {
     $connection = get_connection();
@@ -247,6 +339,10 @@ function server_version()
     return $result;
 } // function server_version
 
+/**
+ * Получение списка зарегистрированных в системе пользователей.
+ * @return array Массив пользователей.
+ */
 function user_list()
 {
     $connection = get_connection();
@@ -343,7 +439,6 @@ switch ($operation) {
     default:
         echo '<h3 style="color: red;">Неизвестная операция: ', $operation, '</h3>';
         die(1);
-        break;
 }
 
 header('Content-Type: application/json; charset=utf-8');
