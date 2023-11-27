@@ -12,10 +12,19 @@ MenuFile и MenuLine
 
 Файл меню. Состоит из пар строк.
 
+.. _ini-files:
+
 IniFile, IniSection и IniLine
 =============================
 
 INI-файл, состоящий из секций, которые в свою очередь состоят из строк вида "ключ=значение".
+
+Получение значения для ключа "FmtMnu" из секции "Main" с указанием значения по умолчанию:
+
+.. code-block:: php
+
+    $formatMenuName = $client->iniFile->getValue('Main', 'FmtMnu', 'FMT31.MNU');
+
 
 TreeFile и TreeLine
 ===================

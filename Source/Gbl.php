@@ -324,17 +324,21 @@ final class Gbl
 
     /**
      * Переход к одной из предыдущих копий записи (откат).
-     * @param $version
+     * @param mixed $version На сколько шагов необходимо вернуться.
+     * '*' = исходная версия записи. Пусто = нет действий.
      * @return Gbl $this Для цепочечных вызовов.
      */
     public function undo($version)
     {
+        if (!$version) {
+            return $this->statement('UNDOR');
+        }
         return $this->statement('UNDOR', $version);
     } // function undo
 
     public function __toString()
     {
-        $result = strval(count($this->_parameters));
+        $result = (string) count($this->_parameters);
 
         foreach ($this->_parameters as $param) {
             $result .= "\n" . $param->value . "\n" . $param->title;
