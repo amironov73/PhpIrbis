@@ -267,10 +267,21 @@ function utfToAnsi ($text)
 } // function utfToAnsi
 
 /**
+ * @brief Замена обычных переводов строки на ИРБИСные.
+ *
+ * @param string $text Текст для замены.
+ * @return string Текст с замененными переводами строки.
+ */
+function dos_to_irbis($text)
+{
+    return str_replace(array("\r\n", "\r", "\n"), array(IRBIS_DELIMITER, "0x1F", "0x1E"), $text);
+} // function dos_to_irbis
+
+/**
  * @brief Замена переводов строки с ИРБИСных на обычные.
  *
  * @param string $text Текст для замены.
- * @return mixed Текст с замененными переводами строки.
+ * @return string Текст с замененными переводами строки.
  */
 function irbis_to_dos($text)
 {
