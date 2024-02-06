@@ -84,6 +84,10 @@ const GBL_REPEAT       = 'REPEAT'; ///< цикл из группы операт�
 const GBL_UNTIL        = 'UNTIL';  ///< закрывающий оператор для цикла
 const PUTLOG           = 'PUTLOG'; ///< формирование пользовательского протокола
 
+//Работа через WebToIrbisServer
+const IRBIS_START_REQUEST = 'IRBIS_START_REQUEST'; //служебное слово для обозначения начала ответа/запроса
+const IRBIS_END_REQUEST = 'IRBIS_END_REQUEST'; //служебное слово для обозначения начала ответа/запроса
+
 /**
  * @brief Разделитель строк в ИРБИС.
  */
@@ -3628,9 +3632,16 @@ final class ServerResponse
         $this->connection = $connection;
         $this->answer = '';
 
-        while ($buf = socket_read($socket, 2048)) {
-            $this->answer .= $buf;
-        }
+		if ($connection->webServer === false) :
+			while ($buf = socket_read($socket, 2048)) {
+				$this->answer .= $buf;
+			}
+		else:
+			
+			$this->answer =	str_replace(IRBIS_START_REQUEST . chr(10), null, $socket);
+			$this->answer =	str_replace(IRBIS_END_REQUEST, null, $this->answer);
+					
+		endif;
 
         if ($connection->debug) {
             $this->debug();
@@ -3808,6 +3819,11 @@ final class ServerResponse
     {
         return $this->getLine();
     }
+
+    public function GetCurl()
+	{
+		return $this->accumulator;
+	}
 } // class ServerResponse
 
 /**
@@ -3885,6 +3901,17 @@ final class Connection
      * @var int Код последней ошибки.
      */
     public $lastError = 0;
+
+    /**
+     * @var bool Признак использования cgi (WebToIrbisServer)
+     */
+    public $webServer = false;
+	
+	/**
+     * @var string Относительный путь к шлюзу
+	 * default '/cgi-bin/irbis64r_plus/WebToIrbisServer.exe'
+     */
+    public $webCgi = '/cgi-bin/irbis64r_plus/WebToIrbisServer.exe';
 
     //================================================================
 
@@ -4105,6 +4132,8 @@ final class Connection
     public function execute(ClientQuery $query)
     {
         $this->lastError = 0;
+		if ($this->webServer === false) :
+		
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if ($socket === false) {
             $this->lastError = -100001;
@@ -4117,13 +4146,34 @@ final class Connection
             return false;
         }
 
-        $packet = strval($query);
+        
+
+        socket_write($socket, $packet, strlen($packet));
+       
+		
+		else:
+		
+		$curl = curl_init();
+		$url = 'http://' . $this->host . $this->webCgi;
+		curl_setopt_array($curl, array(
+			CURLOPT_URL => $url,
+			CURLOPT_USERAGENT => 'irbis\client',
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_HTTPHEADER => array('Accept: *.*', 'Content-Type: application/octet-stream'),
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => strval($query->GetCurl()),
+		)
+		);
+		$socket = curl_exec($curl);
+		curl_close($curl);
+		endif;
+		
+		$packet = strval($query);
 
         if ($this->debug) {
             file_put_contents('php://stderr', print_r($packet, TRUE));
         }
-
-        socket_write($socket, $packet, strlen($packet));
+        
         $response = new ServerResponse($this, $socket);
         $this->queryId++;
 
