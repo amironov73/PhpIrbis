@@ -4132,48 +4132,45 @@ final class Connection
     public function execute(ClientQuery $query)
     {
         $this->lastError = 0;
-		if ($this->webServer === false) :
-		
-        $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        if ($socket === false) {
-            $this->lastError = -100001;
-            return false;
+		if ($this->webServer === false) {
+
+            // подключение по протоколу ИРБИС-сервера
+            $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+            if ($socket === false) {
+                $this->lastError = -100001;
+                return false;
+            }
+
+            if (!socket_connect($socket, $this->host, $this->port)) {
+                socket_close($socket);
+                $this->lastError = -100002;
+                return false;
+            }
+
+            $packet = strval($query);
+            socket_write($socket, $packet, strlen($packet));
+            if ($this->debug) {
+                file_put_contents('php://stderr', print_r($packet, TRUE));
+            }
+        }
+        else {
+
+            // подключение через cgi-прокси
+            $curl = curl_init();
+            $url = 'http://' . $this->host . $this->webCgi;
+            curl_setopt_array($curl, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_USERAGENT => 'irbis\client',
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_HTTPHEADER => array('Accept: *.*', 'Content-Type: application/octet-stream'),
+                    CURLOPT_POST => true,
+                    CURLOPT_POSTFIELDS => strval($query->GetCurl()),
+                )
+            );
+            $socket = curl_exec($curl);
+            curl_close($curl);
         }
 
-        if (!socket_connect($socket, $this->host, $this->port)) {
-            socket_close($socket);
-            $this->lastError = -100002;
-            return false;
-        }
-
-        
-
-        socket_write($socket, $packet, strlen($packet));
-       
-		
-		else:
-		
-		$curl = curl_init();
-		$url = 'http://' . $this->host . $this->webCgi;
-		curl_setopt_array($curl, array(
-			CURLOPT_URL => $url,
-			CURLOPT_USERAGENT => 'irbis\client',
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_HTTPHEADER => array('Accept: *.*', 'Content-Type: application/octet-stream'),
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => strval($query->GetCurl()),
-		)
-		);
-		$socket = curl_exec($curl);
-		curl_close($curl);
-		endif;
-		
-		$packet = strval($query);
-
-        if ($this->debug) {
-            file_put_contents('php://stderr', print_r($packet, TRUE));
-        }
-        
         $response = new ServerResponse($this, $socket);
         $this->queryId++;
 
@@ -4894,6 +4891,11 @@ final class Connection
         $query = new ClientQuery($this, 'C');
         $query->addAnsi($this->database)->newLine();
         $query->add($mfn)->newLine();
+
+        // явно запрашиваем последнюю версию записи,
+        // т. к. этого требуют сервера от Батрака
+        $query->add(0)->newLine();
+
         $response = $this->execute($query);
         if (!$response || !$response->checkReturnCode(codes_for_read_record()))
             return false;
@@ -4922,6 +4924,7 @@ final class Connection
         $query->addAnsi($this->database)->newLine();
         $query->add($mfn)->newLine();
         $query->add($version);
+
         $response = $this->execute($query);
         if (!$response || !$response->checkReturnCode(codes_for_read_record()))
             return false;
