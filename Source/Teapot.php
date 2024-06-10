@@ -59,11 +59,17 @@ final class RelevanceCoefficient
     public $value;
 
     /**
+     * @var bool Приоритетная метка поля (если найдена хотя бы одна запись, поиск завершается).
+     */
+    public $priority;
+
+    /**
      * Конструктор.
      */
-    public function __construct($value, $tags)
+    public function __construct($value, $priority, $tags)
     {
         $this->fields = $tags;
+        $this->priority = $priority;
         $this->value = $value;
     }
 }
@@ -76,7 +82,7 @@ final class RelevanceSettings
     /**
      * @var array Массив коэффициентов релевантности.
      */
-    public $coefficents;
+    public $coefficients;
 
     /**
      * @var double Релевантность для упоминаний в посторонних полях.
@@ -93,7 +99,7 @@ final class RelevanceSettings
      */
     public function __construct()
     {
-        $this->coefficents = array();
+        $this->coefficients = array();
         $this->extraneous = 1.0;
         $this->multiplier = 2.0;
     }
@@ -106,57 +112,71 @@ final class RelevanceSettings
         $result = new RelevanceSettings();
         $result->extraneous = 1.0;
         $result->multiplier = 2.0;
-        $result->coefficents = [
+        $result->coefficients = [
 
-            // заглавие или авторы
-            new RelevanceCoefficient (10,
+            // заглавие
+            new RelevanceCoefficient(20, true,
                 [
                     200, // основное заглавие
+                    461 // заглавие общей части
+                ]),
+
+            // авторы
+            new RelevanceCoefficient(20, true,
+                [
                     700, 701, // индивидуальные авторы
                     710, 711, 971, 972, // коллективные авторы
+                ]),
+
+            // выпуск, заглавие общей части
+            new RelevanceCoefficient (10, false,
+                [
                     923, // выпуск, часть
                     922, // статья сборника
                     925, // несколько томов в одной книге
                     961, // индивидуальные авторы общей части
                     962, // коллективы общей части
-                    461, // заглавие общей части
                     463 // издание, в котором опубликована статья
                 ]),
 
             // редакторы
-            new RelevanceCoefficient(7, [702]),
+            new RelevanceCoefficient(7, false, [702]),
 
             // прочие заглавия
-            new RelevanceCoefficient(6, [
-                510, // параллельное заглавие
-                517, // разночтение заглавия
-                541, // перевод заглавия
-                924, // "другое" заглавие
-                921 // транслитерированное заглавие
-            ]),
+            new RelevanceCoefficient(6, false,
+                [
+                    510, // параллельное заглавие
+                    517, // разночтение заглавия
+                    541, // перевод заглавия
+                    924, // "другое" заглавие
+                    921 // транслитерированное заглавие
+                ]),
 
             // содержание
-            new RelevanceCoefficient(6, [
-                330, // оглавление
-                922 // статья из журнала
-            ]),
+            new RelevanceCoefficient(6, false,
+                [
+                    330, // оглавление
+                    922 // статья из журнала
+                ]),
 
             // рубрики
-            new RelevanceCoefficient(5, [
-                606, // предметная рубрика
-                607, // географическая рубрика
-                600, 601, // персоналия
-                965 // дескриптор
-            ]),
+            new RelevanceCoefficient(5, false,
+                [
+                    606, // предметная рубрика
+                    607, // географическая рубрика
+                    600, 601, // персоналия
+                    965 // дескриптор
+                ]),
 
             // серия
-            new RelevanceCoefficient(4, [225]),
+            new RelevanceCoefficient(4, false, [225]),
 
             // ключевые слова и аннотации
-            new RelevanceCoefficient(3, [
-                610, // ненормированное ключевое слово
-                331 // аннотация
-            ])
+            new RelevanceCoefficient(3, false,
+                [
+                    610, // ненормированное ключевое слово
+                    331 // аннотация
+                ])
         ];
 
         return $result;
@@ -199,6 +219,8 @@ final class RelevanceEvaluator
      * @return double Оценка, выраженная числом.
      */
     private function evaluateText($text, $value) {
+        // TODO возвращать признак полного совпадения
+
         $result = 0.0;
 
         if ($text) {
@@ -224,6 +246,7 @@ final class RelevanceEvaluator
      * @return double Оценка, выраженная числом.
      */
     private function evaluateField ($field, $value) {
+        // TODO возвращать признак полного совпадения
         $result = $this->evaluateText($field->value, $value);
 
         foreach ($field->subfields as $subfield) {
@@ -239,15 +262,16 @@ final class RelevanceEvaluator
      * @param $record MarcRecord Запись, подлежащая оценке.
      * @return double Оценка, выраженная числом.
      */
-    public function evaluate($record)
-    {
+    public function evaluate($record) {
+        // TODO обрабатывать признак полного совпадения и флаг приоритетного поиска
+
         $result = 0.0;
 
-        foreach ($this->settings->coefficents as $coefficent) {
-            foreach ($coefficent->fields as $tag) {
+        foreach ($this->settings->coefficients as $coefficient) {
+            foreach ($coefficient->fields as $tag) {
                 $fields = $record->getFields($tag);
                 foreach ($fields as $field) {
-                    $result += $this->evaluateField($field, $coefficent->value);
+                    $result += $this->evaluateField($field, $coefficient->value);
                 }
             }
         }
