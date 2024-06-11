@@ -212,6 +212,11 @@ final class RelevanceEvaluator
     public $terms;
 
     /**
+     * @var bool Включение отладки.
+     */
+    public $debug;
+
+    /**
      * Оценка содержимого подполя.
      *
      * @param $text string Содержимое подполя.
@@ -227,8 +232,14 @@ final class RelevanceEvaluator
             foreach ($this->terms as $term) {
                 if (stripos($text, $term) !== false) {
                     if (strcasecmp($text, $term) === 0) {
+                        if ($this->debug) {
+                            echo "FULL MATCH: $text ($value * {$this->settings->multiplier})<br>" . PHP_EOL;
+                        }
                         $result += $value * $this->settings->multiplier;
                     } else {
+                        if ($this->debug) {
+                            echo "PARTIAL: $term in $text ($value)<br>" . PHP_EOL;
+                        }
                         $result += $value;
                     }
                 }
@@ -310,6 +321,11 @@ final class Teapot
     public $limit;
 
     /**
+     * @var bool Включение отладки.
+     */
+    public $debug;
+
+    /**
      * Конструктор.
      */
     public function __construct()
@@ -346,10 +362,10 @@ final class Teapot
         }
 
         $terms = array();
-        $terms[$query] = 1;
+        $terms[$query] = true;
         preg_match_all('/\w+/u', $query, $words);
         foreach ($words[0] as $word) {
-            $terms[$word] = 1;
+            $terms[$word] = false;
         }
 
         $result = '';
@@ -402,6 +418,7 @@ final class Teapot
         $evaluator = new RelevanceEvaluator();
         $evaluator->settings = $this->settings;
         $evaluator->terms = $this->terms;
+        $evaluator->debug = $this->debug;
         $rating = [];
         foreach ($found as $record) {
             $item = (object) array (
@@ -416,8 +433,9 @@ final class Teapot
             return $second->rating - $first->rating;
         });
 
-        return array_map (static function ($item) {
-            return $item->record->mfn;
-        }, $rating);
+        return $rating;
+//        return array_map (static function ($item) {
+//            return $item->record->mfn;
+//        }, $rating);
     }
 }
