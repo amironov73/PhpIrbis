@@ -22,11 +22,28 @@ require_once __DIR__ . '/PhpIrbis.php';
 
 $result = null;
 
-$operation = strtolower($_GET['op']);
-
-if (!$operation) {
+if (empty($_GET['op'])) {
     echo '<h3 style="color: red;">Не задана операция!</h3>';
     die(1);
+}
+
+$operation = strtolower($_GET['op']);
+
+function get_param($name, $value = null) {
+    $result = $value;
+    if (!empty($_GET[$name])) {
+        $result = $_GET[$name];
+    }
+    return $result;
+}
+
+function get_db($connection) {
+    $result = $connection->database;
+    if (!empty($_GET['db'])) {
+        $result = $_GET['db'];
+    }
+
+    return $result;
 }
 
 /**
@@ -36,7 +53,7 @@ if (!$operation) {
 function db_info()
 {
     $connection = get_connection();
-    $database = $_GET['db'] ?: $connection->database;
+    $database = get_db($connection);
     $result = $connection->getDatabaseInfo($database);
     $connection->disconnect();
     return $result;
@@ -50,10 +67,11 @@ function db_info()
 function get_connection()
 {
     $result = new Connection();
-    $result->host = '127.0.0.1';
-    $result->username = 'librarian';
-    $result->password = 'secret';
-    $result->database = 'IBIS';
+    $result->host = getenv ('IRBIS_HOST') ?: '127.0.0.1';
+    $result->port = (int) (getenv ('IRBIS_PORT') ?: '6666');
+    $result->username = getenv ('IRBIS_USER') ?: 'librarian';
+    $result->password = getenv ('IRBIS_PASSWORD') ?: 'secret';
+    $result->database = getenv ('IRBIS_DATABASE)') ?: 'IBIS';
     if (!$result->connect()) {
         echo '<h3 style="color: red;">Не удалось подключиться!</h3>';
         echo '<p>', Irbis\describe_error($result->lastError), '</p>';
@@ -69,7 +87,7 @@ function get_connection()
 function list_databases()
 {
     $connection = get_connection();
-    $spec = $_GET['spec'] ?: '1..dbnam2.mnu';
+    $spec = get_param('spec', '1..dbnam2.mnu');
     $result = $connection->listDatabases($spec);
     $connection->disconnect();
     return $result;
@@ -82,7 +100,7 @@ function list_databases()
 function list_files()
 {
     $connection = get_connection();
-    $spec = $_GET['spec'] ?: ('2.' . $connection->database . '.*.*');
+    $spec = get_param('spec', '2.' . $connection->database . '.*.*');
     $result = $connection->listFiles($spec);
     $connection->disconnect();
     return $result;
@@ -107,9 +125,9 @@ function list_processes()
 function list_terms()
 {
     $connection = get_connection();
-    $database = $_GET['db'] ?: $connection->database;
+    $database = get_db($connection);
     $connection->database = $database;
-    $prefix = $_GET['prefix'];
+    $prefix = get_param('prefix', '');
     $result = $connection->listTerms($prefix);
     $connection->disconnect();
     return $result;
@@ -122,7 +140,7 @@ function list_terms()
 function max_mfn()
 {
     $connection = get_connection();
-    $database = $_GET['db'] ?: $connection->database;
+    $database = get_db($connection);
     $result = $connection->getMaxMfn($database);
     $connection->disconnect();
     return $result;
@@ -165,9 +183,9 @@ function read_opt()
 function read_raw_record()
 {
     $connection = get_connection();
-    $database = $_GET['db'] ?: $connection->database;
+    $database = get_db($connection);
     $connection->database = $database;
-    $mfn = (int) $_GET['mfn'];
+    $mfn = (int) get_param('mfn', '0');
     $result = $connection->readRawRecord($mfn);
     $connection->disconnect();
     return $result;
@@ -180,9 +198,9 @@ function read_raw_record()
 function read_record()
 {
     $connection = get_connection();
-    $database = $_GET['db'] ?: $connection->database;
+    $database = get_db($connection);
     $connection->database = $database;
-    $mfn = (int) $_GET['mfn'];
+    $mfn = (int) get_param('mfn', '0');
     $result = $connection->readRecord($mfn);
     $connection->disconnect();
     return $result;
@@ -211,7 +229,7 @@ function read_terms()
 function read_text_file()
 {
     $connection = get_connection();
-    $spec = $_GET['spec'];
+    $spec = get_param('spec');
     $result = $connection->readTextFile($spec);
     $connection->disconnect();
     return $result;
@@ -235,9 +253,9 @@ function restart_server()
 function search()
 {
     $connection = get_connection();
-    $database = $_GET['db'] ?: $connection->database;
+    $database = get_db($connection);
     $connection->database = $database;
-    $expression = $_GET['expr'];
+    $expression = get_param('expr', '');
     $result = $connection->search($expression);
     $connection->disconnect();
     return $result;
@@ -250,9 +268,9 @@ function search()
 function search_count()
 {
     $connection = get_connection();
-    $database = $_GET['db'] ?: $connection->database;
+    $database = get_db($connection);
     $connection->database = $database;
-    $expression = $_GET['expr'];
+    $expression = get_param('expr','');
     $result = $connection->searchCount($expression);
     $connection->disconnect();
     return $result;
@@ -265,9 +283,9 @@ function search_count()
 function search_format()
 {
     $connection = get_connection();
-    $database = $_GET['db'] ?: $connection->database;
-    $expression = $_GET['expr'];
-    $format = $_GET['format'];
+    $database = get_db($connection);
+    $expression = get_param('expr','');
+    $format = get_param('format', '@brief');
     $parameters = new SearchParameters();
     $parameters->database = $database;
     $parameters->expression = $expression;
